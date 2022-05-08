@@ -11,13 +11,9 @@
     <None Remove="Content\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Resources\logo.bmp" />
-    <None Remove="Resources\logo.jpg" />
-    <None Remove="Resources\logo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\logo.bmp" />
-    <EmbeddedResource Include="Resources\logo.jpg" />
+    <Content Include="test.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Meadow.F7" Version="0.*" />

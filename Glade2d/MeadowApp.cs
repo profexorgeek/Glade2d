@@ -1,4 +1,5 @@
-﻿using Meadow;
+﻿using Glade2d.Services;
+using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
 using Meadow.Foundation.Displays.TftSpi;
@@ -29,13 +30,15 @@ namespace Glade2d
 
         public MeadowApp()
         {
+            LogService.Log.Level = Logging.LogLevel.Trace;
+
             Initialize();
-            DrawShapes();
+            DrawTest();
         }
 
         void Initialize()
         {
-            Console.WriteLine("Initializing hardware...");
+            LogService.Log.Trace("Initializing hardware...");
 
             onboardLed = new RgbPwmLed(
                 device: Device,
@@ -43,6 +46,7 @@ namespace Glade2d
                 greenPwmPin: Device.Pins.OnboardLedGreen,
                 bluePwmPin: Device.Pins.OnboardLedBlue);
             onboardLed.SetColor(Color.Red);
+            LogService.Log.Trace("Onboard LED initialized.");
 
             var config = new SpiClockConfiguration(
                 speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
@@ -60,39 +64,37 @@ namespace Glade2d
                 resetPin: Device.Pins.D00,
                 width: 240,
                 height: 240);
+            LogService.Log.Trace("St7789 Graphics Device initialized.");
 
             displayWidth = Convert.ToInt32(st7789.Width);
             displayHeight = Convert.ToInt32(st7789.Height);
 
             graphics = new MicroGraphics(st7789);
             graphics.Rotation = RotationType._180Degrees;
+            graphics.Clear(true);
+            LogService.Log.Trace("Graphics buffer initialized.");
 
             onboardLed.SetColor(Color.Green);
+
+            LogService.Log.Trace("Initialization complete.");
         }
 
-        void DrawShapes()
+        
+
+        void DrawTest()
         {
-            Random rand = new Random();
+
             var stopwatch = new Stopwatch();
-
-            var img = Image.LoadFromResource("Glade2d.Resources.logo.bmp");
-            Console.WriteLine($"Loaded bitmap {img.Width}x{img.Height} with depth {img.BitsPerPixel} and buffer type {img.DisplayBuffer.GetType()}");
-            IDisplayBuffer buffer = img.DisplayBuffer;
-
-            //var jpgData = LoadResource("logo.jpg");
-            //var decoder = new JpegDecoder();
-            //var jpg = decoder.DecodeJpeg(jpgData);
-            //var jpgBuffer = new BufferRgb888(decoder.Width, decoder.Height, jpg);
-
-            var imgX = displayWidth / 2 - (buffer.Width / 2);
-            var imgY = displayHeight / 2 - (buffer.Height / 2);
-
             graphics.CurrentFont = new Font4x6();
             long elapsed;
             float fps;
 
+            var test = LoadBitmapFile("test.bmp");
+            var imgX = (displayWidth / 2) - (test.Width / 2);
+            var imgY = (displayHeight / 2) - (test.Height / 2);
+
             stopwatch.Start();
-            while(true)
+            while (true)
             {
                 stopwatch.Stop();
                 elapsed = stopwatch.ElapsedMilliseconds;
@@ -101,8 +103,7 @@ namespace Glade2d
                 graphics.Clear();
                 graphics.DrawRectangle(0, 0, 240, 240, Color.CornflowerBlue, true);
                 graphics.DrawText(5, 5, fps.ToString() + "fps", Color.Black);
-                graphics.DrawBuffer(imgX, imgY, img.DisplayBuffer);
-                //RenderBufferWithTransparency(imgX, imgY, img.DisplayBuffer);
+                graphics.DrawBuffer(imgX, imgY, test);
                 graphics.Show();
             }
         }
@@ -122,22 +123,35 @@ namespace Glade2d
             }
         }
 
-        byte[] LoadResource(string filename)
+        IDisplayBuffer LoadBitmapResource(string name)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourcePath = $"Glade2d.Resources.{filename}";
-            var resources = string.Join(",", assembly.GetManifestResourceNames());
-            Console.WriteLine($"Attempting to load {resourcePath} from set [{resources}]");
-            
-            using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
-            {
-                using (var ms = new MemoryStream())
-                {
-                    stream.CopyTo(ms);
-                    return ms.ToArray();
-                }
-            }
+            LogService.Log.Trace($"Attempting to LoadBitmapResource: {name}");
+            var resourcePath = $"Glade2d.Resources.{name}";
+            var img = Image.LoadFromResource(resourcePath);
+            return img.DisplayBuffer;
         }
+
+        IDisplayBuffer LoadBitmapFile(string name)
+        {
+            LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
+            var filePath = Path.Combine(MeadowOS.FileSystem.UserFileSystemRoot, name);
+            var img = Image.LoadFromFile(filePath);
+            return img.DisplayBuffer;
+        }
+
+        IDisplayBuffer LoadJpgResource(string name)
+        {
+            LogService.Log.Trace($"Attempting to LoadJpgResource: {name}");
+            var bytes = FileService.Instance.LoadResource(name);
+            var decoder = new JpegDecoder();
+            var jpg = decoder.DecodeJpeg(bytes);
+            var buffer = new BufferRgb888(decoder.Width, decoder.Height, jpg);
+            return buffer;
+        }
+
+        
+
+        
 
     }
 }
