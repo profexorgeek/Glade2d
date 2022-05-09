@@ -57,7 +57,7 @@ namespace Glade2d
                 copi: Device.Pins.MOSI,
                 cipo: Device.Pins.MISO,
                 config: config);
-            var st7789 = new St7789(
+            var display = new St7789(
                 device: Device,
                 spiBus: spiBus,
                 chipSelectPin: Device.Pins.D02,
@@ -67,9 +67,7 @@ namespace Glade2d
                 height: 240);
             LogService.Log.Trace("St7789 Graphics Device initialized.");
 
-            graphics = new MicroGraphics(st7789);
-            graphics.Rotation = RotationType._180Degrees;
-            renderer = new Renderer(graphics);
+            renderer = new Renderer(display, 4);
 
             LogService.Log.Trace("Graphics buffer initialized.");
 
@@ -97,8 +95,8 @@ namespace Glade2d
         void Draw()
         {
             renderer.Clear();
-            renderer.RenderFrame(100, 100, frame);
-            renderer.DrawBuffer();
+            renderer.DrawFrame(10, 10, frame);
+            renderer.Render();
         }
     }
 }

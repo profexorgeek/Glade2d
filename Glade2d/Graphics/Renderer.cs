@@ -5,35 +5,71 @@ using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
 namespace Glade2d.Graphics
 {
+    /// <summary>
+    /// This Renderer class uses a double-buffer pattern. Clear and Draw calls draw to a temporary
+    /// buffer that is scaled by the scale parameter provided to the constructor. When Render is called,
+    /// the contents of the graphicsBuffer are written to the display.
+    /// 
+    /// graphicsBuffer - the internal buffer where draw calls are composited
+    /// graphicsDevice - the actual hardware graphics device, we avoid drawing to this more than required
+    /// 
+    /// </summary>
     public class Renderer
     {
-        MicroGraphics graphicsDriver;
+        IGraphicsDisplay driver;
         Dictionary<string, IDisplayBuffer> textures = new Dictionary<string, IDisplayBuffer>();
+        IDisplayBuffer graphicsBuffer;
 
-        Color BackgroundColor { get; set; } = Color.Black;
-        Color TransparentColor { get; set; } = Color.Magenta;
-        bool ShowFPS { get; set; } = true;
+        public Color BackgroundColor { get; set; } = Color.Black;
+        public Color TransparentColor { get; set; } = Color.Magenta;
+        public bool ShowFPS { get; set; } = true;
+        public int Scale { get; private set; }
+        public int Width => driver.Width / Scale;
+        public int Height => driver.Height / Scale;
 
-        public Renderer(MicroGraphics graphics)
+        public Renderer(IGraphicsDisplay display, int scale = 1)
         {
             LogService.Log.Trace("Initializing Renderer");
-            graphicsDriver = graphics;
-            graphicsDriver.Clear(true);
-            graphicsDriver.CurrentFont = new Font12x16();
+
+            Scale = scale;
+
+            // clear and configure the display device
+            driver = display;
+            driver.Fill(BackgroundColor, true);
+            //driver.IgnoreOutOfBoundsPixels = true;
+
+            LogService.Log.Trace($"Got display driver of size: {driver.Width}x{driver.Height}");
+
+            // set up a buffer whose size is determined by the draw Scale
+            graphicsBuffer = new BufferRgb888(driver.Width / Scale, driver.Height / Scale);
+
+            LogService.Log.Trace($"Created an internal buffer of size {graphicsBuffer.Width}x{graphicsBuffer.Height}");
         }
 
+        /// <summary>
+        /// Clears the local graphics buffer and fills it with the background color
+        /// </summary>
+        /// <param name="sendToDevice"></param>
         public void Clear(bool sendToDevice = false)
         {
-            graphicsDriver.Clear(sendToDevice);
-            graphicsDriver.DrawRectangle(0, 0, 240, 240, BackgroundColor, true);
+            graphicsBuffer.Clear();
+            graphicsBuffer.Fill(BackgroundColor);
+            driver.Clear(sendToDevice);
         }
 
-        public void RenderFrame(int originX, int originY, Frame frame)
+        /// <summary>
+        /// Draws a frame into the graphics buffer
+        /// </summary>
+        /// <param name="originX">The frame's X origin point</param>
+        /// <param name="originY">The frame's Y origin point</param>
+        /// <param name="frame">The frame to be drawn</param>
+        public void DrawFrame(int originX, int originY, Frame frame)
         {
             if (!textures.ContainsKey(frame.TextureName))
             {
@@ -49,34 +85,59 @@ namespace Glade2d.Graphics
                     var pixel = buffer.GetPixel(x, y);
                     if (!pixel.Equals(TransparentColor))
                     {
-                        graphicsDriver.DrawPixel(originX + x, originY + y, pixel);
+                        graphicsBuffer.SetPixel(originX + x, originY + y, pixel);
                     }
                 }
             }
         }
 
-        public void DrawBuffer()
+        /// <summary>
+        /// Renders the contents of the internal buffer to the driver buffer and
+        /// then blits the driver buffer to the device
+        /// </summary>
+        public void Render()
         {
-            if(ShowFPS)
-            {
-                graphicsDriver.DrawRectangle(0, 0, graphicsDriver.Width, 16, Color.Black, true);
-                graphicsDriver.DrawText(0, 0, $"{GameService.Instance.Time.FPS}fps", Color.White);
-            }
+            // clear the graphics device
+            driver.Clear();
 
-            graphicsDriver.Show();
+            // draw the internal buffer to the driver buffer with scaling
+            DrawBufferToDeviceWithScaling();
+
+            // draw the FPS counter
+            if (ShowFPS)
+            {
+                // TODO: port font rendering from MicroGraphics?
+            }
+                       
+            // send the driver buffer to device
+            driver.Show();
         }
 
+        /// <summary>
+        /// Loads a bitmap texture into memory
+        /// </summary>
+        /// <param name="name">The texture name, such as myimage.bmp</param>
         public void LoadTexture(string name)
         {
             var buffer = LoadBitmapFile(name);
             textures.Add(name, buffer);
         }
 
+        /// <summary>
+        /// Unloads a bitmap texture from memory
+        /// </summary>
+        /// <param name="name">The </param>
         public void UnloadTexture(string name)
         {
             textures.Remove(name);
         }
 
+        /// <summary>
+        /// Internal method that loads a bitmap file from disk and
+        /// creates an IDisplayBuffer
+        /// </summary>
+        /// <param name="name">The bitmap file path</param>
+        /// <returns>An IDisplayBuffer containing bitmap data</returns>
         IDisplayBuffer LoadBitmapFile(string name)
         {
             LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
@@ -95,5 +156,39 @@ namespace Glade2d.Graphics
             
         }
 
+        /// <summary>
+        /// Draws the internal buffer to the device buffer and applies nearest-neighbor
+        /// scaling
+        /// </summary>
+        void DrawBufferToDeviceWithScaling()
+        {
+            // loop through X & Y, drawing pixels from buffer to device
+            for(int x = 0; x < graphicsBuffer.Width; x++)
+            {
+                for(int  y = 0; y < graphicsBuffer.Height; y++)
+                {
+                    // the target X and Y are based on the Scale
+                    var tX = x * Scale;
+                    var tY = y * Scale;
+                    var color = graphicsBuffer.GetPixel(x, y);
+
+                    if(Scale > 1)
+                    {
+                        for(var x1 = 0; x1 < Scale; x1++)
+                        {
+                            for(var y1 = 0; y1 < Scale; y1++)
+                            {
+                                driver.DrawPixel(tX + x1, tY + y1, color);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        driver.DrawPixel(x, y, color);
+                    }
+                    
+                }
+            }
+        }
     }
 }
