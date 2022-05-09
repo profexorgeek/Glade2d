@@ -12,6 +12,7 @@ using SimpleJpegDecoder;
 using System;
 using System.Diagnostics;
 using System.IO;
+using Image = Glade2d.Graphics.Image;
 using System.Linq;
 using System.Reflection;
 
@@ -89,9 +90,15 @@ namespace Glade2d
             long elapsed;
             float fps;
 
-            var test = LoadBitmapFile("test.bmp");
-            var imgX = (displayWidth / 2) - (test.Width / 2);
-            var imgY = (displayHeight / 2) - (test.Height / 2);
+            var img47 = LoadBitmapFile("47x47.bmp");
+            var img64 = LoadBitmapFile("64x64.bmp");
+            var img48 = LoadBitmapFile("48x48.bmp");
+            var img120 = LoadBitmapFile("120x120.bmp");
+
+
+
+            //var imgX = (displayWidth / 2) - (test.Width / 2);
+            //var imgY = (displayHeight / 2) - (test.Height / 2);
 
             stopwatch.Start();
             while (true)
@@ -103,7 +110,12 @@ namespace Glade2d
                 graphics.Clear();
                 graphics.DrawRectangle(0, 0, 240, 240, Color.CornflowerBlue, true);
                 graphics.DrawText(5, 5, fps.ToString() + "fps", Color.Black);
-                graphics.DrawBuffer(imgX, imgY, test);
+
+                graphics.DrawBuffer(0, 0, img47);
+                graphics.DrawBuffer(100, 0, img64);
+                graphics.DrawBuffer(0, 100, img48);
+                graphics.DrawBuffer(100, 100, img120);
+
                 graphics.Show();
             }
         }
@@ -148,10 +160,5 @@ namespace Glade2d
             var buffer = new BufferRgb888(decoder.Width, decoder.Height, jpg);
             return buffer;
         }
-
-        
-
-        
-
     }
 }
