@@ -1,5 +1,6 @@
 ﻿using Glade2d.Graphics;
 using Glade2d.Services;
+using Glade2d.Utility;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
@@ -18,12 +19,22 @@ namespace Glade2d
         MicroGraphics graphics;
         Renderer renderer;
 
+        Frame frame = new Frame()
+        {
+            TextureName = "spritesheet.bmp",
+            X = 0,
+            Y = 0,
+            Width = 16,
+            Height = 16,
+        };
+
+
         public MeadowApp()
         {
             LogService.Log.Level = Logging.LogLevel.Trace;
 
             Initialize();
-            DrawTest();
+            Start();
         }
 
         void Initialize()
@@ -63,32 +74,31 @@ namespace Glade2d
             LogService.Log.Trace("Graphics buffer initialized.");
 
             onboardLed.SetColor(Color.Green);
-
             LogService.Log.Trace("Initialization complete.");
         }
 
         void Start()
         {
+            GameService.Instance.Initialize();
 
+            LogService.Log.Trace("Starting game loop.");
+            while(true)
+            {
+                Update();
+                Draw();
+            }
         }
 
-        void DrawTest()
+        void Update()
         {
-            var frame = new Frame()
-            {
-                TextureName = "spritesheet.bmp",
-                X = 0,
-                Y = 0,
-                Width = 16,
-                Height = 16,
-            };
+            GameService.Instance.Time.Update();
+        }
 
-            while (true)
-            {
-                renderer.Clear();
-                renderer.RenderFrame(100, 100, frame);
-                renderer.DrawBuffer();
-            }
+        void Draw()
+        {
+            renderer.Clear();
+            renderer.RenderFrame(100, 100, frame);
+            renderer.DrawBuffer();
         }
     }
 }

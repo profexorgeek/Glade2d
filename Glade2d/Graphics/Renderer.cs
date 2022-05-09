@@ -17,12 +17,14 @@ namespace Glade2d.Graphics
 
         Color BackgroundColor { get; set; } = Color.Black;
         Color TransparentColor { get; set; } = Color.Magenta;
+        bool ShowFPS { get; set; } = true;
 
         public Renderer(MicroGraphics graphics)
         {
             LogService.Log.Trace("Initializing Renderer");
             graphicsDriver = graphics;
             graphicsDriver.Clear(true);
+            graphicsDriver.CurrentFont = new Font12x16();
         }
 
         public void Clear(bool sendToDevice = false)
@@ -55,6 +57,12 @@ namespace Glade2d.Graphics
 
         public void DrawBuffer()
         {
+            if(ShowFPS)
+            {
+                graphicsDriver.DrawRectangle(0, 0, graphicsDriver.Width, 16, Color.Black, true);
+                graphicsDriver.DrawText(0, 0, $"{GameService.Instance.Time.FPS}fps", Color.White);
+            }
+
             graphicsDriver.Show();
         }
 
