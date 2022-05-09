@@ -94,9 +94,22 @@ namespace Glade2d.Graphics
                     var pixel = buffer.GetPixel(x, y);
                     if (!pixel.Equals(TransparentColor))
                     {
-                        graphicsBuffer.SetPixel(originX + x, originY + y, pixel);
+                        graphicsBuffer.SetPixel(originX + x - frame.X, originY + y - frame.Y, pixel);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Draws a sprite's CurrentFrame into the
+        /// graphics buffer
+        /// </summary>
+        /// <param name="sprite">The sprite to draw</param>
+        public void DrawSprite(Sprite sprite)
+        {
+            if(sprite.CurrentFrame != null)
+            {
+                DrawFrame((int)sprite.X, (int)sprite.Y, sprite.CurrentFrame);
             }
         }
 

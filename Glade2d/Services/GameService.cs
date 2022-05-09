@@ -1,4 +1,5 @@
-﻿using Glade2d.Utility;
+﻿using Glade2d.Screens;
+using Glade2d.Utility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -23,6 +24,8 @@ namespace Glade2d.Services
         }
 
         public GameTime Time { get; private set; }
+
+        public Screen CurrentScreen { get; set; } = new Screen();
 
         private GameService() { }
 

@@ -22,14 +22,7 @@ namespace Glade2d
         Renderer renderer;
         double timeToNextFPS;
 
-        Frame frame = new Frame()
-        {
-            TextureName = "spritesheet.bmp",
-            X = 0,
-            Y = 0,
-            Width = 16,
-            Height = 16,
-        };
+        
 
 
         public MeadowApp()
@@ -82,6 +75,29 @@ namespace Glade2d
         {
             GameService.Instance.Initialize();
 
+            var sprite1 = new Sprite(
+                new Frame()
+                {
+                    TextureName = "spritesheet.bmp",
+                    X = 0,
+                    Y = 0,
+                    Width = 16,
+                    Height = 16,
+                });
+            var sprite2 = new Sprite(
+                new Frame()
+                {
+                    TextureName = "spritesheet.bmp",
+                    X = 32,
+                    Y = 0,
+                    Width = 16,
+                    Height = 16,
+                });
+            sprite2.X = 16;
+
+            GameService.Instance.CurrentScreen.Sprites.Add(sprite1);
+            GameService.Instance.CurrentScreen.Sprites.Add(sprite2);
+
             LogService.Log.Trace("Starting game loop.");
             while(true)
             {
@@ -98,14 +114,21 @@ namespace Glade2d
                 timeToNextFPS = fpsLogFrequency;
                 LogService.Log.Trace($"{GameService.Instance.Time.FPS}fps");
             }
-
-            GameService.Instance.Time.Update();
+            GameService.Instance.Time?.Update();
+            GameService.Instance.CurrentScreen?.Update();
         }
 
         void Draw()
         {
             renderer.Clear();
-            renderer.DrawFrame(10, 10, frame);
+            var screen = GameService.Instance.CurrentScreen;
+            if(screen != null)
+            {
+                for (var i = 0; i < screen.Sprites.Count; i++)
+                {
+                    renderer.DrawSprite(screen.Sprites[i]);
+                }
+            }
             renderer.Render();
         }
     }
