@@ -1,6 +1,5 @@
 ﻿using Glade2d.Graphics;
 using Glade2d.Services;
-using Glade2d.Utility;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
@@ -63,7 +62,7 @@ namespace Glade2d
                 height: 240);
             LogService.Log.Trace("St7789 Graphics Device initialized.");
 
-            renderer = new Renderer(display, 4);
+            renderer = new Renderer(display, 2);
 
             LogService.Log.Trace("Graphics buffer initialized.");
 
@@ -88,7 +87,7 @@ namespace Glade2d
                 new Frame()
                 {
                     TextureName = "spritesheet.bmp",
-                    X = 32,
+                    X = 16,
                     Y = 0,
                     Width = 16,
                     Height = 16,

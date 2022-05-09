@@ -51,7 +51,7 @@ namespace Glade2d.Graphics
             // clear and configure the display device
             driver = display;
             driver.Fill(BackgroundColor, true);
-            //driver.IgnoreOutOfBoundsPixels = true;
+            driver.IgnoreOutOfBoundsPixels = true;
 
             LogService.Log.Trace($"Got display driver of size: {driver.Width}x{driver.Height}");
 
@@ -92,9 +92,17 @@ namespace Glade2d.Graphics
                 for (var y = frame.Y; y < frame.Y + frame.Height; y++)
                 {
                     var pixel = buffer.GetPixel(x, y);
-                    if (!pixel.Equals(TransparentColor))
+                    var tX = originX + x - frame.X;
+                    var tY = originY + y - frame.Y;
+
+                    // only draw if not transparent and within buffer
+                    if (!pixel.Equals(TransparentColor) && 
+                        tX > 0 &&
+                        tY > 0 &&
+                        tX < graphicsBuffer.Width &&
+                        tY < graphicsBuffer.Width)
                     {
-                        graphicsBuffer.SetPixel(originX + x - frame.X, originY + y - frame.Y, pixel);
+                        graphicsBuffer.SetPixel(tX, tY, pixel);
                     }
                 }
             }
