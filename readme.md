@@ -29,8 +29,9 @@ File an issue, write a doc, submit a PR, or reach out to @profexorgeek on Twitte
 - [x] Get texture loading and rendering on a graphics device
 - [x] Get a simple renderer that can draw frames from a spritesheet
 - [x] Create the core game loop with update delta tracking
+- [x] Enable a smaller graphics buffer that can scale after compositing is complete
 - [ ] Create the concept of a drawable object
-- [ ] Create a scene graph that holds drawable objects
+- [x] Create a scene graph that holds drawable objects
+- [ ] Enable parent child relationships and a tree-shaped scene graph
 - [ ] Set up the renderer to render the scene graph
-
 
