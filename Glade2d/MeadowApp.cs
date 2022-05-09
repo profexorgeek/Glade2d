@@ -15,6 +15,8 @@ using System.IO;
 using Image = Glade2d.Graphics.Image;
 using System.Linq;
 using System.Reflection;
+using Glade2d.Graphics;
+using System.Collections.Generic;
 
 namespace Glade2d
 {
@@ -27,6 +29,7 @@ namespace Glade2d
         MicroGraphics graphics;
         int displayWidth;
         int displayHeight;
+        Dictionary<string, IDisplayBuffer> textures = new Dictionary<string, IDisplayBuffer>();
 
 
         public MeadowApp()
@@ -86,19 +89,19 @@ namespace Glade2d
         {
 
             var stopwatch = new Stopwatch();
-            graphics.CurrentFont = new Font4x6();
+            graphics.CurrentFont = new Font12x20();
             long elapsed;
             float fps;
 
-            var img47 = LoadBitmapFile("47x47.bmp");
-            var img64 = LoadBitmapFile("64x64.bmp");
-            var img48 = LoadBitmapFile("48x48.bmp");
-            var img120 = LoadBitmapFile("120x120.bmp");
+            var frame = new Frame()
+            {
+                TextureName = "spritesheet.bmp",
+                X = 0,
+                Y = 0,
+                Width = 16,
+                Height = 16,
+            };
 
-
-
-            //var imgX = (displayWidth / 2) - (test.Width / 2);
-            //var imgY = (displayHeight / 2) - (test.Height / 2);
 
             stopwatch.Start();
             while (true)
@@ -109,13 +112,17 @@ namespace Glade2d
                 stopwatch.Restart();
                 graphics.Clear();
                 graphics.DrawRectangle(0, 0, 240, 240, Color.CornflowerBlue, true);
+                
+
+                for(var x = 0; x < 10; x++)
+                {
+                    for(var y = 0; y < 10; y++)
+                    {
+                        RenderFrame(x * frame.Width, y * frame.Height + 20, frame);
+                    }
+                }
+
                 graphics.DrawText(5, 5, fps.ToString() + "fps", Color.Black);
-
-                graphics.DrawBuffer(0, 0, img47);
-                graphics.DrawBuffer(100, 0, img64);
-                graphics.DrawBuffer(0, 100, img48);
-                graphics.DrawBuffer(100, 100, img120);
-
                 graphics.Show();
             }
         }
@@ -133,6 +140,39 @@ namespace Glade2d
                     }
                 }
             }
+        }
+
+        void RenderFrame(int originX, int originY, Frame frame)
+        {
+            if(!textures.ContainsKey(frame.TextureName))
+            {
+                LoadTexture(frame.TextureName);
+            }
+
+            var buffer = textures[frame.TextureName];
+
+            for (var x = frame.X; x < frame.X + frame.Width; x++)
+            {
+                for (var y = frame.Y; y < frame.Y + frame.Height; y++)
+                {
+                    var pixel = buffer.GetPixel(x, y);
+                    if (!pixel.Equals(transparent))
+                    {
+                        graphics.DrawPixel(originX + x, originY + y, pixel);
+                    }
+                }
+            }
+        }
+
+        void LoadTexture(string name)
+        {
+            var buffer = LoadBitmapFile(name);
+            textures.Add(name, buffer);
+        }
+
+        void UnloadTexture(string name)
+        {
+            textures.Remove(name);
         }
 
         IDisplayBuffer LoadBitmapResource(string name)
