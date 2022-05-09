@@ -69,7 +69,6 @@ namespace Glade2d
 
             graphics = new MicroGraphics(st7789);
             graphics.Rotation = RotationType._180Degrees;
-
             renderer = new Renderer(graphics);
 
             LogService.Log.Trace("Graphics buffer initialized.");
@@ -81,12 +80,7 @@ namespace Glade2d
 
         void DrawTest()
         {
-
-            var stopwatch = new Stopwatch();
-            graphics.CurrentFont = new Font12x20();
-            long elapsed;
-            float fps;
-
+            
             var frame = new Frame()
             {
                 TextureName = "spritesheet.bmp",
@@ -96,27 +90,10 @@ namespace Glade2d
                 Height = 16,
             };
 
-
-            stopwatch.Start();
             while (true)
             {
-                stopwatch.Stop();
-                elapsed = stopwatch.ElapsedMilliseconds;
-                fps = 1000f / elapsed;
-                stopwatch.Restart();
-
                 renderer.Clear();
-
-                for(var x = 0; x < 10; x++)
-                {
-                    for(var y = 0; y < 10; y++)
-                    {
-                        renderer.RenderFrame(x * frame.Width, y * frame.Height + 20, frame);
-                    }
-                }
-
-                graphics.DrawText(5, 5, fps.ToString() + "fps", Color.White);
-                
+                renderer.RenderFrame(100, 100, frame);
                 renderer.DrawBuffer();
             }
         }
