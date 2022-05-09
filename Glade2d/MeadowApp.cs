@@ -1,22 +1,13 @@
-﻿using Glade2d.Services;
+﻿using Glade2d.Graphics;
+using Glade2d.Services;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
 using Meadow.Foundation.Displays.TftSpi;
 using Meadow.Foundation.Graphics;
-using Meadow.Foundation.Graphics.Buffers;
 using Meadow.Foundation.Leds;
 using Meadow.Hardware;
 using Meadow.Units;
-using SimpleJpegDecoder;
-using System;
-using System.Diagnostics;
-using System.IO;
-using Image = Glade2d.Graphics.Image;
-using System.Linq;
-using System.Reflection;
-using Glade2d.Graphics;
-using System.Collections.Generic;
 
 namespace Glade2d
 {
@@ -25,9 +16,7 @@ namespace Glade2d
     {
         RgbPwmLed onboardLed;
         MicroGraphics graphics;
-
         Renderer renderer;
-
 
         public MeadowApp()
         {
@@ -78,9 +67,13 @@ namespace Glade2d
             LogService.Log.Trace("Initialization complete.");
         }
 
+        void Start()
+        {
+
+        }
+
         void DrawTest()
         {
-            
             var frame = new Frame()
             {
                 TextureName = "spritesheet.bmp",
