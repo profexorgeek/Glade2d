@@ -6,6 +6,14 @@ using System.Linq;
 
 namespace Glade2d.Graphics
 {
+    /// <summary>
+    /// This class only exists to test and fix this issue:
+    /// https://github.com/WildernessLabs/Meadow.Foundation/issues/331
+    /// 
+    /// When the Nuget package is upated to include the PR that fixes the
+    /// issue above, this class can be swapped for the Meadow.Foundation
+    /// class and removed!
+    /// </summary>
     public partial class Image
     {
         public IDisplayBuffer DisplayBuffer { get; private set; }

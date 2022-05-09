@@ -15,9 +15,12 @@ namespace Glade2d
     // Change F7MicroV2 to F7Micro for V1.x boards
     public class MeadowApp : App<F7MicroV2, MeadowApp>
     {
+        const double fpsLogFrequency = 2;
+
         RgbPwmLed onboardLed;
         MicroGraphics graphics;
         Renderer renderer;
+        double timeToNextFPS;
 
         Frame frame = new Frame()
         {
@@ -89,6 +92,13 @@ namespace Glade2d
 
         void Update()
         {
+            timeToNextFPS -= GameService.Instance.Time.FrameSeconds;
+            if(timeToNextFPS < 0)
+            {
+                timeToNextFPS = fpsLogFrequency;
+                LogService.Log.Trace($"{GameService.Instance.Time.FPS}fps");
+            }
+
             GameService.Instance.Time.Update();
         }
 

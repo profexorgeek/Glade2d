@@ -19,6 +19,15 @@ namespace Glade2d.Graphics
     /// graphicsBuffer - the internal buffer where draw calls are composited
     /// graphicsDevice - the actual hardware graphics device, we avoid drawing to this more than required
     /// 
+    /// NOTES:
+    /// This used to use the MicroGraphics framework but it was too inflexible to support things like
+    /// scaled rendering:
+    /// https://github.com/WildernessLabs/Meadow.Foundation/blob/main/Source/Meadow.Foundation.Libraries_and_Frameworks/Graphics/MicroGraphics/Driver/Graphics.MicroGraphics/MicroGraphics.cs
+    /// 
+    /// This directly uses the SPI display drivers and there is probably tons of room for optimization:
+    /// https://github.com/WildernessLabs/Meadow.Foundation/blob/main/Source/Meadow.Foundation.Peripherals/Displays.TftSpi/Driver/Displays.TftSpi/TftSpiBase.cs#L271
+    /// https://github.com/WildernessLabs/Meadow.Foundation/blob/main/Source/Meadow.Foundation.Peripherals/Displays.TftSpi/Driver/Displays.TftSpi/Drivers/ST7789.cs#L16
+    /// 
     /// </summary>
     public class Renderer
     {
