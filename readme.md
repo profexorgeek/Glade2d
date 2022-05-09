@@ -28,7 +28,7 @@ File an issue, write a doc, submit a PR, or reach out to @profexorgeek on Twitte
 
 - [x] Get texture loading and rendering on a graphics device
 - [x] Get a simple renderer that can draw frames from a spritesheet
-- [ ] Create the core game loop with update delta tracking
+- [x] Create the core game loop with update delta tracking
 - [ ] Create the concept of a drawable object
 - [ ] Create a scene graph that holds drawable objects
 - [ ] Set up the renderer to render the scene graph
