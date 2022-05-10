@@ -4,6 +4,7 @@
     {
         public float X { get; set; }
         public float Y { get; set; }
+        public float Layer { get; set; }
 
         public Frame CurrentFrame { get; set; }
 

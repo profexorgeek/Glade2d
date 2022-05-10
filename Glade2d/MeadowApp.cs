@@ -1,4 +1,5 @@
-﻿using Glade2d.Graphics;
+﻿using Glade2d.Examples;
+using Glade2d.Graphics;
 using Glade2d.Services;
 using Meadow;
 using Meadow.Devices;
@@ -14,15 +15,9 @@ namespace Glade2d
     // Change F7MicroV2 to F7Micro for V1.x boards
     public class MeadowApp : App<F7MicroV2, MeadowApp>
     {
-        const double fpsLogFrequency = 2;
-
         RgbPwmLed onboardLed;
-        MicroGraphics graphics;
         Renderer renderer;
-        double timeToNextFPS;
-
-        
-
+        IGraphicsDisplay graphicsDevice;
 
         public MeadowApp()
         {
@@ -34,7 +29,7 @@ namespace Glade2d
 
         void Initialize()
         {
-            LogService.Log.Trace("Initializing hardware...");
+            LogService.Log.Trace("Initializing glade2d...");
 
             onboardLed = new RgbPwmLed(
                 device: Device,
@@ -44,6 +39,16 @@ namespace Glade2d
             onboardLed.SetColor(Color.Red);
             LogService.Log.Trace("Onboard LED initialized.");
 
+            InitializeGraphicsDevice();
+            InitializeRenderer();
+
+            onboardLed.SetColor(Color.Green);
+            LogService.Log.Trace("glade2d Initialization complete.");
+        }
+
+        void InitializeGraphicsDevice()
+        {
+            LogService.Log.Trace("Initializing St7789 Graphics Display.");
             var config = new SpiClockConfiguration(
                 speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
                 mode: SpiClockConfiguration.Mode.Mode3);
@@ -52,7 +57,7 @@ namespace Glade2d
                 copi: Device.Pins.MOSI,
                 cipo: Device.Pins.MISO,
                 config: config);
-            var display = new St7789(
+            graphicsDevice = new St7789(
                 device: Device,
                 spiBus: spiBus,
                 chipSelectPin: Device.Pins.D02,
@@ -60,42 +65,23 @@ namespace Glade2d
                 resetPin: Device.Pins.D00,
                 width: 240,
                 height: 240);
-            LogService.Log.Trace("St7789 Graphics Device initialized.");
+            LogService.Log.Trace("St7789 Graphics Display initialized.");
+        }
 
-            renderer = new Renderer(display, 2);
-
-            LogService.Log.Trace("Graphics buffer initialized.");
-
-            onboardLed.SetColor(Color.Green);
-            LogService.Log.Trace("Initialization complete.");
+        void InitializeRenderer()
+        {
+            LogService.Log.Trace("Initializing Renderer...");
+            renderer = Renderer.GetRendererForDevice(graphicsDevice, 2);
+            renderer.BackgroundColor = new Color(40, 204, 223);
+            renderer.ShowFPS = true;
+            LogService.Log.Trace("Renderer Initialized.");
         }
 
         void Start()
         {
             GameService.Instance.Initialize();
 
-            var sprite1 = new Sprite(
-                new Frame()
-                {
-                    TextureName = "spritesheet.bmp",
-                    X = 0,
-                    Y = 0,
-                    Width = 16,
-                    Height = 16,
-                });
-            var sprite2 = new Sprite(
-                new Frame()
-                {
-                    TextureName = "spritesheet.bmp",
-                    X = 16,
-                    Y = 0,
-                    Width = 16,
-                    Height = 16,
-                });
-            sprite2.X = 16;
-
-            GameService.Instance.CurrentScreen.Sprites.Add(sprite1);
-            GameService.Instance.CurrentScreen.Sprites.Add(sprite2);
+            GameService.Instance.CurrentScreen = new Glade2dScreen();
 
             LogService.Log.Trace("Starting game loop.");
             while(true)
@@ -107,28 +93,23 @@ namespace Glade2d
 
         void Update()
         {
-            timeToNextFPS -= GameService.Instance.Time.FrameSeconds;
-            if(timeToNextFPS < 0)
-            {
-                timeToNextFPS = fpsLogFrequency;
-                LogService.Log.Trace($"{GameService.Instance.Time.FPS}fps");
-            }
             GameService.Instance.Time?.Update();
             GameService.Instance.CurrentScreen?.Update();
         }
 
         void Draw()
         {
-            renderer.Clear();
+            renderer.Reset();
             var screen = GameService.Instance.CurrentScreen;
-            if(screen != null)
+            if (screen != null)
             {
-                for (var i = 0; i < screen.Sprites.Count; i++)
+                var sprites = screen.AccessSpritesForRenderingOnly();
+                for (var i = 0; i < sprites.Count; i++)
                 {
-                    renderer.DrawSprite(screen.Sprites[i]);
+                    renderer.DrawSprite(sprites[i]);
                 }
             }
-            renderer.Render();
+            renderer.RenderToDisplay();
         }
     }
 }
