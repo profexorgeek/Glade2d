@@ -34,7 +34,5 @@ namespace Glade2d.Services
             LogService.Log.Trace("Initializing GameService");
             Time = new GameTime();
         }
-
-
     }
 }

@@ -14,15 +14,9 @@ namespace Glade2d
     // Change F7MicroV2 to F7Micro for V1.x boards
     public class MeadowApp : App<F7MicroV2, MeadowApp>
     {
-        const double fpsLogFrequency = 2;
-
         RgbPwmLed onboardLed;
         MicroGraphics graphics;
-        Renderer renderer;
-        double timeToNextFPS;
-
-        
-
+        OldRenderer renderer;
 
         public MeadowApp()
         {
@@ -62,7 +56,11 @@ namespace Glade2d
                 height: 240);
             LogService.Log.Trace("St7789 Graphics Device initialized.");
 
-            renderer = new Renderer(display, 2);
+            var interimBuffer = new GraphicsDisplayBufferRgb888(display, 2);
+            graphics = new MicroGraphics(interimBuffer);
+
+
+            //renderer = new Renderer(display, 2);
 
             LogService.Log.Trace("Graphics buffer initialized.");
 
@@ -94,8 +92,8 @@ namespace Glade2d
                 });
             sprite2.X = 16;
 
-            GameService.Instance.CurrentScreen.Sprites.Add(sprite1);
-            GameService.Instance.CurrentScreen.Sprites.Add(sprite2);
+            GameService.Instance.CurrentScreen.AddSprite(sprite1);
+            GameService.Instance.CurrentScreen.AddSprite(sprite2);
 
             LogService.Log.Trace("Starting game loop.");
             while(true)
@@ -107,28 +105,27 @@ namespace Glade2d
 
         void Update()
         {
-            timeToNextFPS -= GameService.Instance.Time.FrameSeconds;
-            if(timeToNextFPS < 0)
-            {
-                timeToNextFPS = fpsLogFrequency;
-                LogService.Log.Trace($"{GameService.Instance.Time.FPS}fps");
-            }
             GameService.Instance.Time?.Update();
             GameService.Instance.CurrentScreen?.Update();
         }
 
         void Draw()
         {
-            renderer.Clear();
-            var screen = GameService.Instance.CurrentScreen;
-            if(screen != null)
-            {
-                for (var i = 0; i < screen.Sprites.Count; i++)
-                {
-                    renderer.DrawSprite(screen.Sprites[i]);
-                }
-            }
-            renderer.Render();
+            graphics.Clear();
+            graphics.DrawCircle(60, 60, 60, Color.Pink);
+            graphics.Show();
+
+            //renderer.Clear();
+            //var screen = GameService.Instance.CurrentScreen;
+            //if(screen != null)
+            //{
+            //    var sprites = screen.AccessSpritesForRenderingOnly();
+            //    for (var i = 0; i < sprites.Count; i++)
+            //    {
+            //        renderer.DrawSprite(sprites[i]);
+            //    }
+            //}
+            //renderer.Render();
         }
     }
 }
