@@ -19,23 +19,85 @@ namespace Glade2d.Graphics
         public Color TransparentColor { get; set; } = Color.Magenta;
         public bool ShowFPS { get; set; } = false;
         public int Scale { get; private set; }
-        public int Width => Buffer.Width;
-        public int Height => Buffer.Height;
 
 
         private Renderer(GraphicsDisplayBufferRgb888 buffer, int scale = 1)
             : base(buffer)
         {
             textures = new Dictionary<string, IDisplayBuffer>();
+            CurrentFont = new Font4x6();
         }
 
-        public static Renderer GetRenderer(IGraphicsDisplay device, int scale = 1)
+        /// <summary>
+        /// Factory method to produce a renderer in a valid state. This is required
+        /// because MeadowGraphics is not extensible enough to extend in the way
+        /// required by this project
+        /// </summary>
+        /// <param name="device">The display device that will be used for rendering</param>
+        /// <param name="scale">The scale multiplier to render at</param>
+        /// <returns></returns>
+        public static Renderer GetRendererForDevice(IGraphicsDisplay device, int scale = 1)
         {
             var buffer = new GraphicsDisplayBufferRgb888(device, scale);
             var renderer = new Renderer(buffer, scale);
             renderer.Device = device;
             renderer.Buffer = buffer;
             return renderer;
+        }
+        
+        public void Reset()
+        {
+            Clear();
+            Buffer.Fill(BackgroundColor);
+        }
+
+        /// <summary>
+        /// Draws a frame into the graphics buffer
+        /// </summary>
+        /// <param name="originX">The frame's X origin point</param>
+        /// <param name="originY">The frame's Y origin point</param>
+        /// <param name="frame">The frame to be drawn</param>
+        public void DrawFrame(int originX, int originY, Frame frame)
+        {
+            if (!textures.ContainsKey(frame.TextureName))
+            {
+                LoadTexture(frame.TextureName);
+            }
+
+            var buffer = textures[frame.TextureName];
+
+            for (var x = frame.X; x < frame.X + frame.Width; x++)
+            {
+                for (var y = frame.Y; y < frame.Y + frame.Height; y++)
+                {
+                    var pixel = buffer.GetPixel(x, y);
+                    var tX = originX + x - frame.X;
+                    var tY = originY + y - frame.Y;
+
+                    // only draw if not transparent and within buffer
+                    if (!pixel.Equals(TransparentColor) &&
+                        tX > 0 &&
+                        tY > 0 &&
+                        tX < buffer.Width &&
+                        tY < buffer.Width)
+                    {
+                        DrawPixel(tX, tY, pixel);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draws a sprite's CurrentFrame into the
+        /// graphics buffer
+        /// </summary>
+        /// <param name="sprite">The sprite to draw</param>
+        public void DrawSprite(Sprite sprite)
+        {
+            if (sprite.CurrentFrame != null)
+            {
+                DrawFrame((int)sprite.X, (int)sprite.Y, sprite.CurrentFrame);
+            }
         }
 
         /// <summary>
@@ -79,6 +141,23 @@ namespace Glade2d.Graphics
                 throw ex;
             }
 
+        }
+
+        /// <summary>
+        /// Renders the contents of the internal buffer to the driver buffer and
+        /// then blits the driver buffer to the device
+        /// </summary>
+        public void RenderToDisplay()
+        {
+            // draw the FPS counter
+            if (ShowFPS)
+            {
+                DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
+                DrawText(0, 0, $"{GameService.Instance.Time.FPS}fps", Color.White);
+            }
+
+            // send the driver buffer to device
+            Show();
         }
     }
 }

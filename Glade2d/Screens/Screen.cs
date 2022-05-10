@@ -18,7 +18,7 @@ namespace Glade2d.Screens
         /// <summary>
         /// Updates all children
         /// </summary>
-        public void Update()
+        public virtual void Update()
         {
             if(listSortNeeded)
             {

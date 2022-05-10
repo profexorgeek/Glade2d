@@ -27,6 +27,8 @@ namespace Glade2d.Services
 
         public Screen CurrentScreen { get; set; } = new Screen();
 
+        public Random Random { get; set; } = new Random();
+
         private GameService() { }
 
         public void Initialize()
