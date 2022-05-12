@@ -1,9 +1,8 @@
-﻿using Meadow.Foundation;
+﻿using Glade2d.Services;
+using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Glade2d.Graphics
 {
@@ -18,10 +17,10 @@ namespace Glade2d.Graphics
     /// the MicroGraphics library to support double-buffering and final
     /// transformations on the composite buffer before blitting to hardware.
     /// </summary>
-    public class GraphicsDisplayBufferRgb888 : IGraphicsDisplay
+    public class GraphicsDisplayBufferRgb565 : IGraphicsDisplay
     {
         public ColorType ColorMode => ColorType.Format24bppRgb888;
-        BufferRgb888 buffer;
+        BufferRgb565 buffer;
         IGraphicsDisplay device;
         bool ignoreOutOfBounds;
 
@@ -46,11 +45,14 @@ namespace Glade2d.Graphics
         }
 
 
-        public GraphicsDisplayBufferRgb888(IGraphicsDisplay device, int scale = 1)
+        public GraphicsDisplayBufferRgb565(IGraphicsDisplay device, int scale = 1)
         {
             this.device = device;
+
+            LogService.Log.Trace($"Creating Rgb565 buffer for display of color mode: {device.ColorMode}");
+
             Scale = scale;
-            buffer = new BufferRgb888(device.Width / Scale, device.Height / Scale);
+            buffer = new BufferRgb565(device.Width / Scale, device.Height / Scale);
             IgnoreOutOfBoundsPixels = true;
         }
 
