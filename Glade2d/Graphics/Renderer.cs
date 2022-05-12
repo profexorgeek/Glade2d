@@ -21,7 +21,7 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
 
 
-        private Renderer(GraphicsDisplayBufferRgb888 buffer, int scale = 1)
+        private Renderer(GraphicsDisplayBufferRgb565 buffer, int scale = 1)
             : base(buffer)
         {
             textures = new Dictionary<string, IDisplayBuffer>();
@@ -38,7 +38,7 @@ namespace Glade2d.Graphics
         /// <returns></returns>
         public static Renderer GetRendererForDevice(IGraphicsDisplay device, int scale = 1)
         {
-            var buffer = new GraphicsDisplayBufferRgb888(device, scale);
+            var buffer = new GraphicsDisplayBufferRgb565(device, scale);
             var renderer = new Renderer(buffer, scale);
             renderer.Device = device;
             renderer.Buffer = buffer;
@@ -129,11 +129,25 @@ namespace Glade2d.Graphics
         {
             LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
             var filePath = Path.Combine(MeadowOS.FileSystem.UserFileSystemRoot, name);
+            BufferRgb565 imgBuffer;
 
             try
             {
                 var img = Image.LoadFromFile(filePath);
-                return img.DisplayBuffer;
+
+                if(img.BitsPerPixel == 16)
+                {
+                    imgBuffer = img.DisplayBuffer as BufferRgb565;
+                }
+                else
+                {
+                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), converting to 16.");
+                    imgBuffer = new BufferRgb565(img.Width, img.Height);
+                    imgBuffer.WriteBuffer(0, 0, img.DisplayBuffer);
+                }
+
+                LogService.Log.Trace($"{name} loaded to buffer of type {imgBuffer.GetType()}");
+                return imgBuffer;
             }
             catch (Exception ex)
             {
