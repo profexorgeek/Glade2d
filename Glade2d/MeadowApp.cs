@@ -103,6 +103,8 @@ namespace Glade2d
             var screen = GameService.Instance.CurrentScreen;
             if (screen != null)
             {
+                // TODO: this is a hack, figure out how to protect list
+                // while also making it available to the renderer
                 var sprites = screen.AccessSpritesForRenderingOnly();
                 for (var i = 0; i < sprites.Count; i++)
                 {
