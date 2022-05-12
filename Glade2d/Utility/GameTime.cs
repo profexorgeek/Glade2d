@@ -15,7 +15,7 @@ namespace Glade2d.Utility
         public double TotalElapsedSeconds { get; set; }
         public double LastFrameCompletedTime { get; set; }
         public double FrameDelta { get; set; }
-        public float FPS => 1f / (float)FrameDelta;
+        public double FPS => 1.0 / (double)FrameDelta;
 
         public GameTime()
         {

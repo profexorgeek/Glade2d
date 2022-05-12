@@ -3,6 +3,8 @@ using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Glade2d.Graphics
 {
@@ -17,20 +19,16 @@ namespace Glade2d.Graphics
     /// the MicroGraphics library to support double-buffering and final
     /// transformations on the composite buffer before blitting to hardware.
     /// </summary>
-    public class GraphicsDisplayBufferRgb565 : IGraphicsDisplay
+    public class Glade2Buffer : IGraphicsDisplay
     {
-        public ColorType ColorMode => ColorType.Format24bppRgb888;
-        BufferRgb565 buffer;
-        IGraphicsDisplay device;
-        bool ignoreOutOfBounds;
+        protected BufferBase buffer;
+        protected IGraphicsDisplay device;
+        protected bool ignoreOutOfBounds;
 
-
+        public virtual ColorType ColorMode => device.ColorMode;
         public int Width => buffer.Width;
-
         public int Height => buffer.Height;
-
-        public int Scale { get; private set; }
-
+        public int Scale { get; protected set; }
         public bool IgnoreOutOfBoundsPixels
         {
             get
@@ -43,19 +41,55 @@ namespace Glade2d.Graphics
                 device.IgnoreOutOfBoundsPixels = ignoreOutOfBounds;
             }
         }
-
-
-        public GraphicsDisplayBufferRgb565(IGraphicsDisplay device, int scale = 1)
+        public int BitsPerPixel
         {
-            this.device = device;
-
-            LogService.Log.Trace($"Creating Rgb565 buffer for display of color mode: {device.ColorMode}");
-
-            Scale = scale;
-            buffer = new BufferRgb565(device.Width / Scale, device.Height / Scale);
-            IgnoreOutOfBoundsPixels = true;
+            get
+            {
+                switch(device.ColorMode)
+                {
+                    case ColorType.Format1bpp:
+                        return 1;
+                    case ColorType.Format12bppRgb444:
+                        return 12;
+                    case ColorType.Format16bppRgb565:
+                        return 16;
+                    case ColorType.Format24bppRgb888:
+                        return 24;
+                    default:
+                        throw new Exception("Unsupported color mode set!");
+                }
+            }
         }
 
+        public Glade2Buffer(IGraphicsDisplay device, int scale = 1)
+        {
+            LogService.Log.Trace($"Creating buffer for display of color mode: {device.ColorMode}");
+            this.device = device;Scale = scale;
+            IgnoreOutOfBoundsPixels = true;
+
+            var widthScaled = device.Width / scale;
+            var heightScaled = device.Height / scale;
+
+            switch(ColorMode)
+            {
+                case ColorType.Format1bpp:
+                    buffer = new Buffer1bpp(widthScaled, heightScaled);
+                    break;
+                case ColorType.Format12bppRgb444:
+                    buffer = new BufferRgb444(widthScaled, heightScaled);
+                    break;
+                case ColorType.Format16bppRgb565:
+                    buffer = new BufferRgb565(widthScaled, heightScaled);
+                    break;
+                case ColorType.Format24bppRgb888:
+                    buffer = new BufferRgb888(widthScaled, heightScaled);
+                    break;
+                default:
+                    throw new Exception($"ColorMode {ColorMode} is unsupported!");
+            }
+
+            buffer = new BufferRgb565(device.Width / Scale, device.Height / Scale);
+        }
 
         public void Clear(bool updateDisplay = false)
         {
@@ -85,7 +119,7 @@ namespace Glade2d.Graphics
         /// <param name="color">The color to draw</param>
         public void DrawPixel(int x, int y, Color color)
         {
-            if(IgnoreOutOfBoundsPixels && CheckOutOfBounds(x,y))
+            if (IgnoreOutOfBoundsPixels && CheckOutOfBounds(x, y))
             {
                 return;
             }
@@ -213,13 +247,20 @@ namespace Glade2d.Graphics
             }
         }
 
+        /// <summary>
+        /// Checks to see if the provided x and y are within the buffer size range
+        /// </summary>
+        /// <param name="x">The x index</param>
+        /// <param name="y">The y index</param>
+        /// <returns>True if X and Y are in range</returns>
         bool CheckOutOfBounds(int x, int y)
         {
-            if((x < 0 || x >= buffer.Width || y < 0 || y >= buffer.Height))
+            if (x < 0 || x >= buffer.Width || y < 0 || y >= buffer.Height)
             {
                 return true;
             }
             return false;
         }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Glade2d.Services;
+﻿
+using Glade2d.Services;
 using Meadow;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
@@ -14,14 +15,14 @@ namespace Glade2d.Graphics
         Dictionary<string, IDisplayBuffer> textures = new Dictionary<string, IDisplayBuffer>();
 
         IGraphicsDisplay Device { get; set; }
-        IGraphicsDisplay Buffer { get; set; }
+        Glade2Buffer Buffer { get; set; }
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
         public bool ShowFPS { get; set; } = false;
         public int Scale { get; private set; }
 
 
-        private Renderer(GraphicsDisplayBufferRgb565 buffer, int scale = 1)
+        private Renderer(Glade2Buffer buffer, int scale = 1)
             : base(buffer)
         {
             textures = new Dictionary<string, IDisplayBuffer>();
@@ -38,7 +39,7 @@ namespace Glade2d.Graphics
         /// <returns></returns>
         public static Renderer GetRendererForDevice(IGraphicsDisplay device, int scale = 1)
         {
-            var buffer = new GraphicsDisplayBufferRgb565(device, scale);
+            var buffer = new Glade2Buffer(device, scale);
             var renderer = new Renderer(buffer, scale);
             renderer.Device = device;
             renderer.Buffer = buffer;
@@ -129,20 +130,38 @@ namespace Glade2d.Graphics
         {
             LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
             var filePath = Path.Combine(MeadowOS.FileSystem.UserFileSystemRoot, name);
-            BufferRgb565 imgBuffer;
+            IDisplayBuffer imgBuffer;
 
             try
             {
                 var img = Image.LoadFromFile(filePath);
 
-                if(img.BitsPerPixel == 16)
+                if(img.BitsPerPixel == Buffer.BitsPerPixel)
                 {
                     imgBuffer = img.DisplayBuffer as BufferRgb565;
                 }
                 else
                 {
-                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), converting to 16.");
-                    imgBuffer = new BufferRgb565(img.Width, img.Height);
+                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), matching buffer depth of {Buffer.BitsPerPixel}.");
+
+                    switch(Buffer.BitsPerPixel)
+                    {
+                        case 1:
+                            imgBuffer = new Buffer1bpp(img.Width, img.Height);
+                            break;
+                        case 12:
+                            imgBuffer = new BufferRgb444(img.Width, img.Height);
+                            break;
+                        case 16:
+                            imgBuffer = new BufferRgb565(img.Width, img.Height);
+                            break;
+                        case 24:
+                            imgBuffer = new BufferRgb888(img.Width, img.Height);
+                            break;
+                        default:
+                            throw new Exception("Unsupported buffer type detected!");
+                    }
+
                     imgBuffer.WriteBuffer(0, 0, img.DisplayBuffer);
                 }
 
