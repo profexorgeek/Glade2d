@@ -13,13 +13,13 @@ using Meadow.Units;
 namespace Glade2d
 {
     // Change F7MicroV2 to F7Micro for V1.x boards
-    public class MeadowApp : App<F7MicroV2, MeadowApp>
+    public class Glade2d : App<F7MicroV2, Glade2d>
     {
         RgbPwmLed onboardLed;
         Renderer renderer;
         IGraphicsDisplay graphicsDevice;
 
-        public MeadowApp()
+        public Glade2d()
         {
             LogService.Log.Level = Logging.LogLevel.Trace;
 

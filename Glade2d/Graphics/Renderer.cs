@@ -136,7 +136,9 @@ namespace Glade2d.Graphics
             {
                 var img = Image.LoadFromFile(filePath);
 
-                if(img.BitsPerPixel == Buffer.BitsPerPixel)
+                LogService.Log.Trace($"Got image at {img.BitsPerPixel} and buffer is {Buffer.BitsPerPixel}");
+
+                if (img.BitsPerPixel == Buffer.BitsPerPixel)
                 {
                     imgBuffer = img.DisplayBuffer as BufferRgb565;
                 }
@@ -170,7 +172,7 @@ namespace Glade2d.Graphics
             }
             catch (Exception ex)
             {
-                LogService.Log.Error($"Failed to load {filePath}: The file should be a 24bit bmp, in the root directory, BuildAction = Content, and Copy if Newer!");
+                LogService.Log.Error($"Failed to load {filePath}: The file should be a 24bit bmp, in the root directory with BuildAction = Content, and Copy if Newer!");
                 throw ex;
             }
 
