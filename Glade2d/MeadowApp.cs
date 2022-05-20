@@ -63,6 +63,7 @@ namespace Glade2d
                 chipSelectPin: Device.Pins.D02,
                 dcPin: Device.Pins.D01,
                 resetPin: Device.Pins.D00,
+                displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
                 height: 240);
             LogService.Log.Trace("St7789 Graphics Display initialized.");
@@ -103,6 +104,8 @@ namespace Glade2d
             var screen = GameService.Instance.CurrentScreen;
             if (screen != null)
             {
+                // TODO: this is a hack, figure out how to protect list
+                // while also making it available to the renderer
                 var sprites = screen.AccessSpritesForRenderingOnly();
                 for (var i = 0; i < sprites.Count; i++)
                 {

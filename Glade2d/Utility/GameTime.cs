@@ -14,8 +14,8 @@ namespace Glade2d.Utility
         public DateTime StartTime { get; set; }
         public double TotalElapsedSeconds { get; set; }
         public double LastFrameCompletedTime { get; set; }
-        public double FrameSeconds { get; set; }
-        public float FPS => 1f / (float)FrameSeconds;
+        public double FrameDelta { get; set; }
+        public double FPS => 1.0 / (double)FrameDelta;
 
         public GameTime()
         {
@@ -28,9 +28,9 @@ namespace Glade2d.Utility
 
         public void Update()
         {
-            FrameSeconds = stopwatch.Elapsed.TotalSeconds;
+            FrameDelta = stopwatch.Elapsed.TotalSeconds;
             LastFrameCompletedTime = TotalElapsedSeconds;
-            TotalElapsedSeconds += FrameSeconds;
+            TotalElapsedSeconds += FrameDelta;
             stopwatch.Restart();
         }
     }
