@@ -15,7 +15,7 @@
             this.CurrentFrame = frame;
         }
 
-        public void Update()
+        public virtual void Update()
         {
             
         }
