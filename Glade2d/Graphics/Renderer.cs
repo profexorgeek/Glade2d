@@ -65,13 +65,14 @@ namespace Glade2d.Graphics
                 LoadTexture(frame.TextureName);
             }
 
-            var buffer = textures[frame.TextureName];
+            var imgBuffer = textures[frame.TextureName];
+            var drawingBuffer = Buffer;
 
             for (var x = frame.X; x < frame.X + frame.Width; x++)
             {
                 for (var y = frame.Y; y < frame.Y + frame.Height; y++)
                 {
-                    var pixel = buffer.GetPixel(x, y);
+                    var pixel = imgBuffer.GetPixel(x, y);
                     var tX = originX + x - frame.X;
                     var tY = originY + y - frame.Y;
 
@@ -79,8 +80,8 @@ namespace Glade2d.Graphics
                     if (!pixel.Equals(TransparentColor) &&
                         tX > 0 &&
                         tY > 0 &&
-                        tX < buffer.Width &&
-                        tY < buffer.Width)
+                        tX < drawingBuffer.Width &&
+                        tY < drawingBuffer.Height)
                     {
                         DrawPixel(tX, tY, pixel);
                     }

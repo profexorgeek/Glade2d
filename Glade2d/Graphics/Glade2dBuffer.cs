@@ -28,6 +28,7 @@ namespace Glade2d.Graphics
         public virtual ColorType ColorMode => device.ColorMode;
         public int Width => buffer.Width;
         public int Height => buffer.Height;
+        public IPixelBuffer PixelBuffer => buffer;
         public int Scale { get; protected set; }
         public bool IgnoreOutOfBoundsPixels
         {
