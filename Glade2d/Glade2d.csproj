@@ -12,9 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="spritesheet.bmp" />
+    <None Remove="testImage.bmp" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="spritesheet.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="testImage.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
