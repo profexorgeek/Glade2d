@@ -31,7 +31,15 @@ namespace Glade2d
             LogService.Log.Level = Logging.LogLevel.Trace;
             LogService.Log.Trace("Starting MeadowGraphicsTest app");
 
-            while(true)
+            LogService.Log.Trace("Loading bitmap buffers...");
+            bitmapImage = LoadBitmapToImage("testImage.bmp");
+            bitmapBuffer = LoadBitmapToBuffer("testImage.bmp");
+
+            LogService.Log.Trace("Starting drawing tests");
+
+            // PerformTestInMode(ColorType.Format12bppRgb444);
+
+            while (true)
             {
                 PerformTests();
                 Thread.Sleep(10000);
@@ -41,9 +49,6 @@ namespace Glade2d
         void PerformTests()
         {
             LogService.Log.Trace("Starting test performance");
-
-            bitmapImage = LoadBitmapToImage("testImage.bmp");
-            bitmapBuffer = LoadBitmapToBuffer("testImage.bmp");
 
             var modes = Enum.GetValues(typeof(ColorType));
             Dictionary<ColorType, long> results = new Dictionary<ColorType, long>();
@@ -124,7 +129,7 @@ namespace Glade2d
             return ms;
         }
 
-        IGraphicsDisplay GetDeviceInMode(ColorType mode)
+        IGraphicsDriver GetDeviceInMode(ColorType mode)
         {
             LogService.Log.Trace($"Initializing St7789 Graphics Display in mode {mode}");
             var config = new SpiClockConfiguration(

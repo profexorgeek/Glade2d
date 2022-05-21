@@ -11,10 +11,10 @@ namespace Glade2d
             if (args.Length > 0 && args[0] == "--exitOnDebug") return;
 
             // instantiate and run Glade2d
-            // app = new Glade2d();
+            app = new Glade2d();
 
             // instantiate and run micrographics test app
-            app = new MicroGraphicsTest();
+            // app = new MicroGraphicsTest();
 
             Thread.Sleep(Timeout.Infinite);
         }

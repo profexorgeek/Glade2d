@@ -14,7 +14,7 @@ namespace Glade2d.Graphics
     {
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
 
-        IGraphicsDisplay Device { get; set; }
+        IGraphicsDriver Device { get; set; }
         Glade2Buffer Buffer { get; set; }
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
@@ -37,7 +37,7 @@ namespace Glade2d.Graphics
         /// <param name="device">The display device that will be used for rendering</param>
         /// <param name="scale">The scale multiplier to render at</param>
         /// <returns></returns>
-        public static Renderer GetRendererForDevice(IGraphicsDisplay device, int scale = 1)
+        public static Renderer GetRendererForDevice(IGraphicsDriver device, int scale = 1)
         {
             var buffer = new Glade2Buffer(device, scale);
             var renderer = new Renderer(buffer, scale);

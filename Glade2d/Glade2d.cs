@@ -17,7 +17,7 @@ namespace Glade2d
     {
         RgbPwmLed onboardLed;
         Renderer renderer;
-        IGraphicsDisplay graphicsDevice;
+        IGraphicsDriver graphicsDevice;
 
         public Glade2d()
         {

@@ -19,10 +19,10 @@ namespace Glade2d.Graphics
     /// the MicroGraphics library to support double-buffering and final
     /// transformations on the composite buffer before blitting to hardware.
     /// </summary>
-    public class Glade2Buffer : IGraphicsDisplay
+    public class Glade2Buffer : IGraphicsDriver
     {
         protected PixelBufferBase buffer;
-        protected IGraphicsDisplay device;
+        protected IGraphicsDriver device;
         protected bool ignoreOutOfBounds;
 
         public virtual ColorType ColorMode => device.ColorMode;
@@ -61,7 +61,7 @@ namespace Glade2d.Graphics
             }
         }
 
-        public Glade2Buffer(IGraphicsDisplay device, int scale = 1)
+        public Glade2Buffer(IGraphicsDriver device, int scale = 1)
         {
             LogService.Log.Trace($"Creating buffer for display of color mode: {device.ColorMode}");
             this.device = device;Scale = scale;
