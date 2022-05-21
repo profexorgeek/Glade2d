@@ -21,7 +21,7 @@ namespace Glade2d.Graphics
     /// </summary>
     public class Glade2Buffer : IGraphicsDisplay
     {
-        protected BufferBase buffer;
+        protected PixelBufferBase buffer;
         protected IGraphicsDisplay device;
         protected bool ignoreOutOfBounds;
 
@@ -106,7 +106,7 @@ namespace Glade2d.Graphics
         /// <param name="x">The origin X</param>
         /// <param name="y">The origin Y</param>
         /// <param name="displayBuffer">The buffer to draw</param>
-        public void DrawBuffer(int x, int y, IDisplayBuffer displayBuffer)
+        public void DrawBuffer(int x, int y, IPixelBuffer displayBuffer)
         {
             buffer.WriteBuffer(x, y, displayBuffer);
         }

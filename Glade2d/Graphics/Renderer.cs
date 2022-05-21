@@ -12,7 +12,7 @@ namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
-        Dictionary<string, IDisplayBuffer> textures = new Dictionary<string, IDisplayBuffer>();
+        readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
 
         IGraphicsDisplay Device { get; set; }
         Glade2Buffer Buffer { get; set; }
@@ -25,7 +25,7 @@ namespace Glade2d.Graphics
         private Renderer(Glade2Buffer buffer, int scale = 1)
             : base(buffer)
         {
-            textures = new Dictionary<string, IDisplayBuffer>();
+            textures = new Dictionary<string, IPixelBuffer>();
             CurrentFont = new Font4x6();
         }
 
@@ -126,11 +126,11 @@ namespace Glade2d.Graphics
         /// </summary>
         /// <param name="name">The bitmap file path</param>
         /// <returns>An IDisplayBuffer containing bitmap data</returns>
-        IDisplayBuffer LoadBitmapFile(string name)
+        IPixelBuffer LoadBitmapFile(string name)
         {
             LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
             var filePath = Path.Combine(MeadowOS.FileSystem.UserFileSystemRoot, name);
-            IDisplayBuffer imgBuffer;
+            IPixelBuffer imgBuffer;
 
             try
             {

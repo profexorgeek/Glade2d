@@ -22,7 +22,7 @@ namespace Glade2d
     /// </summary>
     public class MicroGraphicsTest : App<F7MicroV2, MicroGraphicsTest>
     {
-        IDisplayBuffer bitmapBuffer;
+        IPixelBuffer bitmapBuffer;
         Image bitmapImage;
         Random rand = new Random();
 
@@ -164,7 +164,7 @@ namespace Glade2d
             return Image.LoadFromFile(filePath);
         }
 
-        IDisplayBuffer LoadBitmapToBuffer(string name)
+        IPixelBuffer LoadBitmapToBuffer(string name)
         {
             var img = LoadBitmapToImage(name);
             return img.DisplayBuffer;
