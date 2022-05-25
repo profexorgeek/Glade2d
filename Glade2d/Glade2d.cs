@@ -72,7 +72,7 @@ namespace Glade2d
         void InitializeRenderer()
         {
             LogService.Log.Trace("Initializing Renderer...");
-            renderer = Renderer.GetRendererForDevice(graphicsDevice, 2);
+            renderer = new Renderer(graphicsDevice, 2);
             renderer.BackgroundColor = new Color(40, 204, 223);
             renderer.ShowFPS = true;
             LogService.Log.Trace("Renderer Initialized.");

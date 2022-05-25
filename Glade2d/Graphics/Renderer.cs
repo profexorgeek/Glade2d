@@ -7,49 +7,47 @@ using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
-
-        IGraphicsDriver Device { get; set; }
-        Glade2Buffer Buffer { get; set; }
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
         public bool ShowFPS { get; set; } = false;
         public int Scale { get; private set; }
 
 
-        private Renderer(Glade2Buffer buffer, int scale = 1)
-            : base(buffer)
+        public Renderer(IGraphicsDriver driver, int scale = 1)
+            : base(driver)
         {
+            this.Scale = scale;
+
+            // If we are rendering at a different resolution than our
+            // device, we need to create a new buffer as our primary drawing buffer
+            // so we draw at the scaled resolution
+            if(scale > 1)
+            {
+                var scaledWidth = driver.Width / scale;
+                var scaledHeight = driver.Height / scale;
+                this.pixelBuffer = GetBufferForColorMode(driver.ColorMode, scaledWidth, scaledHeight);
+            }
+            else
+            {
+                // do nothing, the default behavior is to draw
+                // directly into the graphics buffer
+            }
+
             textures = new Dictionary<string, IPixelBuffer>();
             CurrentFont = new Font4x6();
-        }
-
-        /// <summary>
-        /// Factory method to produce a renderer in a valid state. This is required
-        /// because MeadowGraphics is not extensible enough to extend in the way
-        /// required by this project
-        /// </summary>
-        /// <param name="device">The display device that will be used for rendering</param>
-        /// <param name="scale">The scale multiplier to render at</param>
-        /// <returns></returns>
-        public static Renderer GetRendererForDevice(IGraphicsDriver device, int scale = 1)
-        {
-            var buffer = new Glade2Buffer(device, scale);
-            var renderer = new Renderer(buffer, scale);
-            renderer.Device = device;
-            renderer.Buffer = buffer;
-            return renderer;
         }
         
         public void Reset()
         {
             Clear();
-            Buffer.Fill(BackgroundColor);
+            pixelBuffer.Fill(BackgroundColor);
         }
 
         /// <summary>
@@ -66,7 +64,6 @@ namespace Glade2d.Graphics
             }
 
             var imgBuffer = textures[frame.TextureName];
-            var drawingBuffer = Buffer;
 
             for (var x = frame.X; x < frame.X + frame.Width; x++)
             {
@@ -80,8 +77,8 @@ namespace Glade2d.Graphics
                     if (!pixel.Equals(TransparentColor) &&
                         tX > 0 &&
                         tY > 0 &&
-                        tX < drawingBuffer.Width &&
-                        tY < drawingBuffer.Height)
+                        tX < pixelBuffer.Width &&
+                        tY < pixelBuffer.Height)
                     {
                         DrawPixel(tX, tY, pixel);
                     }
@@ -137,34 +134,24 @@ namespace Glade2d.Graphics
             {
                 var img = Image.LoadFromFile(filePath);
 
-                LogService.Log.Trace($"Got image at {img.BitsPerPixel} and buffer is {Buffer.BitsPerPixel}");
+                LogService.Log.Trace($"Got image at {img.BitsPerPixel} and buffer is {pixelBuffer.BitDepth}");
 
-                if (img.BitsPerPixel == Buffer.BitsPerPixel)
+                // if our loaded image buffer is the same color depth, we can just
+                // directly use the image's display buffer
+                // NOTE: it would be better to check actual ColorType but the image
+                // buffer doesn't have a ColorType property, only BitsPerPixel
+                if (img.BitsPerPixel == pixelBuffer.BitDepth)
                 {
-                    imgBuffer = img.DisplayBuffer as BufferRgb565;
+                    imgBuffer = img.DisplayBuffer;
                 }
+
+                // if our loaded image has a different color depth we do a one-time,
+                // pixel-by-pixel slow copy into a matching buffer to make future
+                // buffer blitting much faster!
                 else
                 {
-                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), matching buffer depth of {Buffer.BitsPerPixel}.");
-
-                    switch(Buffer.BitsPerPixel)
-                    {
-                        case 1:
-                            imgBuffer = new Buffer1bpp(img.Width, img.Height);
-                            break;
-                        case 12:
-                            imgBuffer = new BufferRgb444(img.Width, img.Height);
-                            break;
-                        case 16:
-                            imgBuffer = new BufferRgb565(img.Width, img.Height);
-                            break;
-                        case 24:
-                            imgBuffer = new BufferRgb888(img.Width, img.Height);
-                            break;
-                        default:
-                            throw new Exception("Unsupported buffer type detected!");
-                    }
-
+                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), matching buffer depth of {pixelBuffer.BitDepth}.");
+                    imgBuffer = GetBufferForColorMode(pixelBuffer.ColorMode, img.Width, img.Height);
                     imgBuffer.WriteBuffer(0, 0, img.DisplayBuffer);
                 }
 
@@ -194,6 +181,23 @@ namespace Glade2d.Graphics
 
             // send the driver buffer to device
             Show();
+        }
+        public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
+        {
+            IPixelBuffer buffer;
+            switch(mode)
+            {
+                case ColorType.Format12bppRgb444:
+                    buffer = new BufferRgb444(width, height);
+                    break;
+                case ColorType.Format16bppRgb565:
+                    buffer = new BufferRgb565(width, height);
+                    break;
+                default:
+                    throw new NotImplementedException($"Color mode {mode} has not been implemented by this renderer yet!");
+            }
+
+            return buffer;
         }
     }
 }
