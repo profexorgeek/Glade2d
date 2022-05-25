@@ -182,6 +182,68 @@ namespace Glade2d.Graphics
             // send the driver buffer to device
             Show();
         }
+
+        protected override void BlitPixelBufferToDeviceBuffer()
+        {
+            if(Scale > 1)
+            {
+                // TODO: this can be much faster if we draw a line and then array copy
+                // the whole line * scale
+                // loop through X & Y, drawing pixels from buffer to device
+                var displayBuffer = driver.PixelBuffer.Buffer;
+                var displayBytesPerPixel = (int)Math.Round(driver.PixelBuffer.BitDepth / 8f);
+                var displayBytesPerRow = driver.PixelBuffer.Width * displayBytesPerPixel;
+
+                for (int y = 0; y < pixelBuffer.Height; y++)
+                {
+                    var yScaled = y * Scale;
+
+                    // First draw all of the pixels in a row into the
+                    // destination buffer
+                    for (int x = 0; x < pixelBuffer.Width; x++)
+                    {
+                        var color = pixelBuffer.GetPixel(x, y);
+                        var xScaled = x * Scale;
+                        for (var i = 0; i < Scale; i++)
+                        {
+                            driver.DrawPixel(xScaled + i, yScaled, color);
+                        }
+                    }
+
+                    // now that we have drawn a row, blit the entire row
+                    // this is 1-indexed because we've already drawn the first row
+                    // [Scale] more times on the Y axis - this is faster than
+                    // drawing pixel-by-pixel!
+                    var startByteOffset = (yScaled * displayBytesPerRow);
+                    for (var i = 1; i < Scale; i++)
+                    {
+                        var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
+                        //try
+                        //{
+                            Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
+                        //}
+                        //catch(Exception ex)
+                        //{
+                        //    var sb = new StringBuilder();
+                        //    sb.Append($"Exception thrown when y = {y}\n");
+                        //    sb.Append($"startByteOffset = {startByteOffset}");
+                        //    sb.Append($"startCopyPoint = {rowByteOffset}");
+                        //    sb.Append($"row byte length = {displayBytesPerRow}");
+                        //    sb.Append($"total display buffer length = {displayBuffer.Length}");
+                        //    sb.Append($"final byte should be {rowByteOffset + displayBytesPerRow}");
+                        //    LogService.Log.Error($"Exception details: {sb.ToString()}");
+                        //    throw ex;
+                        //}
+                        
+                    }
+                }
+            }
+            else
+            {
+                base.BlitPixelBufferToDeviceBuffer();
+            }
+        }
+
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
         {
             IPixelBuffer buffer;
