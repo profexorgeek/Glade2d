@@ -3,6 +3,7 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -30,8 +31,12 @@ namespace Glade2d.Examples
 
     public class Cloud : Sprite
     {
-        public Cloud(int x = 0, int y = 0)
+        float screenMaxDimension;
+
+        public Cloud(int x = 0, int y = 0, float screenMaxDimension = 256)
         {
+            const float MaxVelocity = 5f;
+
             if (GameService.Instance.Random.NextDouble() < 0.5f)
             {
                 CurrentFrame = new Frame()
@@ -58,6 +63,20 @@ namespace Glade2d.Examples
             Layer = 10;
             X = x;
             Y = y;
+
+            var velocity = (float)(GameService.Instance.Random.NextDouble() * MaxVelocity);
+
+            LogService.Log.Trace($"Setting new cloud velocity to: {velocity}");
+            VelocityX = velocity;
+            this.screenMaxDimension = screenMaxDimension;
+        }
+
+        public override void Activity()
+        {
+            if(this.X - (this.CurrentFrame.Width / 2f) > MountainSceneScreen.ScreenDimensions)
+            {
+                Die();
+            }
         }
     }
 
@@ -142,15 +161,19 @@ namespace Glade2d.Examples
     }
     
 
-    public class Glade2dScreen : Screen
+    public class MountainSceneScreen : Screen
     {
-        const int screenDimensions = 120;
+        public const int ScreenDimensions = 60;
+        public const int NumberOfClouds = 4;
 
-        public Glade2dScreen()
+        List<Cloud> clouds = new List<Cloud>();
+
+        public MountainSceneScreen()
         {
-            int startY = screenDimensions - TreeLayer.Frame.Height;
+            int startY = ScreenDimensions - TreeLayer.Frame.Height;
+            
 
-            for (var x = 0; x < screenDimensions; x += TreeLayer.Frame.Width)
+            for (var x = 0; x < ScreenDimensions; x += TreeLayer.Frame.Width)
             {
                 AddSprite(new TreeLayer(x, startY));
                 AddSprite(new Foothills(x, startY - 4));
@@ -158,9 +181,33 @@ namespace Glade2d.Examples
                 AddSprite(new FarMountains(x, startY - 16));
             }
 
-            AddSprite(new Sun(8, 8));
-            AddSprite(new Cloud(12, 12));
-            AddSprite(new Cloud(44, 32));
+            // position sun  in top 1/4 of the screen
+            var sunPosition = (int)(0.15f * ScreenDimensions);
+            AddSprite(new Sun(sunPosition, sunPosition));
+        }
+
+        public override void Activity()
+        {
+            base.Activity();
+
+            if(clouds.Count < NumberOfClouds)
+            {
+                var cloud = new Cloud(0, 0, ScreenDimensions);
+                cloud.X = -cloud.CurrentFrame.Width / 2f;
+                cloud.Y = 0.2f * ScreenDimensions;
+
+                // add to both our scene graph and local list
+                AddSprite(cloud);
+                clouds.Add(cloud);
+            }
+
+            for(var i = clouds.Count - 1; i > -1; i--)
+            {
+                if (clouds[i].Destroyed)
+                {
+                    clouds.RemoveAt(i);
+                }
+            }
         }
     }
 }

@@ -72,7 +72,7 @@ namespace Glade2d
         void InitializeRenderer()
         {
             LogService.Log.Trace("Initializing Renderer...");
-            renderer = new Renderer(graphicsDevice, 2);
+            renderer = new Renderer(graphicsDevice, 4);
             renderer.BackgroundColor = new Color(40, 204, 223);
             renderer.ShowFPS = true;
             LogService.Log.Trace("Renderer Initialized.");
@@ -82,7 +82,7 @@ namespace Glade2d
         {
             GameService.Instance.Initialize();
 
-            GameService.Instance.CurrentScreen = new Glade2dScreen();
+            GameService.Instance.CurrentScreen = new MountainSceneScreen();
 
             LogService.Log.Trace("Starting game loop.");
             while(true)
