@@ -16,9 +16,10 @@ namespace Glade2d.Screens
         public Screen() { }
 
         /// <summary>
-        /// Updates all children
+        /// Update method called by the engine, keeps children
+        /// updated
         /// </summary>
-        public virtual void Update()
+        public void Update()
         {
             if(listSortNeeded)
             {
@@ -29,8 +30,27 @@ namespace Glade2d.Screens
 
             for(var i = sprites.Count - 1; i > -1; i--)
             {
-                sprites[i].Update();
+                var currentSprite = sprites[i];
+                if (currentSprite.Destroyed)
+                {
+                    RemoveSprite(i);
+                }
+                else
+                {
+                    sprites[i].Update();
+                }
             }
+
+            Activity();
+        }
+
+        /// <summary>
+        /// Frame-time method intended to be overridden by deriving
+        /// screens
+        /// </summary>
+        public virtual void Activity()
+        {
+
         }
 
         /// <summary>
@@ -41,7 +61,7 @@ namespace Glade2d.Screens
         /// ignored.
         /// </summary>
         /// <param name="sprite">The sprite to add</param>
-        public void AddSprite(Sprite sprite)
+        public Sprite AddSprite(Sprite sprite)
         {
             LogService.Log.Trace("Adding sprite to scene graph");
             if (!sprites.Contains(sprite))
@@ -52,6 +72,7 @@ namespace Glade2d.Screens
                 // be iterating over it. Flag that the list needs sorting
                 listSortNeeded = true;
             }
+            return sprite;
         }
 
         /// <summary>
@@ -60,11 +81,14 @@ namespace Glade2d.Screens
         /// <param name="sprite"></param>
         public void RemoveSprite(Sprite sprite)
         {
-            LogService.Log.Trace("Removing sprite from scene graph");
             if (sprites.Contains(sprite))
             {
-                sprites.Remove(sprite);
             }
+        }
+        protected void RemoveSprite(int index)
+        {
+            LogService.Log.Trace("Removing sprite from scene graph");
+            sprites.RemoveAt(index);
         }
 
         /// <summary>
