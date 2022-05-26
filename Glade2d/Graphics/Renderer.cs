@@ -176,7 +176,7 @@ namespace Glade2d.Graphics
             if (ShowFPS)
             {
                 DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
-                DrawText(0, 0, $"{GameService.Instance.Time.FPS}fps", Color.White);
+                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n3}fps", Color.White);
             }
 
             // send the driver buffer to device
