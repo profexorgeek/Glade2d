@@ -39,6 +39,11 @@ File an issue, write a doc, submit a PR, or reach out to [@profexorgeek](https:/
 - [x] Create a scene graph that holds drawable objects
 - [x] Set up the renderer to render the scene graph
 - [x] Create a demo scene with example entities
+- [ ] Add concept of velocity to sprites
+- [ ] Sprites should be destroyable
+- [ ] Demo scene should demo velocity and destroying
+- [ ] Glade2d should be spun out from MeadowApp
+- [ ] Changing sprite Layer after adding to scene should trigger a re-sort
 - [ ] Create an input manager that allows buttons to be registered and button presses to be tracked each frame
 - [ ] CONSIDERATION: Enable parent child relationships and a tree-shaped scene graph
 
