@@ -194,7 +194,7 @@ namespace Glade2d.Examples
             {
                 var cloud = new Cloud(0, 0, ScreenDimensions);
                 cloud.X = -cloud.CurrentFrame.Width / 2f;
-                cloud.Y = 0.2f * ScreenDimensions;
+                cloud.Y = (float)(GameService.Instance.Random.NextDouble() * (0.3f * ScreenDimensions));
 
                 // add to both our scene graph and local list
                 AddSprite(cloud);
