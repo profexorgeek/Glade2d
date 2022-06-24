@@ -13,6 +13,7 @@ namespace Glade2d.Services
                 if (log == null)
                 {
                     log = new ConsoleLogger();
+                    log.Level = LogLevel.Trace;
                 }
                 return log;
             }

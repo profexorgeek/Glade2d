@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Displays.TftSpi", "..\Meado
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.F7", "..\Meadow.Core\source\Meadow.F7\Meadow.F7.csproj", "{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glade2dExample", "Glade2dExample\Glade2dExample.csproj", "{611A00CC-80B3-49A1-9B81-84C926ED0C8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

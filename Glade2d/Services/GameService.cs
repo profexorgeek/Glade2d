@@ -1,5 +1,6 @@
 ﻿using Glade2d.Screens;
 using Glade2d.Utility;
+using Meadow.Foundation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -28,6 +29,8 @@ namespace Glade2d.Services
         public Screen CurrentScreen { get; set; } = new Screen();
 
         public Random Random { get; set; } = new Random();
+
+        public Game GameInstance { get; set; }
 
         private GameService() { }
 

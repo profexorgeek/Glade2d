@@ -22,7 +22,7 @@ namespace MeadowApp
     /// capabilities. You can set the type of app initialized by Program.cs
     /// to this app to test MicroGraphics without any special Glade2d features
     /// </summary>
-    public class MeadowApp : App<F7FeatherV2>, IApp
+    public class MicroGraphicsTest : App<F7FeatherV2>, IApp
     {
         IPixelBuffer bitmapBuffer;
         Image bitmapImage;
@@ -61,9 +61,6 @@ namespace MeadowApp
             //    Thread.Sleep(10000);
             //}
         }
-
-
-        public MeadowApp() { }
 
         void PerformTests()
         {
