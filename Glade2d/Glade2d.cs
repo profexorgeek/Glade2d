@@ -13,7 +13,7 @@ using Meadow.Units;
 namespace Glade2d
 {
     // Change F7MicroV2 to F7Micro for V1.x boards
-    public class Glade2d : App<F7FeatherV2>
+    public class Glade2d //: App<F7FeatherV2>, IApp
     {
         RgbPwmLed onboardLed;
         Renderer renderer;

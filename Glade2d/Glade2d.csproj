@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AssemblyName>App</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
@@ -11,6 +11,7 @@
     <None Remove="Content\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Glade2d.cs" />
     <Compile Remove="Graphics\Glade2dBuffer.cs" />
   </ItemGroup>
   <ItemGroup>

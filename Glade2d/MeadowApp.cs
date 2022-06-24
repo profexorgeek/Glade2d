@@ -1,4 +1,5 @@
 ﻿using Glade2d.Services;
+using Glade2d.Logging;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
@@ -12,39 +13,57 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Glade2d
+namespace MeadowApp
 {
     /// <summary>
     /// This is a test app that's useful for testing core MicroGraphics
     /// capabilities. You can set the type of app initialized by Program.cs
     /// to this app to test MicroGraphics without any special Glade2d features
     /// </summary>
-    public class MicroGraphicsTest : App<F7FeatherV2>
+    public class MeadowApp : App<F7FeatherV2>, IApp
     {
         IPixelBuffer bitmapBuffer;
         Image bitmapImage;
         Random rand = new Random();
+        ISpiBus bus;
 
-        public MicroGraphicsTest()
+
+        async Task IApp.Initialize()
         {
-            LogService.Log.Level = Logging.LogLevel.Trace;
-            LogService.Log.Trace("Starting MeadowGraphicsTest app");
+            LogService.Log.Level = LogLevel.Trace;
+            LogService.Log.Trace("Initializing MeadowGraphicsTest app");
 
             LogService.Log.Trace("Loading bitmap buffers...");
-            bitmapImage = LoadBitmapToImage("testImage.bmp");
-            bitmapBuffer = LoadBitmapToBuffer("testImage.bmp");
 
-            LogService.Log.Trace("Starting drawing tests");
-
-            // PerformTestInMode(ColorType.Format12bppRgb444);
-
-            while (true)
+            try
             {
-                PerformTests();
-                Thread.Sleep(10000);
+                bitmapImage = LoadBitmapToImage("testImage.bmp");
+                bitmapBuffer = LoadBitmapToBuffer("testImage.bmp");
             }
+            catch(Exception e)
+            {
+                LogService.Log.Error($"Error initializing app: {e.Message}");
+            }
+            
+
+            LogService.Log.Trace("Init complete");
         }
+
+        async Task IApp.Run()
+        {
+            PerformTestInMode(ColorType.Format16bppRgb565);
+
+            //while (true)
+            //{
+            //    PerformTests();
+            //    Thread.Sleep(10000);
+            //}
+        }
+
+
+        public MeadowApp() { }
 
         void PerformTests()
         {
@@ -62,6 +81,7 @@ namespace Glade2d
                 }
                 catch(Exception e)
                 {
+                    LogService.Log.Error($"Got exception: {e.Message}");
                     time = -1;
                 }
                 results.Add(modeEnum, time);
@@ -135,28 +155,26 @@ namespace Glade2d
             var config = new SpiClockConfiguration(
                 speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
                 mode: SpiClockConfiguration.Mode.Mode3);
-            var spiBus = Device.CreateSpiBus(
+            LogService.Log.Trace($"Got config {config.ToString()}");
+            bus = Device.CreateSpiBus(
                 clock: Device.Pins.SCK,
                 copi: Device.Pins.MOSI,
                 cipo: Device.Pins.MISO,
                 config: config);
+            LogService.Log.Trace($"Got bus {bus.ToString()}");
             var device = new St7789(
                 device: Device,
-                spiBus: spiBus,
+                spiBus: bus,
                 chipSelectPin: Device.Pins.D02,
                 dcPin: Device.Pins.D01,
                 resetPin: Device.Pins.D00,
                 displayColorMode: mode,
                 width: 240,
                 height: 240);
-            device.IgnoreOutOfBoundsPixels = true;
+            LogService.Log.Trace($"Got device {device.ToString()} in mode {mode}");
+
             LogService.Log.Trace($"St7789 Graphics Display initialized in mode {mode}");
             return device;
-        }
-
-        private object St7789(F7FeatherV2 device, ISpiBus spiBus, IPin chipSelectPin, IPin dcPin, IPin resetPin, ColorType displayColorMode, int width, int height)
-        {
-            throw new NotImplementedException();
         }
 
         MicroGraphics GetRendererInMode(ColorType mode)

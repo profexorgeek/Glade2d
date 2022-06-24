@@ -185,8 +185,13 @@ namespace Glade2d.Graphics
 
         public override void Show()
         {
+            LogService.Log.Trace("Entered custom renderer Show method");
+
+            // If we are doing a scaled draw, we must perform special copy logic
             if(Scale > 1)
             {
+                LogService.Log.Trace("Drawing a scaled buffer");
+
                 // TODO: this can be much faster if we draw a line and then array copy
                 // the whole line * scale
                 // loop through X & Y, drawing pixels from buffer to device
@@ -238,10 +243,15 @@ namespace Glade2d.Graphics
                     }
                 }
             }
-            else
+            // if we're not doing a scaled draw, our buffers should match
+            // draw the pixel buffer to the display
+            else if (pixelBuffer != display.PixelBuffer)
             {
-                base.Show();
+                LogService.Log.Trace("Drawing a normal scaled buffer.");
+                display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
             }
+
+            base.Show();
         }
 
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
