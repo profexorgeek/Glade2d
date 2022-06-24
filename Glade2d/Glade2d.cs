@@ -13,11 +13,11 @@ using Meadow.Units;
 namespace Glade2d
 {
     // Change F7MicroV2 to F7Micro for V1.x boards
-    public class Glade2d : App<F7MicroV2, Glade2d>
+    public class Glade2d : App<F7FeatherV2>
     {
         RgbPwmLed onboardLed;
         Renderer renderer;
-        IGraphicsDriver graphicsDevice;
+        IGraphicsDisplay graphicsDevice;
 
         public Glade2d()
         {

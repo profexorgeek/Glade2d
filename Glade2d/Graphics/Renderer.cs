@@ -20,8 +20,8 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
 
 
-        public Renderer(IGraphicsDriver driver, int scale = 1)
-            : base(driver)
+        public Renderer(IGraphicsDisplay display, int scale = 1)
+            : base(display)
         {
             this.Scale = scale;
 
@@ -30,9 +30,9 @@ namespace Glade2d.Graphics
             // so we draw at the scaled resolution
             if(scale > 1)
             {
-                var scaledWidth = driver.Width / scale;
-                var scaledHeight = driver.Height / scale;
-                this.pixelBuffer = GetBufferForColorMode(driver.ColorMode, scaledWidth, scaledHeight);
+                var scaledWidth = display.Width / scale;
+                var scaledHeight = display.Height / scale;
+                this.pixelBuffer = GetBufferForColorMode(display.ColorMode, scaledWidth, scaledHeight);
             }
             else
             {
@@ -183,16 +183,16 @@ namespace Glade2d.Graphics
             Show();
         }
 
-        protected override void BlitPixelBufferToDeviceBuffer()
+        public override void Show()
         {
             if(Scale > 1)
             {
                 // TODO: this can be much faster if we draw a line and then array copy
                 // the whole line * scale
                 // loop through X & Y, drawing pixels from buffer to device
-                var displayBuffer = driver.PixelBuffer.Buffer;
-                var displayBytesPerPixel = (int)Math.Round(driver.PixelBuffer.BitDepth / 8f);
-                var displayBytesPerRow = driver.PixelBuffer.Width * displayBytesPerPixel;
+                var displayBuffer = display.PixelBuffer.Buffer;
+                var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
+                var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
 
                 for (int y = 0; y < pixelBuffer.Height; y++)
                 {
@@ -206,7 +206,7 @@ namespace Glade2d.Graphics
                         var xScaled = x * Scale;
                         for (var i = 0; i < Scale; i++)
                         {
-                            driver.DrawPixel(xScaled + i, yScaled, color);
+                            display.DrawPixel(xScaled + i, yScaled, color);
                         }
                     }
 
@@ -240,7 +240,7 @@ namespace Glade2d.Graphics
             }
             else
             {
-                base.BlitPixelBufferToDeviceBuffer();
+                base.Show();
             }
         }
 

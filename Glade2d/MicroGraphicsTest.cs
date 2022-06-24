@@ -20,7 +20,7 @@ namespace Glade2d
     /// capabilities. You can set the type of app initialized by Program.cs
     /// to this app to test MicroGraphics without any special Glade2d features
     /// </summary>
-    public class MicroGraphicsTest : App<F7MicroV2, MicroGraphicsTest>
+    public class MicroGraphicsTest : App<F7FeatherV2>
     {
         IPixelBuffer bitmapBuffer;
         Image bitmapImage;
@@ -129,7 +129,7 @@ namespace Glade2d
             return ms;
         }
 
-        IGraphicsDriver GetDeviceInMode(ColorType mode)
+        IGraphicsDisplay GetDeviceInMode(ColorType mode)
         {
             LogService.Log.Trace($"Initializing St7789 Graphics Display in mode {mode}");
             var config = new SpiClockConfiguration(
@@ -152,6 +152,11 @@ namespace Glade2d
             device.IgnoreOutOfBoundsPixels = true;
             LogService.Log.Trace($"St7789 Graphics Display initialized in mode {mode}");
             return device;
+        }
+
+        private object St7789(F7FeatherV2 device, ISpiBus spiBus, IPin chipSelectPin, IPin dcPin, IPin resetPin, ColorType displayColorMode, int width, int height)
+        {
+            throw new NotImplementedException();
         }
 
         MicroGraphics GetRendererInMode(ColorType mode)
