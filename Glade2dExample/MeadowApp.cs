@@ -67,9 +67,9 @@ namespace MeadowApp
             var graphicsDevice = new St7789(
                 device: Device,
                 spiBus: spiBus,
-                chipSelectPin: Device.Pins.D02,
-                dcPin: Device.Pins.D01,
-                resetPin: Device.Pins.D00,
+                chipSelectPin: Device.Pins.A03,
+                dcPin: Device.Pins.A04,
+                resetPin: Device.Pins.A05,
                 displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
                 height: 240);
