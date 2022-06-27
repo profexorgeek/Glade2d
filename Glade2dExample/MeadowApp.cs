@@ -4,11 +4,14 @@ using Glade2dExample.Screens;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
+using Meadow.Foundation.Audio;
 using Meadow.Foundation.Displays.TftSpi;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Leds;
+using Meadow.Foundation.Sensors.Buttons;
 using Meadow.Hardware;
 using Meadow.Units;
+using System;
 using System.Threading.Tasks;
 
 // TODO: The namespace currently HAS to be MeadowApp or it won't launch. Once
@@ -19,6 +22,7 @@ namespace MeadowApp
     {
         RgbPwmLed onboardLed;
         Game glade;
+        PiezoSpeaker piezo;
 
         async Task IApp.Initialize()
         {
@@ -33,23 +37,49 @@ namespace MeadowApp
                 bluePwmPin: Device.Pins.OnboardLedBlue);
             onboardLed.SetColor(Color.Red);
 
+            LogService.Log.Trace("Initializing piezo and playing tone...");
+            piezo = new PiezoSpeaker(Device, Device.Pins.D11);
+            await piezo.PlayTone(new Frequency(440), 1000);
+            var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
+
+
+            LogService.Log.Trace($"Button debounce is: {button.DebounceDuration}");
+            button.PressStarted += Button_PressStarted;
+            button.PressEnded += Button_PressEnded;
+            button.DebounceDuration = TimeSpan.FromMilliseconds(10);
+            
+
             // initialize display device
-            var display = GetDisplayDevice();
+            //var display = GetDisplayDevice();
 
             // initialize Glade2d game engine by providing the display
             // device and setting a render scale
-            glade = new Game();
-            glade.Initialize(display, 4);
+            //glade = new Game();
+            //glade.Initialize(display, 4);
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
             LogService.Log.Trace("Initialization complete");
         }
 
+        async void Button_PressStarted(object sender, System.EventArgs e)
+        {
+            LogService.Log.Trace("Button press started!");
+            await piezo.PlayTone(new Frequency(440), 100);
+            onboardLed.SetColor(Color.Green);
+        }
+
+        void Button_PressEnded(object sender, System.EventArgs e)
+        {
+            LogService.Log.Trace("Button press ended!");
+            //piezo.StopTone();
+            onboardLed.SetColor(Color.Red);
+        }
+
         async Task IApp.Run()
         {
             // start glade game with a custom screen
-            glade.Start(new MountainSceneScreen());
+            //glade.Start(new MountainSceneScreen());
         }
 
         St7789 GetDisplayDevice()

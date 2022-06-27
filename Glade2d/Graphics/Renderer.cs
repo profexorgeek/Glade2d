@@ -185,13 +185,9 @@ namespace Glade2d.Graphics
 
         public override void Show()
         {
-            LogService.Log.Trace("Entered custom renderer Show method");
-
             // If we are doing a scaled draw, we must perform special copy logic
             if(Scale > 1)
             {
-                LogService.Log.Trace("Drawing a scaled buffer");
-
                 // TODO: this can be much faster if we draw a line and then array copy
                 // the whole line * scale
                 // loop through X & Y, drawing pixels from buffer to device
@@ -223,23 +219,7 @@ namespace Glade2d.Graphics
                     for (var i = 1; i < Scale; i++)
                     {
                         var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
-                        //try
-                        //{
-                            Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
-                        //}
-                        //catch(Exception ex)
-                        //{
-                        //    var sb = new StringBuilder();
-                        //    sb.Append($"Exception thrown when y = {y}\n");
-                        //    sb.Append($"startByteOffset = {startByteOffset}");
-                        //    sb.Append($"startCopyPoint = {rowByteOffset}");
-                        //    sb.Append($"row byte length = {displayBytesPerRow}");
-                        //    sb.Append($"total display buffer length = {displayBuffer.Length}");
-                        //    sb.Append($"final byte should be {rowByteOffset + displayBytesPerRow}");
-                        //    LogService.Log.Error($"Exception details: {sb.ToString()}");
-                        //    throw ex;
-                        //}
-                        
+                        Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
                     }
                 }
             }
@@ -247,7 +227,6 @@ namespace Glade2d.Graphics
             // draw the pixel buffer to the display
             else if (pixelBuffer != display.PixelBuffer)
             {
-                LogService.Log.Trace("Drawing a normal scaled buffer.");
                 display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
             }
 
