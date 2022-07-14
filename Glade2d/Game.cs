@@ -3,16 +3,25 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
+using System.Threading;
 
 namespace Glade2d
 {
     public class Game
     {
+        // The engine operating mode, this can only be set
+        // during Initialize
+        public EngineMode Mode { get; private set; } = EngineMode.GameLoop;
+
+        // How long the engine should sleep between ticks
+        // Default is 0, which runs as fast as possible
+        public int Sleep { get; set; } = 0;
+
         public Renderer Renderer { get; protected set; }
 
         public Game() { }
 
-        public virtual void Initialize(IGraphicsDisplay display, int displayScale = 1)
+        public virtual void Initialize(IGraphicsDisplay display, int displayScale = 1, EngineMode mode = EngineMode.GameLoop)
         {
             LogService.Log.Trace("Initializing Renderer...");
 
@@ -21,6 +30,8 @@ namespace Glade2d
 
             // init renderer
             Renderer = new Renderer(display, displayScale);
+
+            Mode = mode;
 
             LogService.Log.Trace("Renderer Initialized.");
         }
@@ -33,20 +44,46 @@ namespace Glade2d
             GameService.Instance.CurrentScreen = screen;
 
             LogService.Log.Trace("Starting Glade2d Game loop.");
-            while(true)
+
+            if(Mode == EngineMode.GameLoop)
             {
-                Update();
-                Draw();
+                while (true)
+                {
+                    Tick();
+
+                    Thread.Sleep(Sleep);
+                }
             }
+            
         }
 
-        void Update()
+        /// <summary>
+        /// Performs an Update and then a Draw.
+        /// This method can be called manually to tick
+        /// the engine in RenderOnDemand mode
+        /// </summary>
+        public void Tick()
+        {
+            Update();
+            Draw();
+        }
+
+        /// <summary>
+        /// Updates all currently-active entities (entities
+        /// which are children of the CurrentScreen)
+        /// </summary>
+        public void Update()
         {
             GameService.Instance.Time?.Update();
             GameService.Instance.CurrentScreen?.Update();
         }
 
-        void Draw()
+        /// <summary>
+        /// Draws all sprites in the CurrentScreen into a
+        /// buffer and then blits the buffer to the hardware
+        /// display
+        /// </summary>
+        public void Draw()
         {
             Renderer.Reset();
             var screen = GameService.Instance.CurrentScreen;

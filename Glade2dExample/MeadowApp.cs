@@ -23,6 +23,7 @@ namespace MeadowApp
         RgbPwmLed onboardLed;
         Game glade;
         PiezoSpeaker piezo;
+        IGraphicsDisplay display;
 
         async Task IApp.Initialize()
         {
@@ -47,15 +48,12 @@ namespace MeadowApp
             button.PressStarted += Button_PressStarted;
             button.PressEnded += Button_PressEnded;
             button.DebounceDuration = TimeSpan.FromMilliseconds(10);
-            
+
+            LogService.Log.Trace($"New button debounce is: {button.DebounceDuration}");
+
 
             // initialize display device
-            //var display = GetDisplayDevice();
-
-            // initialize Glade2d game engine by providing the display
-            // device and setting a render scale
-            //glade = new Game();
-            //glade.Initialize(display, 4);
+            display = GetDisplayDevice();
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
@@ -65,21 +63,26 @@ namespace MeadowApp
         async void Button_PressStarted(object sender, System.EventArgs e)
         {
             LogService.Log.Trace("Button press started!");
-            await piezo.PlayTone(new Frequency(440), 100);
             onboardLed.SetColor(Color.Green);
         }
 
         void Button_PressEnded(object sender, System.EventArgs e)
         {
             LogService.Log.Trace("Button press ended!");
-            //piezo.StopTone();
             onboardLed.SetColor(Color.Red);
+
+            if(glade.Mode == EngineMode.RenderOnDemand)
+            {
+                LogService.Log.Trace("Rendering scene on demand...");
+                glade.Tick();
+            }
         }
 
         async Task IApp.Run()
         {
-            // start glade game with a custom screen
-            //glade.Start(new MountainSceneScreen());
+            glade = new Game();
+            glade.Initialize(display, 4, EngineMode.RenderOnDemand);
+            glade.Start(new MountainSceneScreen());
         }
 
         St7789 GetDisplayDevice()

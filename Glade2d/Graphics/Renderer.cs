@@ -16,7 +16,7 @@ namespace Glade2d.Graphics
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
-        public bool ShowFPS { get; set; } = false;
+        public bool ShowPerf { get; set; } = false;
         public int Scale { get; private set; }
 
 
@@ -173,7 +173,7 @@ namespace Glade2d.Graphics
         public void RenderToDisplay()
         {
             // draw the FPS counter
-            if (ShowFPS)
+            if (ShowPerf)
             {
                 DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
                 DrawText(0, 0, $"{GameService.Instance.Time.FPS:n3}fps", Color.White);

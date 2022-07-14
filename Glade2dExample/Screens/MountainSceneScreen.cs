@@ -27,7 +27,7 @@ namespace Glade2dExample.Screens
 
             // set background color and FPS on the renderer
             var renderer = GameService.Instance.GameInstance.Renderer;
-            renderer.ShowFPS = true;
+            renderer.ShowPerf = true;
             renderer.BackgroundColor = Color.Cyan;
 
 
