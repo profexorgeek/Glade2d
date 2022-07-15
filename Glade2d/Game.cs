@@ -15,7 +15,7 @@ namespace Glade2d
 
         // How long the engine should sleep between ticks
         // Default is 0, which runs as fast as possible
-        public int Sleep { get; set; } = 0;
+        public int SleepMilliseconds { get; set; } = 0;
 
         public Renderer Renderer { get; protected set; }
 
@@ -51,7 +51,7 @@ namespace Glade2d
                 {
                     Tick();
 
-                    Thread.Sleep(Sleep);
+                    Thread.Sleep(SleepMilliseconds);
                 }
             }
             
