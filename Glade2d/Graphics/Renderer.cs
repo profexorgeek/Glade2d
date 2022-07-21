@@ -18,6 +18,7 @@ namespace Glade2d.Graphics
         public Color TransparentColor { get; set; } = Color.Magenta;
         public bool ShowPerf { get; set; } = false;
         public int Scale { get; private set; }
+        public bool UseTransparency { get; set; } = true;
 
 
         public Renderer(IGraphicsDisplay display, int scale = 1)
@@ -46,7 +47,6 @@ namespace Glade2d.Graphics
         
         public void Reset()
         {
-            Clear();
             pixelBuffer.Fill(BackgroundColor);
         }
 
@@ -64,7 +64,6 @@ namespace Glade2d.Graphics
             }
 
             var imgBuffer = textures[frame.TextureName];
-
             for (var x = frame.X; x < frame.X + frame.Width; x++)
             {
                 for (var y = frame.Y; y < frame.Y + frame.Height; y++)
@@ -176,7 +175,7 @@ namespace Glade2d.Graphics
             if (ShowPerf)
             {
                 DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
-                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n3}fps", Color.White);
+                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
             }
 
             // send the driver buffer to device
