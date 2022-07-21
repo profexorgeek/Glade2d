@@ -24,4 +24,10 @@
     <ProjectReference Include="..\Glade2d\Glade2d.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="meadow.config.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
