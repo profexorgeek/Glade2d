@@ -41,8 +41,8 @@ namespace MeadowApp
         public override Task Run()
         {
             glade = new Game();
-            glade.Initialize(display, 4, EngineMode.GameLoop);
-            glade.SleepMilliseconds = 5;
+            glade.Initialize(display, 1, EngineMode.GameLoop);
+            glade.SleepMilliseconds = 20;
             _ = Task.Run(() =>
             {
                 glade.Start(new MountainSceneScreen());

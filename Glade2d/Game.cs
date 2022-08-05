@@ -3,7 +3,6 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Glade2d
 {
@@ -47,16 +46,11 @@ namespace Glade2d
 
             if (Mode == EngineMode.GameLoop)
             {
-                Task.Run(() =>
+                while (true)
                 {
-                    while (true)
-                    {
-                        Tick();
-                        Thread.Sleep(SleepMilliseconds);
-                    }
-                });
-
-
+                    Tick();
+                    Thread.Sleep(SleepMilliseconds);
+                }
             }
 
         }
