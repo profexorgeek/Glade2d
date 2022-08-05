@@ -40,7 +40,7 @@ namespace MeadowApp
 
             LogService.Log.Trace("Initializing piezo and playing tone...");
             piezo = new PiezoSpeaker(Device, Device.Pins.D11);
-            await piezo.PlayTone(new Frequency(440), 1000);
+            await piezo.PlayTone(new Frequency(440), TimeSpan.FromSeconds(1));
             var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
 
 
@@ -71,7 +71,7 @@ namespace MeadowApp
             LogService.Log.Trace("Button press ended!");
             onboardLed.SetColor(Color.Red);
 
-            if(glade.Mode == EngineMode.RenderOnDemand)
+            if (glade.Mode == EngineMode.RenderOnDemand)
             {
                 LogService.Log.Trace("Rendering scene on demand...");
                 glade.Tick();

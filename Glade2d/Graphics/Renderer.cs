@@ -7,7 +7,6 @@ using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Glade2d.Graphics
 {
@@ -20,7 +19,6 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
 
-
         public Renderer(IGraphicsDisplay display, int scale = 1)
             : base(display)
         {
@@ -29,7 +27,7 @@ namespace Glade2d.Graphics
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
             // so we draw at the scaled resolution
-            if(scale > 1)
+            if (scale > 1)
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
@@ -44,7 +42,7 @@ namespace Glade2d.Graphics
             textures = new Dictionary<string, IPixelBuffer>();
             CurrentFont = new Font4x6();
         }
-        
+
         public void Reset()
         {
             pixelBuffer.Fill(BackgroundColor);
@@ -171,12 +169,15 @@ namespace Glade2d.Graphics
         /// </summary>
         public void RenderToDisplay()
         {
-            // draw the FPS counter
-            if (ShowPerf)
+            Resolver.App.InvokeOnMainThread((_) =>
             {
-                DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
-                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
-            }
+                // draw the FPS counter
+                if (ShowPerf)
+                {
+                    DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
+                    DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
+                }
+            });
 
             // send the driver buffer to device
             Show();
@@ -184,58 +185,62 @@ namespace Glade2d.Graphics
 
         public override void Show()
         {
-            // If we are doing a scaled draw, we must perform special copy logic
-            if(Scale > 1)
+            Resolver.App.InvokeOnMainThread((_) =>
             {
-                // TODO: this can be much faster if we draw a line and then array copy
-                // the whole line * scale
-                // loop through X & Y, drawing pixels from buffer to device
-                var displayBuffer = display.PixelBuffer.Buffer;
-                var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
-                var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
 
-                for (int y = 0; y < pixelBuffer.Height; y++)
+                // If we are doing a scaled draw, we must perform special copy logic
+                if (Scale > 1)
                 {
-                    var yScaled = y * Scale;
+                    // TODO: this can be much faster if we draw a line and then array copy
+                    // the whole line * scale
+                    // loop through X & Y, drawing pixels from buffer to device
+                    var displayBuffer = display.PixelBuffer.Buffer;
+                    var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
+                    var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
 
-                    // First draw all of the pixels in a row into the
-                    // destination buffer
-                    for (int x = 0; x < pixelBuffer.Width; x++)
+                    for (int y = 0; y < pixelBuffer.Height; y++)
                     {
-                        var color = pixelBuffer.GetPixel(x, y);
-                        var xScaled = x * Scale;
-                        for (var i = 0; i < Scale; i++)
+                        var yScaled = y * Scale;
+
+                        // First draw all of the pixels in a row into the
+                        // destination buffer
+                        for (int x = 0; x < pixelBuffer.Width; x++)
                         {
-                            display.DrawPixel(xScaled + i, yScaled, color);
+                            var color = pixelBuffer.GetPixel(x, y);
+                            var xScaled = x * Scale;
+                            for (var i = 0; i < Scale; i++)
+                            {
+                                display.DrawPixel(xScaled + i, yScaled, color);
+                            }
+                        }
+
+                        // now that we have drawn a row, blit the entire row
+                        // this is 1-indexed because we've already drawn the first row
+                        // [Scale] more times on the Y axis - this is faster than
+                        // drawing pixel-by-pixel!
+                        var startByteOffset = (yScaled * displayBytesPerRow);
+                        for (var i = 1; i < Scale; i++)
+                        {
+                            var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
+                            Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
                         }
                     }
-
-                    // now that we have drawn a row, blit the entire row
-                    // this is 1-indexed because we've already drawn the first row
-                    // [Scale] more times on the Y axis - this is faster than
-                    // drawing pixel-by-pixel!
-                    var startByteOffset = (yScaled * displayBytesPerRow);
-                    for (var i = 1; i < Scale; i++)
-                    {
-                        var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
-                        Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
-                    }
                 }
-            }
-            // if we're not doing a scaled draw, our buffers should match
-            // draw the pixel buffer to the display
-            else if (pixelBuffer != display.PixelBuffer)
-            {
-                display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
-            }
+                // if we're not doing a scaled draw, our buffers should match
+                // draw the pixel buffer to the display
+                else if (pixelBuffer != display.PixelBuffer)
+                {
+                    display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
+                }
 
-            base.Show();
+                base.Show();
+            });
         }
 
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
         {
             IPixelBuffer buffer;
-            switch(mode)
+            switch (mode)
             {
                 case ColorType.Format12bppRgb444:
                     buffer = new BufferRgb444(width, height);

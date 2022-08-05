@@ -19,7 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Displays.TftSpi", "..\Meado
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.F7", "..\Meadow.Core\source\Meadow.F7\Meadow.F7.csproj", "{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glade2dExample", "Glade2dExample\Glade2dExample.csproj", "{611A00CC-80B3-49A1-9B81-84C926ED0C8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Simulation", "..\Meadow.Simulation\src\Meadow.Simulation\Meadow.Simulation.csproj", "{8301C87A-9FF8-4BBB-AE90-C79768A8BA1C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Gtk", "..\Meadow.Linux\src\gtk\Meadow.Gtk.csproj", "{1191B5B6-8B9C-4DEB-8357-12CCEF80950D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{1D1CC01E-84CC-43AA-ABDA-C8816E672384}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glade2dExample", "samples\Glade2dExample\Glade2dExample.csproj", "{20FAD1BF-7F27-4E67-A988-DCD9C4E53638}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtkExample", "samples\GtkExample\GtkExample.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,13 +83,29 @@ Global
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{903DB5C4-3DAE-4C2A-AAC4-C3B6CBEB162D}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{611A00CC-80B3-49A1-9B81-84C926ED0C8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8301C87A-9FF8-4BBB-AE90-C79768A8BA1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8301C87A-9FF8-4BBB-AE90-C79768A8BA1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8301C87A-9FF8-4BBB-AE90-C79768A8BA1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8301C87A-9FF8-4BBB-AE90-C79768A8BA1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1191B5B6-8B9C-4DEB-8357-12CCEF80950D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1191B5B6-8B9C-4DEB-8357-12CCEF80950D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1191B5B6-8B9C-4DEB-8357-12CCEF80950D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1191B5B6-8B9C-4DEB-8357-12CCEF80950D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638} = {1D1CC01E-84CC-43AA-ABDA-C8816E672384}
+		{EC8D68FC-6AAF-490F-9376-5317B4D5F280} = {1D1CC01E-84CC-43AA-ABDA-C8816E672384}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {17F905C5-A6A0-4EF4-AAD9-CA0D859DDD87}
