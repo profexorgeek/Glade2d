@@ -30,7 +30,7 @@ namespace MeadowApp
             LogService.Log.Trace("Beginning Meadow initialization...");
 
             // initialize display device
-            display = new Display(800, 600, ColorType.Format16bppRgb565);
+            display = new Display(240 * 3, 240 * 3, ColorType.Format16bppRgb565);
 
             // ready to go!, set LED to green
             LogService.Log.Trace("Initialization complete");
@@ -41,7 +41,8 @@ namespace MeadowApp
         public override Task Run()
         {
             glade = new Game();
-            glade.Initialize(display, 1, EngineMode.GameLoop);
+            glade.Initialize(display, 12, EngineMode.GameLoop);
+            glade.Renderer.RenderInSafeMode = true;
             glade.SleepMilliseconds = 20;
             _ = Task.Run(() =>
             {
