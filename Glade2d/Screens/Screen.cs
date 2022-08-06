@@ -83,6 +83,7 @@ namespace Glade2d.Screens
         {
             if (sprites.Contains(sprite))
             {
+                sprites.Remove(sprite);
             }
         }
         protected void RemoveSprite(int index)
