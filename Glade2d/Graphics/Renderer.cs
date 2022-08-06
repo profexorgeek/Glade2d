@@ -77,8 +77,8 @@ namespace Glade2d.Graphics
 
                     // only draw if not transparent and within buffer
                     if (!pixel.Equals(TransparentColor) &&
-                        tX > 0 &&
-                        tY > 0 &&
+                        tX >= 0 &&
+                        tY >= 0 &&
                         tX < pixelBuffer.Width &&
                         tY < pixelBuffer.Height)
                     {

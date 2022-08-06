@@ -81,7 +81,7 @@ namespace MeadowApp
         async Task IApp.Run()
         {
             glade = new Game();
-            glade.Initialize(display, 2, EngineMode.GameLoop);
+            glade.Initialize(display, 4, EngineMode.GameLoop);
             glade.Renderer.RenderInSafeMode = false;
             glade.SleepMilliseconds = 0;
             glade.Start(new MountainSceneScreen());
