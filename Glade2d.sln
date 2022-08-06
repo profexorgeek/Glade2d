@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glade2dExample", "samples\G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtkExample", "samples\GtkExample\GtkExample.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Logging", "..\Meadow.Logging\lib\Meadow.Logging.csproj", "{51139FF6-11FF-4701-90A9-C28A3CDE6AC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -2,22 +2,27 @@
 using Glade2d.Services;
 using Glade2dExample.Entities;
 using Meadow.Foundation;
+using System;
 using System.Collections.Generic;
 
 namespace Glade2dExample.Screens
 {
     public class MountainSceneScreen : Screen
     {
-        public const int ScreenDimensions = 60;
         public const int NumberOfClouds = 4;
-
         List<CloudSprite> clouds = new List<CloudSprite>();
+
+        int screenWidth;
+        int screenHeight;
 
         public MountainSceneScreen()
         {
-            int startY = ScreenDimensions - TreesSprite.Frame.Height;
-
-            for (var x = 0; x < ScreenDimensions; x += TreesSprite.Frame.Width)
+            screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+            screenHeight = GameService.Instance.GameInstance.Renderer.Height;
+            
+            
+            int startY =  screenHeight - TreesSprite.Frame.Height;
+            for (var x = 0; x < screenWidth; x += TreesSprite.Frame.Width)
             {
                 AddSprite(new TreesSprite(x, startY));
                 AddSprite(new FoothillsSprite(x, startY - 4));
@@ -32,21 +37,18 @@ namespace Glade2dExample.Screens
 
 
             // position sun  in top 1/4 of the screen
-            var sunPosition = (int)(0.15f * ScreenDimensions);
+            var sunPosition = (int)(0.15f * screenWidth);
             AddSprite(new SunSprite(sunPosition, sunPosition));
         }
 
         public override void Activity()
         {
             base.Activity();
-
             if (clouds.Count < NumberOfClouds)
             {
-                var cloud = new CloudSprite(0, 0, ScreenDimensions);
+                var cloud = new CloudSprite(0, 0, screenWidth);
                 cloud.X = -cloud.CurrentFrame.Width / 2f;
-                cloud.Y = (float)(GameService.Instance.Random.NextDouble() * (0.3f * ScreenDimensions));
-
-                // add to both our scene graph and local list
+                cloud.Y = (float)(GameService.Instance.Random.NextDouble() * (0.3f * screenHeight));
                 AddSprite(cloud);
                 clouds.Add(cloud);
             }

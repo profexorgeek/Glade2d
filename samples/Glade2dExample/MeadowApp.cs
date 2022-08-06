@@ -83,7 +83,7 @@ namespace MeadowApp
             glade = new Game();
             glade.Initialize(display, 4, EngineMode.GameLoop);
             glade.Renderer.RenderInSafeMode = false;
-            glade.SleepMilliseconds = 200;
+            glade.SleepMilliseconds = 0;
             glade.Start(new MountainSceneScreen());
         }
 
@@ -159,10 +159,9 @@ namespace MeadowApp
                 resetPin: Device.Pins.D00,
                 displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
-                height: 480);
+                height: 320);
             LogService.Log.Trace("ILI9341 Graphics Display initialized.");
             return graphicsDevice;
         }
-
     }
 }

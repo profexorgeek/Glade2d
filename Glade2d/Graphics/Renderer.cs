@@ -19,6 +19,8 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
+        public int Width => pixelBuffer.Width;
+        public int Height => pixelBuffer.Height;
 
         public Renderer(IGraphicsDisplay display, int scale = 1)
             : base(display)
@@ -73,8 +75,8 @@ namespace Glade2d.Graphics
 
                     // only draw if not transparent and within buffer
                     if (!pixel.Equals(TransparentColor) &&
-                        tX > 0 &&
-                        tY > 0 &&
+                        tX >= 0 &&
+                        tY >= 0 &&
                         tX < pixelBuffer.Width &&
                         tY < pixelBuffer.Height)
                     {
