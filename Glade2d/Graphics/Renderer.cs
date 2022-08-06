@@ -20,6 +20,8 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
+        public int Width => pixelBuffer.Width;
+        public int Height => pixelBuffer.Height;
 
 
         public Renderer(IGraphicsDisplay display, int scale = 1)
