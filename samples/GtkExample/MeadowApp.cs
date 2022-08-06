@@ -30,7 +30,7 @@ namespace MeadowApp
             LogService.Log.Trace("Beginning Meadow initialization...");
 
             // initialize display device
-            display = new Display(242 * 3, 240 * 3, ColorType.Format16bppRgb565);
+            display = new Display(240 * 3, 240 * 3, ColorType.Format16bppRgb565);
 
             // ready to go!, set LED to green
             LogService.Log.Trace("Initialization complete");
