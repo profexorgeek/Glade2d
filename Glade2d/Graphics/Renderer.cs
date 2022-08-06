@@ -19,6 +19,7 @@ namespace Glade2d.Graphics
         public bool ShowPerf { get; set; } = false;
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
+        public bool RenderInSafeMode { get; set; } = false;
 
 
         public Renderer(IGraphicsDisplay display, int scale = 1)
@@ -187,39 +188,13 @@ namespace Glade2d.Graphics
             // If we are doing a scaled draw, we must perform special copy logic
             if(Scale > 1)
             {
-                // TODO: this can be much faster if we draw a line and then array copy
-                // the whole line * scale
-                // loop through X & Y, drawing pixels from buffer to device
-                var displayBuffer = display.PixelBuffer.Buffer;
-                var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
-                var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
-
-                for (int y = 0; y < pixelBuffer.Height; y++)
+                if(RenderInSafeMode)
                 {
-                    var yScaled = y * Scale;
-
-                    // First draw all of the pixels in a row into the
-                    // destination buffer
-                    for (int x = 0; x < pixelBuffer.Width; x++)
-                    {
-                        var color = pixelBuffer.GetPixel(x, y);
-                        var xScaled = x * Scale;
-                        for (var i = 0; i < Scale; i++)
-                        {
-                            display.DrawPixel(xScaled + i, yScaled, color);
-                        }
-                    }
-
-                    // now that we have drawn a row, blit the entire row
-                    // this is 1-indexed because we've already drawn the first row
-                    // [Scale] more times on the Y axis - this is faster than
-                    // drawing pixel-by-pixel!
-                    var startByteOffset = (yScaled * displayBytesPerRow);
-                    for (var i = 1; i < Scale; i++)
-                    {
-                        var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
-                        Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
-                    }
+                    ShowSafeMode();
+                }
+                else
+                {
+                    ShowFastMode();
                 }
             }
             // if we're not doing a scaled draw, our buffers should match
@@ -230,6 +205,68 @@ namespace Glade2d.Graphics
             }
 
             base.Show();
+        }
+
+        void ShowSafeMode()
+        {
+            // loop through X & Y, drawing pixels from buffer to device
+            for (int x = 0; x < pixelBuffer.Width; x++)
+            {
+                for (int y = 0; y < pixelBuffer.Height; y++)
+                {
+                    // the target X and Y are based on the Scale
+                    var tX = x * Scale;
+                    var tY = y * Scale;
+                    var color = pixelBuffer.GetPixel(x, y);
+
+                    // draw the pixel multiple times to scale
+                    for (var x1 = 0; x1 < Scale; x1++)
+                    {
+                        for (var y1 = 0; y1 < Scale; y1++)
+                        {
+                            display.DrawPixel(tX + x1, tY + y1, color);
+                        }
+                    }
+                }
+            }
+        }
+
+        void ShowFastMode()
+        {
+            // TODO: this can be much faster if we draw a line and then array copy
+            // the whole line * scale
+            // loop through X & Y, drawing pixels from buffer to device
+            var displayBuffer = display.PixelBuffer.Buffer;
+            var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
+            var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
+
+            for (int y = 0; y < pixelBuffer.Height; y++)
+            {
+                var yScaled = y * Scale;
+
+                // First draw all of the pixels in a row into the
+                // destination buffer
+                for (int x = 0; x < pixelBuffer.Width; x++)
+                {
+                    var color = pixelBuffer.GetPixel(x, y);
+                    var xScaled = x * Scale;
+                    for (var i = 0; i < Scale; i++)
+                    {
+                        display.DrawPixel(xScaled + i, yScaled, color);
+                    }
+                }
+
+                // now that we have drawn a row, blit the entire row
+                // this is 1-indexed because we've already drawn the first row
+                // [Scale] more times on the Y axis - this is faster than
+                // drawing pixel-by-pixel!
+                var startByteOffset = (yScaled * displayBytesPerRow);
+                for (var i = 1; i < Scale; i++)
+                {
+                    var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
+                    Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
+                }
+            }
         }
 
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
