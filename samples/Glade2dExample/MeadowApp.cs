@@ -38,22 +38,22 @@ namespace MeadowApp
                 bluePwmPin: Device.Pins.OnboardLedBlue);
             onboardLed.SetColor(Color.Red);
 
-            LogService.Log.Trace("Initializing piezo and playing tone...");
-            piezo = new PiezoSpeaker(Device, Device.Pins.D11);
-            await piezo.PlayTone(new Frequency(440), TimeSpan.FromSeconds(1));
-            var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
+            //LogService.Log.Trace("Initializing piezo and playing tone...");
+            //piezo = new PiezoSpeaker(Device, Device.Pins.D11);
+            //await piezo.PlayTone(new Frequency(440), 1000);
+            //var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
 
 
-            LogService.Log.Trace($"Button debounce is: {button.DebounceDuration}");
-            button.PressStarted += Button_PressStarted;
-            button.PressEnded += Button_PressEnded;
-            button.DebounceDuration = TimeSpan.FromMilliseconds(10);
+            //LogService.Log.Trace($"Button debounce is: {button.DebounceDuration}");
+            //button.PressStarted += Button_PressStarted;
+            //button.PressEnded += Button_PressEnded;
+            //button.DebounceDuration = TimeSpan.FromMilliseconds(10);
 
-            LogService.Log.Trace($"New button debounce is: {button.DebounceDuration}");
+            //LogService.Log.Trace($"New button debounce is: {button.DebounceDuration}");
 
 
             // initialize display device
-            display = GetDisplayDevice();
+            display = GetDisplayDeviceMeadowV2();
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
@@ -71,7 +71,7 @@ namespace MeadowApp
             LogService.Log.Trace("Button press ended!");
             onboardLed.SetColor(Color.Red);
 
-            if (glade.Mode == EngineMode.RenderOnDemand)
+            if(glade.Mode == EngineMode.RenderOnDemand)
             {
                 LogService.Log.Trace("Rendering scene on demand...");
                 glade.Tick();
@@ -82,11 +82,12 @@ namespace MeadowApp
         {
             glade = new Game();
             glade.Initialize(display, 4, EngineMode.GameLoop);
-            glade.SleepMilliseconds = 5;
+            glade.Renderer.RenderInSafeMode = true;
+            //glade.SleepMilliseconds = 5;
             glade.Start(new MountainSceneScreen());
         }
 
-        St7789 GetDisplayDevice()
+        IGraphicsDisplay GetDisplayDeviceProjectLabs()
         {
             LogService.Log.Trace("Initializing St7789 Graphics Display.");
 
@@ -111,5 +112,32 @@ namespace MeadowApp
 
             return graphicsDevice;
         }
+
+        IGraphicsDisplay GetDisplayDeviceMeadowV2()
+        {
+            LogService.Log.Trace("Initializing St7789 Graphics Display.");
+
+            var config = new SpiClockConfiguration(
+                speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
+                mode: SpiClockConfiguration.Mode.Mode3);
+            var spiBus = Device.CreateSpiBus(
+                clock: Device.Pins.SCK,
+                copi: Device.Pins.MOSI,
+                cipo: Device.Pins.MISO,
+                config: config);
+            var graphicsDevice = new St7789(
+                device: Device,
+                spiBus: spiBus,
+                chipSelectPin: Device.Pins.D02,
+                dcPin: Device.Pins.D01,
+                resetPin: Device.Pins.D00,
+                displayColorMode: ColorType.Format16bppRgb565,
+                width: 240,
+                height: 240);
+            LogService.Log.Trace("St7789 Graphics Display initialized.");
+
+            return graphicsDevice;
+        }
+
     }
 }
