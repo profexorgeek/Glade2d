@@ -53,7 +53,7 @@ namespace MeadowApp
 
 
             // initialize display device
-            display = GetDisplayDeviceMeadowV2();
+            display = GetDisplayDeviceMeadowV2Ili9341();
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
@@ -82,8 +82,8 @@ namespace MeadowApp
         {
             glade = new Game();
             glade.Initialize(display, 4, EngineMode.GameLoop);
-            glade.Renderer.RenderInSafeMode = true;
-            //glade.SleepMilliseconds = 5;
+            glade.Renderer.RenderInSafeMode = false;
+            glade.SleepMilliseconds = 200;
             glade.Start(new MountainSceneScreen());
         }
 
@@ -113,7 +113,7 @@ namespace MeadowApp
             return graphicsDevice;
         }
 
-        IGraphicsDisplay GetDisplayDeviceMeadowV2()
+        IGraphicsDisplay GetDisplayDeviceMeadowV2St7789()
         {
             LogService.Log.Trace("Initializing St7789 Graphics Display.");
 
@@ -136,6 +136,31 @@ namespace MeadowApp
                 height: 240);
             LogService.Log.Trace("St7789 Graphics Display initialized.");
 
+            return graphicsDevice;
+        }
+
+        IGraphicsDisplay GetDisplayDeviceMeadowV2Ili9341()
+        {
+            LogService.Log.Trace("Initializing ILI9341 Graphics Display.");
+
+            var config = new SpiClockConfiguration(
+                speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
+                mode: SpiClockConfiguration.Mode.Mode3);
+            var spiBus = Device.CreateSpiBus(
+                clock: Device.Pins.SCK,
+                copi: Device.Pins.MOSI,
+                cipo: Device.Pins.MISO,
+                config: config);
+            var graphicsDevice = new Ili9341(
+                device: Device,
+                spiBus: spiBus,
+                chipSelectPin: Device.Pins.D02,
+                dcPin: Device.Pins.D01,
+                resetPin: Device.Pins.D00,
+                displayColorMode: ColorType.Format16bppRgb565,
+                width: 240,
+                height: 480);
+            LogService.Log.Trace("ILI9341 Graphics Display initialized.");
             return graphicsDevice;
         }
 
