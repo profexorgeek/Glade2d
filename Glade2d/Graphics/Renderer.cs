@@ -186,7 +186,7 @@ namespace Glade2d.Graphics
             // If we are doing a scaled draw, we must perform special copy logic
             if (Scale > 1)
             {
-                if(RenderInSafeMode)
+                if (RenderInSafeMode)
                 {
                     ShowSafeMode();
                 }
@@ -277,6 +277,12 @@ namespace Glade2d.Graphics
                     break;
                 case ColorType.Format16bppRgb565:
                     buffer = new BufferRgb565(width, height);
+                    break;
+                case ColorType.Format24bppRgb888:
+                    buffer = new BufferRgb888(width, height);
+                    break;
+                case ColorType.Format32bppRgba8888:
+                    buffer = new BufferRgb8888(width, height);
                     break;
                 default:
                     throw new NotImplementedException($"Color mode {mode} has not been implemented by this renderer yet!");
