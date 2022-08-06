@@ -1,10 +1,8 @@
 ﻿using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
-using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Glade2d
 {
@@ -46,20 +44,15 @@ namespace Glade2d
 
             LogService.Log.Trace("Starting Glade2d Game loop.");
 
-            if(Mode == EngineMode.GameLoop)
+            if (Mode == EngineMode.GameLoop)
             {
-                Task.Run(() =>
+                while (true)
                 {
-                    while (true)
-                    {
-                        Tick();
-                        Thread.Sleep(SleepMilliseconds);
-                    }
-                });
-
-                
+                    Tick();
+                    Thread.Sleep(SleepMilliseconds);
+                }
             }
-            
+
         }
 
         /// <summary>

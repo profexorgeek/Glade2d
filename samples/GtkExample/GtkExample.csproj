@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<OutputType>Exe</OutputType>
+		<AssemblyName>App</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="spritesheet.bmp" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="spritesheet.bmp">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Meadow.Contracts\Source\Meadow.Contracts\Meadow.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Meadow.Core\source\Meadow.Core\Meadow.Core.csproj" />
+    <ProjectReference Include="..\..\..\Meadow.Core\source\Meadow.F7\Meadow.F7.csproj" />
+    <ProjectReference Include="..\..\..\Meadow.Linux\src\gtk\Meadow.Gtk.csproj" />
+    <ProjectReference Include="..\..\..\Meadow.Simulation\src\Meadow.Simulation\Meadow.Simulation.csproj" />
+    <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="meadow.config.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

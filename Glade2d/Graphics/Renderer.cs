@@ -7,7 +7,6 @@ using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Glade2d.Graphics
 {
@@ -23,7 +22,6 @@ namespace Glade2d.Graphics
         public int Width => pixelBuffer.Width;
         public int Height => pixelBuffer.Height;
 
-
         public Renderer(IGraphicsDisplay display, int scale = 1)
             : base(display)
         {
@@ -32,7 +30,7 @@ namespace Glade2d.Graphics
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
             // so we draw at the scaled resolution
-            if(scale > 1)
+            if (scale > 1)
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
@@ -47,7 +45,7 @@ namespace Glade2d.Graphics
             textures = new Dictionary<string, IPixelBuffer>();
             CurrentFont = new Font4x6();
         }
-        
+
         public void Reset()
         {
             pixelBuffer.Fill(BackgroundColor);
@@ -188,9 +186,9 @@ namespace Glade2d.Graphics
         public override void Show()
         {
             // If we are doing a scaled draw, we must perform special copy logic
-            if(Scale > 1)
+            if (Scale > 1)
             {
-                if(RenderInSafeMode)
+                if (RenderInSafeMode)
                 {
                     ShowSafeMode();
                 }
@@ -274,13 +272,19 @@ namespace Glade2d.Graphics
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
         {
             IPixelBuffer buffer;
-            switch(mode)
+            switch (mode)
             {
                 case ColorType.Format12bppRgb444:
                     buffer = new BufferRgb444(width, height);
                     break;
                 case ColorType.Format16bppRgb565:
                     buffer = new BufferRgb565(width, height);
+                    break;
+                case ColorType.Format24bppRgb888:
+                    buffer = new BufferRgb888(width, height);
+                    break;
+                case ColorType.Format32bppRgba8888:
+                    buffer = new BufferRgb8888(width, height);
                     break;
                 default:
                     throw new NotImplementedException($"Color mode {mode} has not been implemented by this renderer yet!");
