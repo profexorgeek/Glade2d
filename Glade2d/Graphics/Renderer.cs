@@ -19,13 +19,12 @@ namespace Glade2d.Graphics
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
-        public int Width => pixelBuffer.Width;
-        public int Height => pixelBuffer.Height;
 
-        public Renderer(IGraphicsDisplay display, int scale = 1)
+        public Renderer(IGraphicsDisplay display, int scale = 1, RotationType rotation = RotationType.Default)
             : base(display)
         {
             this.Scale = scale;
+            this.Rotation = rotation;
 
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
@@ -35,11 +34,13 @@ namespace Glade2d.Graphics
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
                 this.pixelBuffer = GetBufferForColorMode(display.ColorMode, scaledWidth, scaledHeight);
+                LogService.Log.Trace($"Initialized renderer with custom buffer: {scaledWidth}x{scaledHeight}");
             }
             else
             {
                 // do nothing, the default behavior is to draw
                 // directly into the graphics buffer
+                LogService.Log.Trace($"Initialized renderer using default display driver buffer: {display.Width}x{display.Height}");
             }
 
             textures = new Dictionary<string, IPixelBuffer>();
@@ -77,8 +78,8 @@ namespace Glade2d.Graphics
                     if (!pixel.Equals(TransparentColor) &&
                         tX >= 0 &&
                         tY >= 0 &&
-                        tX < pixelBuffer.Width &&
-                        tY < pixelBuffer.Height)
+                        tX < Width &&
+                        tY < Height)
                     {
                         DrawPixel(tX, tY, pixel);
                     }
