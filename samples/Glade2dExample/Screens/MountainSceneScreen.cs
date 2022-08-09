@@ -19,7 +19,8 @@ namespace Glade2dExample.Screens
         {
             screenWidth = GameService.Instance.GameInstance.Renderer.Width;
             screenHeight = GameService.Instance.GameInstance.Renderer.Height;
-            
+
+            LogService.Log.Trace($"Renderer reports screen size of {screenWidth}x{screenHeight}");
             
             int startY =  screenHeight - TreesSprite.Frame.Height;
             for (var x = 0; x < screenWidth; x += TreesSprite.Frame.Width)

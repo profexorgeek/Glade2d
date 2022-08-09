@@ -53,7 +53,7 @@ namespace MeadowApp
 
 
             // initialize display device
-            display = GetDisplayDeviceMeadowV2Ili9341();
+            display = Get3_2Display();
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
@@ -81,7 +81,7 @@ namespace MeadowApp
         async Task IApp.Run()
         {
             glade = new Game();
-            glade.Initialize(display, 4, EngineMode.GameLoop);
+            glade.Initialize(display, 2, EngineMode.GameLoop, RotationType._90Degrees);
             glade.Renderer.RenderInSafeMode = false;
             glade.SleepMilliseconds = 0;
             glade.Start(new MountainSceneScreen());
@@ -144,6 +144,31 @@ namespace MeadowApp
             LogService.Log.Trace("Initializing ILI9341 Graphics Display.");
 
             var config = new SpiClockConfiguration(
+                speed: new Frequency(12000, Frequency.UnitType.Kilohertz),
+                mode: SpiClockConfiguration.Mode.Mode3);
+            var spiBus = Device.CreateSpiBus(
+                clock: Device.Pins.SCK,
+                copi: Device.Pins.MOSI,
+                cipo: Device.Pins.MISO,
+                config: config);
+            var graphicsDevice = new Ili9341(
+                device: Device,
+                spiBus: spiBus,
+                chipSelectPin: Device.Pins.D02,
+                dcPin: Device.Pins.D01,
+                resetPin: Device.Pins.D00,
+                displayColorMode: ColorType.Format16bppRgb565,
+                width: 480,
+                height: 320);
+            LogService.Log.Trace("ILI9341 Graphics Display initialized.");
+            return graphicsDevice;
+        }
+
+        IGraphicsDisplay Get3_2Display()
+        {
+            LogService.Log.Trace("Initializing Graphics Display.");
+
+            var config = new SpiClockConfiguration(
                 speed: new Frequency(48000, Frequency.UnitType.Kilohertz),
                 mode: SpiClockConfiguration.Mode.Mode3);
             var spiBus = Device.CreateSpiBus(
@@ -160,7 +185,7 @@ namespace MeadowApp
                 displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
                 height: 320);
-            LogService.Log.Trace("ILI9341 Graphics Display initialized.");
+            LogService.Log.Trace("Graphics Display initialized.");
             return graphicsDevice;
         }
     }

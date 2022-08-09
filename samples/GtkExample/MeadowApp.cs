@@ -41,7 +41,7 @@ namespace MeadowApp
         public override Task Run()
         {
             glade = new Game();
-            glade.Initialize(display, 12, EngineMode.GameLoop);
+            glade.Initialize(display, 4, EngineMode.GameLoop);
             glade.Renderer.RenderInSafeMode = false;
             glade.SleepMilliseconds = 20;
             _ = Task.Run(() =>
