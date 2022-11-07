@@ -43,6 +43,7 @@ File an issue, write a doc, submit a PR, or reach out to [@profexorgeek](https:/
 - [x] Sprites should be destroyable
 - [x] Demo scene should demo velocity and destroying
 - [ ] Glade2d should be spun out from MeadowApp
+- [ ] Glade2d should use Nuget packages instead of WL internal repos
 - [ ] Changing sprite Layer after adding to scene should trigger a re-sort
 - [ ] Create an input manager that allows buttons to be registered and button presses to be tracked each frame
 - [ ] CONSIDERATION: Enable parent child relationships and a tree-shaped scene graph
