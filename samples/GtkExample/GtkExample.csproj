@@ -21,11 +21,11 @@
 	  <PackageReference Include="Meadow" Version="0.32.1" />
 	  <PackageReference Include="Meadow.Foundation" Version="0.34.1" />
 	  <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
-	  <PackageReference Include="Meadow.Linux" Version="0.25.0" />
+	  <PackageReference Include="Meadow.Linux" Version="0.26.0" />
+	  <PackageReference Include="Meadow.Simulation" Version="0.1.0" />
 	</ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Meadow.Simulation\src\Meadow.Simulation\Meadow.Simulation.csproj" />
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
   </ItemGroup>
 

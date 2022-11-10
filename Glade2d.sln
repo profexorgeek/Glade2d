@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glade2dExample", "samples\G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtkExample", "samples\GtkExample\GtkExample.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Simulation", "..\Meadow.Simulation\src\Meadow.Simulation\Meadow.Simulation.csproj", "{7B596576-3756-4450-A5AB-34A05486F136}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,10 +31,6 @@ Global
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B596576-3756-4450-A5AB-34A05486F136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B596576-3756-4450-A5AB-34A05486F136}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B596576-3756-4450-A5AB-34A05486F136}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B596576-3756-4450-A5AB-34A05486F136}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
