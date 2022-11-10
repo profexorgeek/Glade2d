@@ -3,7 +3,6 @@ using Glade2d.Services;
 using Glade2dExample.Screens;
 using Meadow;
 using Meadow.Foundation.Graphics;
-using Meadow.Graphics;
 using System.Threading.Tasks;
 
 // TODO: The namespace currently HAS to be MeadowApp or it won't launch. Once
@@ -22,6 +21,7 @@ namespace MeadowApp
     public class MeadowApp : App<Meadow.Simulation.SimulatedMeadow<Meadow.Simulation.SimulatedPinout>> //App<F7FeatherV2>, IApp
     {
         Game glade;
+
         Display display;
 
         public override Task Initialize()

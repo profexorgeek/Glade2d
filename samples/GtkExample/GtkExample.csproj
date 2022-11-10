@@ -17,11 +17,14 @@
 	  </Content>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Meadow" Version="0.32.1" />
+	  <PackageReference Include="Meadow.Foundation" Version="0.34.1" />
+	  <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
+	  <PackageReference Include="Meadow.Linux" Version="0.25.0" />
+	</ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Meadow.Contracts\Source\Meadow.Contracts\Meadow.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\Meadow.Core\source\Meadow.Core\Meadow.Core.csproj" />
-    <ProjectReference Include="..\..\..\Meadow.Core\source\Meadow.F7\Meadow.F7.csproj" />
-    <ProjectReference Include="..\..\..\Meadow.Linux\src\gtk\Meadow.Gtk.csproj" />
     <ProjectReference Include="..\..\..\Meadow.Simulation\src\Meadow.Simulation\Meadow.Simulation.csproj" />
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
   </ItemGroup>
