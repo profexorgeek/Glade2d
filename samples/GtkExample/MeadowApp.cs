@@ -3,6 +3,7 @@ using Glade2d.Services;
 using Glade2dExample.Screens;
 using Meadow;
 using Meadow.Foundation.Graphics;
+using Meadow.Graphics;
 using System.Threading.Tasks;
 
 // TODO: The namespace currently HAS to be MeadowApp or it won't launch. Once
@@ -22,7 +23,7 @@ namespace MeadowApp
     {
         Game glade;
 
-        Meadow.Graphics.GtkDisplay display;
+        GtkDisplay display;
 
         public override Task Initialize()
         {
