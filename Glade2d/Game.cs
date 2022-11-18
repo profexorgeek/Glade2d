@@ -8,14 +8,21 @@ namespace Glade2d
 {
     public class Game
     {
-        // The engine operating mode, this can only be set
-        // during Initialize
+        /// <summary>
+        /// The engine operating mode, this can currently only be set
+        /// during Initialize
+        /// </summary>
         public EngineMode Mode { get; private set; } = EngineMode.GameLoop;
 
-        // How long the engine should sleep between ticks
-        // Default is 0, which runs as fast as possible
+        /// <summary>
+        /// How long the engine 
+        /// </summary>
         public int SleepMilliseconds { get; set; } = 0;
 
+        /// <summary>
+        /// The renderer instance. Used to configure extra rendering parameters,
+        /// such as turning on performance information
+        /// </summary>
         public Renderer Renderer { get; protected set; }
 
         public Game() { }
