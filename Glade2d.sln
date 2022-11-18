@@ -5,13 +5,13 @@ VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glade2d", "Glade2d\Glade2d.csproj", "{7096780A-5682-4F1F-A454-8BE9C4B4F09D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{1D1CC01E-84CC-43AA-ABDA-C8816E672384}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{1D1CC01E-84CC-43AA-ABDA-C8816E672384}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtkExample", "samples\GtkExample\GtkExample.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladeSampleShared", "Samples\GladeSampleShared\GladeSampleShared.csproj", "{B3305032-0C68-47A6-AA14-02D0D944853A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GladeSampleShared", "GladeSampleShared\GladeSampleShared.csproj", "{B3305032-0C68-47A6-AA14-02D0D944853A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleGtk", "Samples\SampleGtk\SampleGtk.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GladeProjectLab", "GladeProjectLab\GladeProjectLab.csproj", "{D4FEA951-236D-4FEF-9AE1-EB173F0FDC51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleProjectLab", "Samples\SampleProjectLab\SampleProjectLab.csproj", "{D4FEA951-236D-4FEF-9AE1-EB173F0FDC51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

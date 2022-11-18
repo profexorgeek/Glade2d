@@ -6,7 +6,7 @@ using Meadow.Foundation.Graphics;
 using Meadow.Graphics;
 using System.Threading.Tasks;
 
-namespace GtkExample
+namespace SampleGtk
 {
     public class GladeSample
     {

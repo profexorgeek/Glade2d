@@ -6,12 +6,11 @@ using Meadow.Devices;
 using Meadow.Foundation.Displays;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.ICs.IOExpanders;
-using Meadow.Gateways.Bluetooth;
 using Meadow.Hardware;
 using Meadow.Units;
 using System.Threading.Tasks;
 
-namespace GladeProjectLab
+namespace SampleProjectLab
 {
     public class MeadowApp : App<F7FeatherV2>
     {

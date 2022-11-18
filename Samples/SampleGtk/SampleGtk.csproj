@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
-    <ProjectReference Include="..\..\GladeSampleShared\GladeSampleShared.csproj" />
+    <ProjectReference Include="..\GladeSampleShared\GladeSampleShared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
