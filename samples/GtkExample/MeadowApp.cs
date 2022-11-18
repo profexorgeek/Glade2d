@@ -1,14 +1,12 @@
 ﻿using Glade2d;
 using Glade2d.Services;
-using Glade2dExample.Screens;
+using GladeSampleShared.Screens;
 using Meadow;
 using Meadow.Foundation.Graphics;
 using Meadow.Graphics;
 using System.Threading.Tasks;
 
-// TODO: The namespace currently HAS to be MeadowApp or it won't launch. Once
-// this is fixed, this should be updated to be a rational namespace
-namespace MeadowApp
+namespace GtkExample
 {
     public class GladeSample
     {
@@ -16,26 +14,19 @@ namespace MeadowApp
         {
             MeadowOS.Main(args);
         }
-
     }
 
     public class MeadowApp : App<Meadow.Simulation.SimulatedMeadow<Meadow.Simulation.SimulatedPinout>> //App<F7FeatherV2>, IApp
     {
         Game glade;
-
         GtkDisplay display;
 
         public override Task Initialize()
         {
             LogService.Log.Level = Glade2d.Logging.LogLevel.Trace;
             LogService.Log.Trace("Beginning Meadow initialization...");
-
-            // initialize display device
             display = new GtkDisplay(240, 240, ColorType.Format16bppRgb565);
-
-            // ready to go!, set LED to green
             LogService.Log.Trace("Initialization complete");
-
             return base.Initialize();
         }
 

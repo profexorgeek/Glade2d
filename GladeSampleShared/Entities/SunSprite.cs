@@ -1,9 +1,6 @@
 ﻿using Glade2d.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Glade2dExample.Entities
+namespace GladeSampleShared.Entities
 {
     public class SunSprite : Sprite
     {

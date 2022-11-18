@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glade2dExample", "samples\G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtkExample", "samples\GtkExample\GtkExample.csproj", "{EC8D68FC-6AAF-490F-9376-5317B4D5F280}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GladeSampleShared", "GladeSampleShared\GladeSampleShared.csproj", "{B3305032-0C68-47A6-AA14-02D0D944853A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3305032-0C68-47A6-AA14-02D0D944853A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3305032-0C68-47A6-AA14-02D0D944853A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3305032-0C68-47A6-AA14-02D0D944853A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3305032-0C68-47A6-AA14-02D0D944853A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -38,6 +44,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{20FAD1BF-7F27-4E67-A988-DCD9C4E53638} = {1D1CC01E-84CC-43AA-ABDA-C8816E672384}
 		{EC8D68FC-6AAF-490F-9376-5317B4D5F280} = {1D1CC01E-84CC-43AA-ABDA-C8816E672384}
+		{B3305032-0C68-47A6-AA14-02D0D944853A} = {1D1CC01E-84CC-43AA-ABDA-C8816E672384}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {17F905C5-A6A0-4EF4-AAD9-CA0D859DDD87}

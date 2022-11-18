@@ -1,10 +1,10 @@
 ﻿using Glade2d.Screens;
 using Glade2d.Services;
-using Glade2dExample.Entities;
+using GladeSampleShared.Entities;
 using Meadow.Foundation;
 using System.Collections.Generic;
 
-namespace Glade2dExample.Screens
+namespace GladeSampleShared.Screens
 {
     public class MountainSceneScreen : Screen
     {

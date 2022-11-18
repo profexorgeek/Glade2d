@@ -8,16 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="spritesheet.bmp" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="spritesheet.bmp">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
 	  <PackageReference Include="Meadow" Version="0.32.1" />
 	  <PackageReference Include="Meadow.Foundation" Version="0.34.1" />
 	  <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
@@ -28,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+    <ProjectReference Include="..\..\GladeSampleShared\GladeSampleShared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
