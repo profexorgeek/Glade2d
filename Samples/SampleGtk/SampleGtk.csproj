@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<OutputType>Exe</OutputType>
+		<AssemblyName>App</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Meadow" Version="0.32.1" />
+	  <PackageReference Include="Meadow.Foundation" Version="0.34.1" />
+	  <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
+	  <PackageReference Include="Meadow.Gtk" Version="0.31.0" />
+	  <PackageReference Include="Meadow.Linux" Version="0.31.0" />
+	  <PackageReference Include="Meadow.Simulation" Version="0.1.0" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+    <ProjectReference Include="..\GladeSampleShared\GladeSampleShared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="meadow.config.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

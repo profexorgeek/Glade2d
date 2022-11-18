@@ -1,7 +1,7 @@
 ﻿using Glade2d.Graphics;
 using Glade2d.Services;
 
-namespace Glade2dExample.Entities
+namespace GladeSampleShared.Entities
 {
     public class CloudSprite : Sprite
     {

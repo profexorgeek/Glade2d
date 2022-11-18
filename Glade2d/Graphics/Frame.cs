@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Glade2d.Graphics
+﻿namespace Glade2d.Graphics
 {
     public class Frame
     {

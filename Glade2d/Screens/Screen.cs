@@ -1,10 +1,8 @@
 ﻿using Glade2d.Graphics;
 using Glade2d.Services;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Glade2d.Screens
 {
@@ -83,6 +81,7 @@ namespace Glade2d.Screens
         {
             if (sprites.Contains(sprite))
             {
+                sprites.Remove(sprite);
             }
         }
         protected void RemoveSprite(int index)

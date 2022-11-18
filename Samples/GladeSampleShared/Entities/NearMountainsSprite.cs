@@ -1,22 +1,22 @@
 ﻿using Glade2d.Graphics;
 
-namespace Glade2dExample.Entities
+namespace GladeSampleShared.Entities
 {
-    public class FarMountainsSprite : Sprite
+    public class NearMountainsSprite : Sprite
     {
         public readonly static Frame Frame = new Frame()
         {
             TextureName = "spritesheet.bmp",
-            X = 0,
+            X = 32,
             Y = 0,
             Width = 32,
             Height = 16
         };
 
-        public FarMountainsSprite(int x = 0, int y = 0)
+        public NearMountainsSprite(int x = 0, int y = 0)
         {
             CurrentFrame = Frame;
-            Layer = 20;
+            Layer = 30;
             X = x;
             Y = y;
         }

@@ -1,10 +1,10 @@
 ﻿using Glade2d.Screens;
 using Glade2d.Services;
-using Glade2dExample.Entities;
+using GladeSampleShared.Entities;
 using Meadow.Foundation;
 using System.Collections.Generic;
 
-namespace Glade2dExample.Screens
+namespace GladeSampleShared.Screens
 {
     public class MountainSceneScreen : Screen
     {
@@ -27,7 +27,7 @@ namespace Glade2dExample.Screens
 
             // set background color and FPS on the renderer
             var renderer = GameService.Instance.GameInstance.Renderer;
-            renderer.ShowFPS = true;
+            renderer.ShowPerf = true;
             renderer.BackgroundColor = Color.Cyan;
 
 
