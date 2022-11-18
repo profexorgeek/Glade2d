@@ -5,7 +5,7 @@ using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation;
 using Meadow.Foundation.Audio;
-using Meadow.Foundation.Displays.TftSpi;
+using Meadow.Foundation.Displays;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Leds;
 using Meadow.Foundation.Sensors.Buttons;
@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 // TODO: The namespace currently HAS to be MeadowApp or it won't launch. Once
 // this is fixed, this should be updated to be a rational namespace
-namespace MeadowApp
+namespace Glade2dExample
 {
     public class MeadowApp : App<F7FeatherV2>, IApp
     {
@@ -38,22 +38,22 @@ namespace MeadowApp
                 bluePwmPin: Device.Pins.OnboardLedBlue);
             onboardLed.SetColor(Color.Red);
 
-            //LogService.Log.Trace("Initializing piezo and playing tone...");
-            //piezo = new PiezoSpeaker(Device, Device.Pins.D11);
-            //await piezo.PlayTone(new Frequency(440), 1000);
-            //var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
+            LogService.Log.Trace("Initializing piezo and playing tone...");
+            piezo = new PiezoSpeaker(Device, Device.Pins.D11);
+            await piezo.PlayTone(new Frequency(440), TimeSpan.FromMilliseconds(500));
+            var button = new PushButton(Device, Device.Pins.D10, ResistorMode.InternalPullDown);
 
 
-            //LogService.Log.Trace($"Button debounce is: {button.DebounceDuration}");
-            //button.PressStarted += Button_PressStarted;
-            //button.PressEnded += Button_PressEnded;
-            //button.DebounceDuration = TimeSpan.FromMilliseconds(10);
+            LogService.Log.Trace($"Button debounce is: {button.DebounceDuration}");
+            button.PressStarted += Button_PressStarted;
+            button.PressEnded += Button_PressEnded;
+            button.DebounceDuration = TimeSpan.FromMilliseconds(10);
 
-            //LogService.Log.Trace($"New button debounce is: {button.DebounceDuration}");
+            LogService.Log.Trace($"New button debounce is: {button.DebounceDuration}");
 
 
             // initialize display device
-            display = Get3_2Display();
+            display = GetDisplayDeviceProjectLabs();
 
             // ready to go!, set LED to green
             onboardLed.SetColor(Color.Green);
@@ -81,7 +81,7 @@ namespace MeadowApp
         async Task IApp.Run()
         {
             glade = new Game();
-            glade.Initialize(display, 2, EngineMode.GameLoop, RotationType._90Degrees);
+            glade.Initialize(display, 4, EngineMode.GameLoop, RotationType._90Degrees);
             glade.Renderer.RenderInSafeMode = false;
             glade.SleepMilliseconds = 0;
             glade.Start(new MountainSceneScreen());
@@ -105,9 +105,9 @@ namespace MeadowApp
                 chipSelectPin: Device.Pins.A03,
                 dcPin: Device.Pins.A04,
                 resetPin: Device.Pins.A05,
-                displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
-                height: 240);
+                height: 240,
+                colorMode: ColorType.Format16bppRgb565);
             LogService.Log.Trace("St7789 Graphics Display initialized.");
 
             return graphicsDevice;
@@ -131,9 +131,9 @@ namespace MeadowApp
                 chipSelectPin: Device.Pins.D02,
                 dcPin: Device.Pins.D01,
                 resetPin: Device.Pins.D00,
-                displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
-                height: 240);
+                height: 240,
+                colorMode: ColorType.Format16bppRgb565);
             LogService.Log.Trace("St7789 Graphics Display initialized.");
 
             return graphicsDevice;
@@ -157,9 +157,9 @@ namespace MeadowApp
                 chipSelectPin: Device.Pins.D02,
                 dcPin: Device.Pins.D01,
                 resetPin: Device.Pins.D00,
-                displayColorMode: ColorType.Format16bppRgb565,
                 width: 480,
-                height: 320);
+                height: 320,
+                colorMode: ColorType.Format16bppRgb565);
             LogService.Log.Trace("ILI9341 Graphics Display initialized.");
             return graphicsDevice;
         }
@@ -182,9 +182,9 @@ namespace MeadowApp
                 chipSelectPin: Device.Pins.D02,
                 dcPin: Device.Pins.D01,
                 resetPin: Device.Pins.D00,
-                displayColorMode: ColorType.Format16bppRgb565,
                 width: 240,
-                height: 320);
+                height: 320,
+                colorMode: ColorType.Format16bppRgb565);
             LogService.Log.Trace("Graphics Display initialized.");
             return graphicsDevice;
         }
