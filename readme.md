@@ -2,28 +2,25 @@
 
 # Glade2d
 
-Glade2d is a 2D rendering/game engine intended to run on a [Wilderness Labs Meadow Board](https://www.wildernesslabs.co/). Clearly this is silly because a microcontroller is not well-suited for game development and the board is intended more for IoT applications.
+Glade2d is a 2D rendering/game engine intended to run on a [Wilderness Labs Meadow Board](https://www.wildernesslabs.co/). Clearly this is silly because a microcontroller is not well-suited for game development and the board is intended for IoT applications. But it can draw to a screen and therefore a game engine should exist for it.
 
-But it can draw to a screen and therefore a game engine should exist for it.
-
-A "glade" is an open space in the forest, aka a meadow ;)
-
-To see an example showing how to configure custom `Sprite` objects and render them in a custom `Screen` check out the [Demo Enitities](https://github.com/profexorgeek/Glade2d/blob/master/Glade2d/Examples/DemoEntities.cs) file or download and run the app!
+A "glade" is an open space in the forest, aka a meadow, which is what Glade2d was designed to run on.
 
 ![image](https://user-images.githubusercontent.com/711100/167543124-df31e10e-ee33-4441-bcf5-95a89e12e3fd.png)
 
+## Getting Started
 
-## Using
+Currently, Glade2d early in development and does not have official releases or packages. To experiment with Glade2d:
 
-Currently, Glade2d is very early in development and does not have any releases or packages. Feel free to clone the repository and experiment with it.
+1. Clone the repository and open the Glade2d.sln in Visual Studio
+1. If you have a Meadow installed on a ProjectLab board v2.e or better, deploy the `SampleProjectLab` application
+1. If you do not have a Meadow device or just want to test on your dev machine, run the `SampleGtk` application
 
-Glade2d requires a Meadow board and a display. We have only tested it with an st7789. If you try it on something else, let us know how it goes!
-
-We will publish some documentation on how to set up the hardware when we are a little further in this project.
+The sample application loads a spritesheet, defines multiple entities based on sprites from the spritesheet, and composes the entities into a tiny scene while displaying the FPS. This is a basic example of how to load sprites and composite them into a single buffer. We hope to add more demos as we add features to the engine!
 
 ## Documentation
 
-We intend to publish docs in [the docs folder of this repository as simple markdown](/docs/index.md) but we are not that far yet.
+See the [docs index page in this repo](/docs/index.md) to get started.
 
 ## Contributing
 
@@ -42,10 +39,11 @@ File an issue, write a doc, submit a PR, or reach out to [@profexorgeek](https:/
 - [x] Add concept of velocity to sprites
 - [x] Sprites should be destroyable
 - [x] Demo scene should demo velocity and destroying
-- [ ] Glade2d should be spun out from MeadowApp
-- [ ] Glade2d should use Nuget packages instead of WL internal repos
+- [x] Glade2d should be spun out from MeadowApp
+- [x] Glade2d should use Nuget packages instead of WL internal repos
 - [ ] Changing sprite Layer after adding to scene should trigger a re-sort
 - [ ] Create an input manager that allows buttons to be registered and button presses to be tracked each frame
 - [ ] CONSIDERATION: Enable parent child relationships and a tree-shaped scene graph
+- [ ] Create a camera object and manage camera translations in the renderer
 
 
