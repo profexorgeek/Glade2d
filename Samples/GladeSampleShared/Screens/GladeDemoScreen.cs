@@ -27,11 +27,9 @@ namespace GladeSampleShared.Screens
             // Set background color
             GameService.Instance.GameInstance.Renderer.BackgroundColor = new Meadow.Foundation.Color(57, 120, 168, 255);
 
-            // create background sky chunks, which do not move
             CreateSkyChunks();
-
-            // create sun
             CreateSun();
+            CreateInitialClouds();
         }
 
         public override void Activity()
@@ -66,6 +64,26 @@ namespace GladeSampleShared.Screens
             var sun = new Sun(screenWidth - 8 - Sun.ChunkWidth, 8);
             sun.Layer = 0;
             AddSprite(sun);
+        }
+
+        /// <summary>
+        /// Add some starting clouds so they are on the screen at the begining
+        /// </summary>
+        public void CreateInitialClouds()
+        {
+            var rand = GameService.Instance.Random;
+            int yOffsetMin = screenHeight - 16 - MountainChunk.ChunkHeight;
+
+            for (var i = 0; i < NumberOfClouds; i++)
+            {
+                var xPos = rand.Between(0, screenWidth);
+                var yPos = rand.Next(0, yOffsetMin);
+                var c = new Cloud(xPos, yPos);
+                c.VelocityX = rand.Between(-4f, -2f);
+                c.Layer = 6;
+                clouds.Add(c);
+                AddSprite(c);
+            }
         }
 
         /// <summary>
@@ -208,7 +226,7 @@ namespace GladeSampleShared.Screens
                 var xPos = rand.Between(screenWidth, screenWidth + 8);
                 var yPos = rand.Next(0, yOffsetMin);
                 var c = new Cloud(xPos, yPos);
-                c.VelocityX = rand.Between(-2f, -4f);
+                c.VelocityX = rand.Between(-4f, -2f);
                 c.Layer = 6;
                 clouds.Add(c);
                 AddSprite(c);

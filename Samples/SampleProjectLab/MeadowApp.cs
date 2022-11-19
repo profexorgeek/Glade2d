@@ -21,10 +21,10 @@ namespace SampleProjectLab
         {
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();
-            glade.Initialize(display, 4);
+            glade.Initialize(display, 2, EngineMode.GameLoop, RotationType._90Degrees);
 
             LogService.Log.Trace("Running game...");
-            glade.Start(new MountainSceneScreen());
+            glade.Start(new GladeDemoScreen());
 
             return base.Run();
         }
