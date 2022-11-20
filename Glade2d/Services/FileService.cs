@@ -50,7 +50,7 @@ namespace Glade2d.Services
         public byte[] LoadResource(string name)
         {
             var resourcePath = $"Glade2d.Resources.{name}";
-            Console.WriteLine($"Attempting to load resource: {resourcePath}");
+            LogService.Log.Trace($"Attempting to load resource: {resourcePath}");
             var assembly = Assembly.GetExecutingAssembly();
             byte[] resBytes;
             using (Stream stream = assembly.GetManifestResourceStream(resourcePath))

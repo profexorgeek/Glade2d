@@ -31,6 +31,12 @@ namespace SampleProjectLab
 
         public override Task Initialize()
         {
+            InitializeDisplay();
+            return base.Initialize();
+        }
+
+        void InitializeDisplay()
+        {
             LogService.Log.Trace("Initializing SPI bus...");
             var config = new SpiClockConfiguration(
                 new Frequency(48000, Frequency.UnitType.Kilohertz),
@@ -57,10 +63,6 @@ namespace SampleProjectLab
                 width: 240, height: 240,
                 colorMode: ColorType.Format16bppRgb565
                 );
-
-
-
-            return base.Initialize();
         }
     }
 }
