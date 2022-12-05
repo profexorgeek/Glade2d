@@ -15,7 +15,7 @@ namespace Glade2d.Graphics
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
-        public bool ShowPerf { get; set; } = false;
+        public bool ShowPerf { get; set; } = true;
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
@@ -70,13 +70,21 @@ namespace Glade2d.Graphics
             {
                 for (var y = frame.Y; y < frame.Y + frame.Height; y++)
                 {
+                    // var pixel = Color.Aqua; 
                     var pixel = imgBuffer.GetPixel(x, y);
+                    if (pixel.R == TransparentColor.R &&
+                        pixel.G == TransparentColor.G &&
+                        pixel.B == TransparentColor.B &&
+                        pixel.A == TransparentColor.A)
+                    {
+                        continue;
+                    }
+                    
                     var tX = originX + x - frame.X;
                     var tY = originY + y - frame.Y;
 
                     // only draw if not transparent and within buffer
-                    if (!pixel.Equals(TransparentColor) &&
-                        tX >= 0 &&
+                    if (tX >= 0 &&
                         tY >= 0 &&
                         tX < Width &&
                         tY < Height)
