@@ -70,7 +70,6 @@ namespace Glade2d.Graphics
             {
                 for (var y = frame.Y; y < frame.Y + frame.Height; y++)
                 {
-                    // var pixel = Color.Aqua; 
                     var pixel = imgBuffer.GetPixel(x, y);
                     var tX = originX + x - frame.X;
                     var tY = originY + y - frame.Y;
