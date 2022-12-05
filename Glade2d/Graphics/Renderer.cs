@@ -72,19 +72,12 @@ namespace Glade2d.Graphics
                 {
                     // var pixel = Color.Aqua; 
                     var pixel = imgBuffer.GetPixel(x, y);
-                    if (pixel.R == TransparentColor.R &&
-                        pixel.G == TransparentColor.G &&
-                        pixel.B == TransparentColor.B &&
-                        pixel.A == TransparentColor.A)
-                    {
-                        continue;
-                    }
-                    
                     var tX = originX + x - frame.X;
                     var tY = originY + y - frame.Y;
 
                     // only draw if not transparent and within buffer
-                    if (tX >= 0 &&
+                    if (pixel != TransparentColor &&
+                        tX >= 0 &&
                         tY >= 0 &&
                         tX < Width &&
                         tY < Height)
