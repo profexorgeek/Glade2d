@@ -112,6 +112,7 @@ namespace Glade2d
                 // TODO: this is a hack, figure out how to protect list
                 // while also making it available to the renderer
                 var sprites = screen.AccessSpritesForRenderingOnly();
+                Console.WriteLine($"Sprite count: {sprites.Count}");
                 accessTime = _stopwatch.Elapsed;
                 for (var i = 0; i < sprites.Count; i++)
                 {

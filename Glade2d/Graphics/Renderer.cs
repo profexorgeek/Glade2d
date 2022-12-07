@@ -12,6 +12,8 @@ namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
+        private int _width, _height;
+        
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
@@ -50,6 +52,8 @@ namespace Glade2d.Graphics
         public void Reset()
         {
             pixelBuffer.Fill(BackgroundColor);
+            _width = Width;
+            _height = Height;
         }
 
         /// <summary>
@@ -69,25 +73,35 @@ namespace Glade2d.Graphics
             var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
 
             var imgBuffer = textures[frame.TextureName];
-            for (var x = frame.X; x < frame.X + frame.Width; x++)
+
+            var imgBufferWidth = imgBuffer.Width;
+            var pixelBufferWidth = pixelBuffer.Width;
+            var frameHeight = frame.Height;
+            var frameWidth = frame.Width;
+            var frameX = frame.X;
+            var frameY = frame.Y;
+            var innerPixelBuffer = pixelBuffer.Buffer;
+            var innerImgBuffer = imgBuffer.Buffer;
+            
+            for (var x = frameX; x < frameX + frameWidth; x++)
             {
-                for (var y = frame.Y; y < frame.Y + frame.Height; y++)
+                for (var y = frameY; y < frameY + frameHeight; y++)
                 {
-                    var tX = originX + x - frame.X;
-                    var tY = originY + y - frame.Y;
+                    var tX = originX + x - frameX;
+                    var tY = originY + y - frameY;
 
                     // only draw if not transparent and within buffer
-                    if (tX >= 0 && tY >= 0 && tX < Width && tY < Height)
+                    if (tX >= 0 && tY >= 0 && tX < _width && tY < _height)
                     {
                         // temp assume rgb565
-                        var frameIndex = (y * imgBuffer.Width + x) * sizeof(ushort);
-                        var colorByte1 = imgBuffer.Buffer[frameIndex];
-                        var colorByte2 = imgBuffer.Buffer[frameIndex + 1];
+                        var frameIndex = (y * imgBufferWidth + x) * sizeof(ushort);
+                        var colorByte1 = innerImgBuffer[frameIndex];
+                        var colorByte2 = innerImgBuffer[frameIndex + 1];
                         if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
                         {
-                            var bufferIndex = (tY * pixelBuffer.Width + tX) * sizeof(ushort);
-                            pixelBuffer.Buffer[bufferIndex] = colorByte1;
-                            pixelBuffer.Buffer[bufferIndex + 1] = colorByte2;
+                            var bufferIndex = (tY * pixelBufferWidth + tX) * sizeof(ushort);
+                            innerPixelBuffer[bufferIndex] = colorByte1;
+                            innerPixelBuffer[bufferIndex + 1] = colorByte2;
                         }
                     }
                 }
