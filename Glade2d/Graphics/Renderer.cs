@@ -12,10 +12,12 @@ namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
+        private int _width, _height;
+        
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
-        public bool ShowPerf { get; set; } = false;
+        public bool ShowPerf { get; set; } = true;
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
@@ -50,6 +52,8 @@ namespace Glade2d.Graphics
         public void Reset()
         {
             pixelBuffer.Fill(BackgroundColor);
+            _width = Width;
+            _height = Height;
         }
 
         /// <summary>
@@ -65,23 +69,40 @@ namespace Glade2d.Graphics
                 LoadTexture(frame.TextureName);
             }
 
+            var transparentByte1 = (byte)(TransparentColor.Color16bppRgb565 >> 8);
+            var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
+
             var imgBuffer = textures[frame.TextureName];
-            for (var x = frame.X; x < frame.X + frame.Width; x++)
+
+            var imgBufferWidth = imgBuffer.Width;
+            var pixelBufferWidth = pixelBuffer.Width;
+            var frameHeight = frame.Height;
+            var frameWidth = frame.Width;
+            var frameX = frame.X;
+            var frameY = frame.Y;
+            var innerPixelBuffer = pixelBuffer.Buffer;
+            var innerImgBuffer = imgBuffer.Buffer;
+            
+            for (var x = frameX; x < frameX + frameWidth; x++)
             {
-                for (var y = frame.Y; y < frame.Y + frame.Height; y++)
+                for (var y = frameY; y < frameY + frameHeight; y++)
                 {
-                    var pixel = imgBuffer.GetPixel(x, y);
-                    var tX = originX + x - frame.X;
-                    var tY = originY + y - frame.Y;
+                    var tX = originX + x - frameX;
+                    var tY = originY + y - frameY;
 
                     // only draw if not transparent and within buffer
-                    if (!pixel.Equals(TransparentColor) &&
-                        tX >= 0 &&
-                        tY >= 0 &&
-                        tX < Width &&
-                        tY < Height)
+                    if (tX >= 0 && tY >= 0 && tX < _width && tY < _height)
                     {
-                        DrawPixel(tX, tY, pixel);
+                        // temp assume rgb565
+                        var frameIndex = (y * imgBufferWidth + x) * sizeof(ushort);
+                        var colorByte1 = innerImgBuffer[frameIndex];
+                        var colorByte2 = innerImgBuffer[frameIndex + 1];
+                        if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
+                        {
+                            var bufferIndex = (tY * pixelBufferWidth + tX) * sizeof(ushort);
+                            innerPixelBuffer[bufferIndex] = colorByte1;
+                            innerPixelBuffer[bufferIndex + 1] = colorByte2;
+                        }
                     }
                 }
             }
@@ -137,24 +158,10 @@ namespace Glade2d.Graphics
 
                 LogService.Log.Trace($"Got image at {img.BitsPerPixel} and buffer is {pixelBuffer.BitDepth}");
 
-                // if our loaded image buffer is the same color depth, we can just
-                // directly use the image's display buffer
-                // NOTE: it would be better to check actual ColorType but the image
-                // buffer doesn't have a ColorType property, only BitsPerPixel
-                if (img.BitsPerPixel == pixelBuffer.BitDepth)
-                {
-                    imgBuffer = img.DisplayBuffer;
-                }
-
-                // if our loaded image has a different color depth we do a one-time,
-                // pixel-by-pixel slow copy into a matching buffer to make future
-                // buffer blitting much faster!
-                else
-                {
-                    LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), matching buffer depth of {pixelBuffer.BitDepth}.");
-                    imgBuffer = GetBufferForColorMode(pixelBuffer.ColorMode, img.Width, img.Height);
-                    imgBuffer.WriteBuffer(0, 0, img.DisplayBuffer);
-                }
+                // Always make sure that the texture is formatted in the same color mode as the display
+                LogService.Log.Info($"Image {name} is wrong bit depth ({img.BitsPerPixel}bpp), matching buffer depth of {pixelBuffer.BitDepth}.");
+                imgBuffer = GetBufferForColorMode(pixelBuffer.ColorMode, img.Width, img.Height);
+                imgBuffer.WriteBuffer(0, 0, img.DisplayBuffer);
 
                 LogService.Log.Trace($"{name} loaded to buffer of type {imgBuffer.GetType()}");
                 return imgBuffer;
@@ -249,11 +256,15 @@ namespace Glade2d.Graphics
                 // destination buffer
                 for (int x = 0; x < pixelBuffer.Width; x++)
                 {
-                    var color = pixelBuffer.GetPixel(x, y);
+                    var frameIndex = (y * pixelBuffer.Width + x) * sizeof(ushort);
+                    var colorByte1 = pixelBuffer.Buffer[frameIndex];
+                    var colorByte2 = pixelBuffer.Buffer[frameIndex + 1];
                     var xScaled = x * Scale;
                     for (var i = 0; i < Scale; i++)
                     {
-                        display.DrawPixel(xScaled + i, yScaled, color);
+                        var index = (yScaled * pixelBuffer.Width + xScaled + i) * sizeof(ushort);
+                        displayBuffer[index] = colorByte1;
+                        displayBuffer[index + 1] = colorByte2;
                     }
                 }
 
