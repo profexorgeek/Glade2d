@@ -12,6 +12,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<RootNamespace>Glade2d</RootNamespace>
 		<Description>Glade2d Microcontroller Game Engine</Description>
+		<NoWarn>1591</NoWarn>
 	</PropertyGroup>
   <ItemGroup>
     <Compile Remove="Content\**" />
