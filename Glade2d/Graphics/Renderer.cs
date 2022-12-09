@@ -12,7 +12,8 @@ namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
-        private int _width, _height;
+        private const int BytesPerPixel = 2;
+        private readonly int _width, _height;
         
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
@@ -47,13 +48,20 @@ namespace Glade2d.Graphics
 
             textures = new Dictionary<string, IPixelBuffer>();
             CurrentFont = new Font4x6();
+            
+            _width = Width;
+            _height = Height;
+
+            if (display.PixelBuffer.BitDepth != 16)
+            {
+                var message = $"Only 16bpp is supported but {display.PixelBuffer.BitDepth} was set";
+                throw new InvalidOperationException(message);
+            }
         }
 
         public void Reset()
         {
             pixelBuffer.Fill(BackgroundColor);
-            _width = Width;
-            _height = Height;
         }
 
         /// <summary>
@@ -93,13 +101,13 @@ namespace Glade2d.Graphics
                     // only draw if not transparent and within buffer
                     if (tX >= 0 && tY >= 0 && tX < _width && tY < _height)
                     {
-                        // temp assume rgb565
-                        var frameIndex = (y * imgBufferWidth + x) * sizeof(ushort);
+                        // temporarily assuming rgb565
+                        var frameIndex = (y * imgBufferWidth + x) * BytesPerPixel;
                         var colorByte1 = innerImgBuffer[frameIndex];
                         var colorByte2 = innerImgBuffer[frameIndex + 1];
                         if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
                         {
-                            var bufferIndex = (tY * pixelBufferWidth + tX) * sizeof(ushort);
+                            var bufferIndex = (tY * pixelBufferWidth + tX) * BytesPerPixel;
                             innerPixelBuffer[bufferIndex] = colorByte1;
                             innerPixelBuffer[bufferIndex + 1] = colorByte2;
                         }
@@ -239,30 +247,30 @@ namespace Glade2d.Graphics
             }
         }
 
-        void ShowFastMode()
+        private void ShowFastMode()
         {
-            // TODO: this can be much faster if we draw a line and then array copy
-            // the whole line * scale
-            // loop through X & Y, drawing pixels from buffer to device
             var displayBuffer = display.PixelBuffer.Buffer;
-            var displayBytesPerPixel = (int)Math.Round(display.PixelBuffer.BitDepth / 8f);
-            var displayBytesPerRow = display.PixelBuffer.Width * displayBytesPerPixel;
+            var displayBufferWidth = display.PixelBuffer.Width;
+            var sourceBuffer = pixelBuffer.Buffer;
+            var sourceBufferWidth = pixelBuffer.Width;
+            var sourceBufferHeight = pixelBuffer.Height;
+            var displayBytesPerRow = display.PixelBuffer.Width * BytesPerPixel;
 
-            for (int y = 0; y < pixelBuffer.Height; y++)
+            for (var y = 0; y < sourceBufferHeight; y++)
             {
                 var yScaled = y * Scale;
 
                 // First draw all of the pixels in a row into the
                 // destination buffer
-                for (int x = 0; x < pixelBuffer.Width; x++)
+                for (var x = 0; x < sourceBufferWidth; x++)
                 {
-                    var frameIndex = (y * pixelBuffer.Width + x) * sizeof(ushort);
-                    var colorByte1 = pixelBuffer.Buffer[frameIndex];
-                    var colorByte2 = pixelBuffer.Buffer[frameIndex + 1];
+                    var frameIndex = (y * sourceBufferWidth + x) * BytesPerPixel;
+                    var colorByte1 = sourceBuffer[frameIndex];
+                    var colorByte2 = sourceBuffer[frameIndex + 1];
                     var xScaled = x * Scale;
                     for (var i = 0; i < Scale; i++)
                     {
-                        var index = (yScaled * pixelBuffer.Width + xScaled + i) * sizeof(ushort);
+                        var index = (yScaled * displayBufferWidth + xScaled + i) * BytesPerPixel;
                         displayBuffer[index] = colorByte1;
                         displayBuffer[index + 1] = colorByte2;
                     }
@@ -272,13 +280,14 @@ namespace Glade2d.Graphics
                 // this is 1-indexed because we've already drawn the first row
                 // [Scale] more times on the Y axis - this is faster than
                 // drawing pixel-by-pixel!
-                var startByteOffset = (yScaled * displayBytesPerRow);
                 for (var i = 1; i < Scale; i++)
                 {
-                    var rowByteOffset = startByteOffset + (i * displayBytesPerRow);
-                    Array.Copy(displayBuffer, startByteOffset, displayBuffer, rowByteOffset, displayBytesPerRow);
+                    var copyFromStartIndex = yScaled * displayBufferWidth* BytesPerPixel;
+                    var copyToStartIndex = yScaled * displayBufferWidth * BytesPerPixel;
+                    
+                    Array.Copy(displayBuffer, copyFromStartIndex, displayBuffer, copyToStartIndex, displayBytesPerRow);
                 }
-            }
+            } 
         }
 
         public static IPixelBuffer GetBufferForColorMode(ColorType mode, int width, int height)
