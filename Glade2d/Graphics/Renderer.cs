@@ -282,8 +282,8 @@ namespace Glade2d.Graphics
                 // drawing pixel-by-pixel!
                 for (var i = 1; i < Scale; i++)
                 {
-                    var copyFromStartIndex = yScaled * displayBufferWidth* BytesPerPixel;
-                    var copyToStartIndex = yScaled * displayBufferWidth * BytesPerPixel;
+                    var copyFromStartIndex = yScaled * displayBufferWidth * BytesPerPixel;
+                    var copyToStartIndex = (yScaled + i) * displayBufferWidth * BytesPerPixel;
                     
                     Array.Copy(displayBuffer, copyFromStartIndex, displayBuffer, copyToStartIndex, displayBytesPerRow);
                 }
