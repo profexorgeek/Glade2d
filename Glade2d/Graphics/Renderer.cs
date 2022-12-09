@@ -1,5 +1,4 @@
-﻿
-using Glade2d.Services;
+﻿using Glade2d.Services;
 using Meadow;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
@@ -7,6 +6,7 @@ using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Glade2d.Graphics
 {
@@ -76,6 +76,7 @@ namespace Glade2d.Graphics
 
             var imgBufferWidth = imgBuffer.Width;
             var pixelBufferWidth = pixelBuffer.Width;
+            var pixelBufferHeight = pixelBuffer.Height;
             var frameHeight = frame.Height;
             var frameWidth = frame.Width;
             var frameX = frame.X;
@@ -89,6 +90,8 @@ namespace Glade2d.Graphics
                 {
                     var tX = originX + x - frameX;
                     var tY = originY + y - frameY;
+                    
+                    RotateCoordinates(ref tX, ref tY, pixelBufferWidth, pixelBufferHeight, Rotation);
 
                     // only draw if not transparent and within buffer
                     if (tX >= 0 && tY >= 0 && tX < _width && tY < _height)
@@ -99,7 +102,7 @@ namespace Glade2d.Graphics
                         var colorByte2 = innerImgBuffer[frameIndex + 1];
                         if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
                         {
-                            var bufferIndex = (tY * pixelBufferWidth + tX) * sizeof(ushort);
+                            var bufferIndex = GetBufferIndex(tX, tY, pixelBufferWidth, 2);
                             innerPixelBuffer[bufferIndex] = colorByte1;
                             innerPixelBuffer[bufferIndex + 1] = colorByte2;
                         }
@@ -303,6 +306,48 @@ namespace Glade2d.Graphics
             }
 
             return buffer;
+        }
+
+        /// <summary>
+        /// Takes target coordinates and adjusts them for a rotated display
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void RotateCoordinates(ref int x, ref int y, int width, int height, RotationType rotationType)
+        {
+            switch (rotationType)
+            {
+                case RotationType._90Degrees:
+                {
+                    var temp = y;
+                    y = x;
+                    x = width - temp;
+                    break;
+                }
+
+                case RotationType._180Degrees:
+                {
+                    x = width - x;
+                    y = height - y;
+                    break;
+                }
+
+                case RotationType._270Degrees:
+                {
+                    var temp = y;
+                    y = width - x;
+                    x = temp;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the index for a specific x and y coordinate in a pixel buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetBufferIndex(int x, int y, int width, int bytesPerPixel)
+        {
+            return (y * width + x) * bytesPerPixel;
         }
     }
 }
