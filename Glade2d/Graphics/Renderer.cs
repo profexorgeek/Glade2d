@@ -18,7 +18,7 @@ namespace Glade2d.Graphics
         readonly Dictionary<string, IPixelBuffer> textures = new Dictionary<string, IPixelBuffer>();
         public Color BackgroundColor { get; set; } = Color.Black;
         public Color TransparentColor { get; set; } = Color.Magenta;
-        public bool ShowPerf { get; set; } = false;
+        public bool ShowPerf { get; set; }
         public int Scale { get; private set; }
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;

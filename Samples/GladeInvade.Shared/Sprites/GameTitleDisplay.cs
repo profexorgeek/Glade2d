@@ -1,6 +1,6 @@
 ﻿using Glade2d.Graphics;
 
-namespace GladeInvade.Shared.Entities;
+namespace GladeInvade.Shared.Sprites;
 
 public class GameTitleDisplay : Sprite
 {

@@ -1,5 +1,6 @@
 ﻿using Glade2d;
 using Glade2d.Services;
+using GladeInvade.Shared;
 using GladeInvade.Shared.Screens;
 using Meadow;
 using Meadow.Devices;
@@ -14,7 +15,7 @@ namespace GladeInvade.ProjectLab;
 public class MeadowApp : App<F7FeatherV2>
 {
     private IGraphicsDisplay? _display;
-    private readonly Game _glade = new();
+    private GladeInvadeGame? _gladeInvadeGame;
     
     public override Task Initialize()
     {
@@ -25,11 +26,10 @@ public class MeadowApp : App<F7FeatherV2>
     public override Task Run()
     {
         LogService.Log.Trace("Initializing Glade game engine...");
-        _glade.Initialize(_display, 1, EngineMode.GameLoop, RotationType._90Degrees);
+        var glade = new Game();
+        glade.Initialize(_display, 2, EngineMode.GameLoop, RotationType._90Degrees);
 
-        LogService.Log.Trace("Running game...");
-        _glade.Start(new TitleScreen());
-        _glade.Renderer.ShowPerf = true;
+        _gladeInvadeGame = new GladeInvadeGame(glade);
 
         return base.Run();
     }
