@@ -1,0 +1,30 @@
+<Project Sdk="Meadow.Sdk/1.1.0">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <OutputType>Library</OutputType>
+        <AssemblyName>App</AssemblyName>
+        <LangVersion>10.0</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Meadow.F7" Version="0.*" />
+        <PackageReference Include="Meadow.Foundation" Version="0.*" />
+        <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.7.61" />
+        <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.2.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="meadow.config.yaml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+      <ProjectReference Include="..\GladeInvade.Shared\GladeInvade.Shared.csproj" />
+    </ItemGroup>
+</Project>
