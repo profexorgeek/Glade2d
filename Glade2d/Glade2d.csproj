@@ -13,6 +13,7 @@
 		<RootNamespace>Glade2d</RootNamespace>
 		<Description>Glade2d Microcontroller Game Engine</Description>
 		<NoWarn>1591</NoWarn>
+		<LangVersion>10.0</LangVersion>
 	</PropertyGroup>
   <ItemGroup>
     <Compile Remove="Content\**" />

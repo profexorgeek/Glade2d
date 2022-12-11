@@ -1,4 +1,6 @@
-﻿using Glade2d.Screens;
+﻿using Glade2d;
+using Glade2d.Input;
+using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Sprites;
 using Meadow.Foundation;
@@ -7,12 +9,11 @@ namespace GladeInvade.Shared.Screens;
 
 public class TitleScreen : Screen
 {
-    private readonly DateTime _startedAt;
-    private readonly TimeSpan _timeBeforeScreenChange = TimeSpan.FromSeconds(10);
+    private readonly Game _engine = GameService.Instance.GameInstance;
     
     public TitleScreen()
     {
-        GameService.Instance.GameInstance.Renderer.BackgroundColor = new Color(0, 0, 0);
+        _engine.Renderer.BackgroundColor = new Color(0, 0, 0);
 
         var gameTitle = new GameTitleDisplay
         {
@@ -21,13 +22,11 @@ public class TitleScreen : Screen
         };
             
         AddSprite(gameTitle);
-        
-        _startedAt = DateTime.Now;
     }
 
     public override void Activity()
     {
-        if (DateTime.Now - _startedAt > _timeBeforeScreenChange)
+        if (_engine.InputManager.GetButtonState(GameConstants.InputNames.Action) == ButtonState.Pressed)
         {
             GameService.Instance.CurrentScreen = new GameScreen();
         }
