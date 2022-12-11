@@ -25,7 +25,7 @@ public class GameScreen : Screen
         for (var x = 0; x < StartingLives; x++)
         {
             var heart = new Heart();
-            heart.X = _screenWidth - (heart.CurrentFrame.Width + GapBetweenHearts) * x;
+            heart.X = _screenWidth - (heart.CurrentFrame.Width + GapBetweenHearts) * (x + 1);
             heart.Y = 5;
 
             _lives.Add(heart);

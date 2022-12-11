@@ -6,6 +6,6 @@ public class GameTitleDisplay : Sprite
 {
     public GameTitleDisplay()
     {
-        CurrentFrame = new Frame(GameConstants.SpriteSheetName, 4, 0, 25, 16);
+        CurrentFrame = new Frame(GameConstants.SpriteSheetName, 2, 0, 26, 17);
     }
 }

@@ -6,6 +6,6 @@ public class Heart : Sprite
 {
     public Heart()
     {
-        CurrentFrame = new Frame(GameConstants.SpriteSheetName, 0, 18, 8, 8);
+        CurrentFrame = new Frame(GameConstants.SpriteSheetName, 0, 17, 8, 8);
     }
 }
