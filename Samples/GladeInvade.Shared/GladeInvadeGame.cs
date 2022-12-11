@@ -5,9 +5,9 @@ using Meadow.Foundation;
 
 namespace GladeInvade.Shared;
 
-public class GladeInvadeGame
+public static class GladeInvadeGame
 {
-    public GladeInvadeGame(Game engine)
+    public static void Run(Game engine)
     {
         engine.Renderer.BackgroundColor = new Color(0, 0, 0);
         // _engine.Renderer.ShowPerf = true;

@@ -8,8 +8,8 @@
   <ItemGroup>
     <PackageReference Include="Meadow.F7" Version="0.*" />
     <PackageReference Include="Meadow.Foundation" Version="0.*" />
-    <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.7.61" />
-    <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.2.4" />
+    <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.90.0" />
+    <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.90.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />

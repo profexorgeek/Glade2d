@@ -24,6 +24,6 @@
     <Compile Remove="Graphics\Glade2dBuffer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
+    <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.90.0" />
   </ItemGroup>
 </Project>
