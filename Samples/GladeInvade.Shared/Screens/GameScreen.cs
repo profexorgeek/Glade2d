@@ -21,6 +21,7 @@ public class GameScreen : Screen
     private readonly TimeSpan _timePerEnemyAnimationFrame = TimeSpan.FromSeconds(1);
     private DateTime _lastEnemyAnimationAt;
     private float _normalEnemyHorizontalVelocity = 15;
+    private bool _lastHitLeftBorder = true;
 
     public GameScreen()
     {
@@ -113,12 +114,28 @@ public class GameScreen : Screen
             _lastEnemyAnimationAt = DateTime.Now;
         }
         
-        // If any enemy has hit the border, move them all the opposite way
-        if (_enemies.Any(x => x.X <= 0 || x.X + x.CurrentFrame.Width > _screenWidth + 2))
+        // If any enemy has hit the border, move them all the opposite way. Only care about the border that's opposite
+        // from what they last hit
+        var borderHit = false;
+        switch (_lastHitLeftBorder)
         {
+            case true when _enemies.Any(x => x.X + x.CurrentFrame.Width >= _screenWidth):
+                borderHit = true;
+                _lastHitLeftBorder = false;
+                break;
+            
+            case false when _enemies.Any(x => x.X <= 0):
+                borderHit = true;
+                _lastHitLeftBorder = true;
+                break;
+        }
+
+        if (borderHit)
+        {
+            _normalEnemyHorizontalVelocity += 5;
+            _normalEnemyHorizontalVelocity *= -1;
             foreach (var enemy in _enemies)
             {
-                _normalEnemyHorizontalVelocity += -5;
                 enemy.VelocityX = _normalEnemyHorizontalVelocity;
                 enemy.Y += enemy.CurrentFrame.Height;
             }
