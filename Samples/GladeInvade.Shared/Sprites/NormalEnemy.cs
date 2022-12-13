@@ -6,6 +6,8 @@ public class NormalEnemy : Sprite
 {
     private readonly Frame[] _frames = new Frame[2];
     private int _frameIndex;
+    
+    public bool IsBlue { get; }
 
     public NormalEnemy(bool isBlue, bool startOutward)
     {
@@ -24,6 +26,7 @@ public class NormalEnemy : Sprite
 
         _frameIndex = startOutward ? 0 : 1;
         CurrentFrame = _frames[_frameIndex];
+        IsBlue = isBlue;
     }
 
     public void NextFrame()

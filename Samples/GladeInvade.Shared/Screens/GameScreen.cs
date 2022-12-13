@@ -12,15 +12,19 @@ public class GameScreen : Screen
     private const int GapBetweenHearts = 5;
     private const int EnemyColumns = 6;
     private const int EnemyRows = 3;
+    private const int PlayerShotVelocity = 35;
     
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine;
     private readonly List<Heart> _lives = new();
     private readonly Player _player = new();
     private readonly List<NormalEnemy> _enemies = new();
+    private readonly List<PlayerShot> _playerShots = new();
+    private readonly List<Explosion> _explosions = new();
     private readonly TimeSpan _timePerEnemyAnimationFrame = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _explosionLifetime = TimeSpan.FromSeconds(0.5);
     private DateTime _lastEnemyAnimationAt;
-    private float _normalEnemyHorizontalVelocity = 15;
+    private float _normalEnemyHorizontalVelocity = 10;
     private bool _lastHitLeftBorder = true;
 
     public GameScreen()
@@ -74,6 +78,8 @@ public class GameScreen : Screen
     {
         ProcessPlayerMovement();
         ProcessEnemyMovement();
+        ProcessPlayerShots();
+        ProcessExplosions();
     }
 
     private void ProcessPlayerMovement()
@@ -100,6 +106,7 @@ public class GameScreen : Screen
         {
             _player.X = _screenWidth - _player.CurrentFrame.Width;
         }
+
     }
 
     private void ProcessEnemyMovement()
@@ -138,6 +145,84 @@ public class GameScreen : Screen
             {
                 enemy.VelocityX = _normalEnemyHorizontalVelocity;
                 enemy.Y += enemy.CurrentFrame.Height;
+            }
+        }
+    }
+
+    private void ProcessPlayerShots()
+    {
+        if (_engine.InputManager.GetButtonState(GameConstants.InputNames.Action) == ButtonState.Pressed)
+        {
+            var shot = new PlayerShot
+            {
+                X = _player.X + _player.CurrentFrame.Width / 2f,
+                Y = _screenHeight - _player.CurrentFrame.Height,
+                VelocityY = -PlayerShotVelocity,
+            };
+
+            _playerShots.Add(shot);
+            AddSprite(shot);
+        }
+
+        // Check if any shot has either left the screen, or collided with an enemy
+        for (var shotIndex = _playerShots.Count - 1; shotIndex >= 0; shotIndex--)
+        {
+            var shotLeft = _playerShots[shotIndex].X;
+            var shotRight = _playerShots[shotIndex].X + _playerShots[shotIndex].CurrentFrame.Width;
+            var shotTop = _playerShots[shotIndex].Y;
+            var shotBottom = _playerShots[shotIndex].Y + _playerShots[shotIndex].CurrentFrame.Height;
+            
+            if (shotBottom <= 0)
+            {
+                // Shot is now off screen
+                RemoveSprite(_playerShots[shotIndex]);
+                _playerShots.RemoveAt(shotIndex);
+                
+                continue;
+            }
+
+            // Shot is on screen. Has it hit any enemies?
+            for (var enemyIndex = _enemies.Count - 1; enemyIndex >= 0; enemyIndex--)
+            {
+                var enemy = _enemies[enemyIndex];
+                var enemyLeft = enemy.X;
+                var enemyRight = enemy.X + enemy.CurrentFrame.Width;
+                var enemyTop = enemy.Y;
+                var enemyBottom = enemy.Y + enemy.CurrentFrame.Height;
+
+                var collisionOccurred = shotRight >= enemyLeft &&
+                                        shotLeft <= enemyRight &&
+                                        shotTop <= enemyBottom &&
+                                        shotBottom >= enemyTop;
+
+                if (collisionOccurred)
+                {
+                    RemoveSprite(enemy);
+                    RemoveSprite(_playerShots[shotIndex]);
+                    _enemies.RemoveAt(enemyIndex);
+                    _playerShots.RemoveAt(shotIndex);
+
+                    var explosion = new Explosion(enemy.IsBlue)
+                    {
+                        X = enemy.X,
+                        Y = enemy.Y,
+                    };
+                    
+                    _explosions.Add(explosion);
+                    AddSprite(explosion);
+                }
+            }
+        }
+    }
+
+    private void ProcessExplosions()
+    {
+        for (var index = _explosions.Count - 1; index >= 0; index--)
+        {
+            if (DateTime.Now - _explosions[index].CreatedAt >= _explosionLifetime)
+            {
+                RemoveSprite(_explosions[index]);
+                _explosions.RemoveAt(index);
             }
         }
     }
