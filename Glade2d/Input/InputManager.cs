@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Meadow.Foundation.Sensors.Buttons;
 
 namespace Glade2d.Input
 {
@@ -11,6 +12,7 @@ namespace Glade2d.Input
         private readonly Dictionary<string, ButtonState> _buttons = new();
         private readonly Queue<KeyValuePair<string, ButtonState>> _pendingButtonStates = new();
         private readonly List<string> _pressedButtons = new();
+        private readonly Dictionary<PushButton, string> _registeredButtons = new();
 
         /// <summary>
         /// Applies any pending state changes for inputs. This is done for uncertainty of if button press events can
@@ -79,6 +81,50 @@ namespace Glade2d.Input
         public void ButtonReleased(string inputName)
         {
             _pendingButtonStates.Enqueue(new KeyValuePair<string, ButtonState>(inputName, ButtonState.Up));
+        }
+
+        /// <summary>
+        /// Registers a Meadow push button for Glade input activations
+        /// </summary>
+        public void RegisterPushButton(PushButton button, string inputName)
+        {
+            UnregisterPushButton(button);
+            _registeredButtons.Add(button, inputName);
+
+            button.PressStarted += ButtonPressStarted;
+            button.PressEnded += ButtonPressStopped;
+        }
+
+        /// <summary>
+        /// Remove any Glade events from the push button
+        /// </summary>
+        public void UnregisterPushButton(PushButton button)
+        {
+            _registeredButtons.Remove(button);
+            button.PressStarted -= ButtonPressStarted;
+            button.PressEnded -= ButtonPressStopped;
+        }
+
+        private void ButtonPressStarted(object sender, EventArgs args)
+        {
+            if (sender is PushButton button)
+            {
+                if (_registeredButtons.TryGetValue(button, out var inputName))
+                {
+                    ButtonPushed(inputName);
+                }
+            }
+        }
+        
+        private void ButtonPressStopped(object sender, EventArgs args)
+        {
+            if (sender is PushButton button)
+            {
+                if (_registeredButtons.TryGetValue(button, out var inputName))
+                {
+                    ButtonReleased(inputName);
+                }
+            }
         }
     }
 }
