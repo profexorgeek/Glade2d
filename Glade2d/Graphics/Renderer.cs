@@ -63,14 +63,14 @@ namespace Glade2d.Graphics
         {
             pixelBuffer.Fill(BackgroundColor);
         }
-
+        
         /// <summary>
         /// Draws a frame into the graphics buffer
         /// </summary>
         /// <param name="originX">The frame's X origin point</param>
         /// <param name="originY">The frame's Y origin point</param>
         /// <param name="frame">The frame to be drawn</param>
-        public void DrawFrame(int originX, int originY, Frame frame)
+        public void DrawFrame(int originX, int originY, Frame frame, IPixelBuffer renderTarget = null)
         {
             if (!textures.ContainsKey(frame.TextureName))
             {
@@ -80,16 +80,19 @@ namespace Glade2d.Graphics
             var transparentByte1 = (byte)(TransparentColor.Color16bppRgb565 >> 8);
             var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
 
+            // if no custom buffer was provided as a render target, we default to using main buffer
+            renderTarget = renderTarget ?? pixelBuffer;
+
             var imgBuffer = textures[frame.TextureName];
 
             var imgBufferWidth = imgBuffer.Width;
-            var pixelBufferWidth = pixelBuffer.Width;
-            var pixelBufferHeight = pixelBuffer.Height;
+            var pixelBufferWidth = renderTarget.Width;
+            var pixelBufferHeight = renderTarget.Height;
             var frameHeight = frame.Height;
             var frameWidth = frame.Width;
             var frameX = frame.X;
             var frameY = frame.Y;
-            var innerPixelBuffer = pixelBuffer.Buffer;
+            var innerPixelBuffer = renderTarget.Buffer;
             var innerImgBuffer = imgBuffer.Buffer;
             
             for (var x = frameX; x < frameX + frameWidth; x++)
