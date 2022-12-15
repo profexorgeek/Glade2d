@@ -5,6 +5,7 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
 using System.Threading;
+using Glade2d.Input;
 
 namespace Glade2d
 {
@@ -19,7 +20,7 @@ namespace Glade2d
         public EngineMode Mode { get; private set; } = EngineMode.GameLoop;
 
         /// <summary>
-        /// How long the engine 
+        /// How long the engine sleeps between frames
         /// </summary>
         public int SleepMilliseconds { get; set; } = 0;
 
@@ -27,7 +28,12 @@ namespace Glade2d
         /// The renderer instance. Used to configure extra rendering parameters,
         /// such as turning on performance information
         /// </summary>
-        public Renderer Renderer { get; protected set; }
+        public Renderer Renderer { get; private set; }
+
+        /// <summary>
+        /// The single instance for the input manager. 
+        /// </summary>
+        public InputManager InputManager { get; } = new();
 
         public Game() { }
 
@@ -74,6 +80,7 @@ namespace Glade2d
         public void Tick()
         {
             _stopwatch.Restart();
+            InputManager.Tick();
             Update();
             var updateTime = _stopwatch.ElapsedMilliseconds;
             Draw();
@@ -81,7 +88,7 @@ namespace Glade2d
             var totalTime = _stopwatch.ElapsedMilliseconds;
             var drawTime = totalTime - updateTime;
             
-            Console.WriteLine($"Update: {updateTime}ms, Draw: {drawTime}ms");
+            // Console.WriteLine($"Update: {updateTime}ms, Draw: {drawTime}ms");
         }
 
         /// <summary>
@@ -112,7 +119,6 @@ namespace Glade2d
                 // TODO: this is a hack, figure out how to protect list
                 // while also making it available to the renderer
                 var sprites = screen.AccessSpritesForRenderingOnly();
-                Console.WriteLine($"Sprite count: {sprites.Count}");
                 accessTime = _stopwatch.Elapsed;
                 for (var i = 0; i < sprites.Count; i++)
                 {
@@ -125,11 +131,11 @@ namespace Glade2d
             Renderer.RenderToDisplay();
             var totalTime = _stopwatch.Elapsed;
             
-            Console.WriteLine($"Draw timings: " +
-                              $"Reset: {(resetTime - startTime).TotalMilliseconds}ms " +
-                              $"Access: {(accessTime - resetTime).TotalMilliseconds}ms " +
-                              $"Draw: {(drawTime - accessTime).TotalMilliseconds}ms " +
-                              $"Render: {(totalTime - drawTime).TotalMilliseconds}ms ");
+            // Console.WriteLine($"Draw timings: " +
+            //                   $"Reset: {(resetTime - startTime).TotalMilliseconds}ms " +
+            //                   $"Access: {(accessTime - resetTime).TotalMilliseconds}ms " +
+            //                   $"Draw: {(drawTime - accessTime).TotalMilliseconds}ms " +
+            //                   $"Render: {(totalTime - drawTime).TotalMilliseconds}ms ");
             
         }
     }

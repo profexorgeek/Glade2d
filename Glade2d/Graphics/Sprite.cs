@@ -69,7 +69,7 @@ namespace Glade2d.Graphics
         /// <summary>
         /// Intended to be overridden by child classes to perform
         /// any destroy effects before this object is marked as
-        /// destoryed.
+        /// destroyed.
         /// </summary>
         public virtual void Die()
         {

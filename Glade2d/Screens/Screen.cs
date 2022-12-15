@@ -79,6 +79,7 @@ namespace Glade2d.Screens
         /// <param name="sprite"></param>
         public void RemoveSprite(Sprite sprite)
         {
+            LogService.Log.Trace("Removing sprite to scene graph");
             if (sprites.Contains(sprite))
             {
                 sprites.Remove(sprite);
