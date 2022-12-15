@@ -15,6 +15,9 @@ BuiltXnbs/
 # JUSTIN 3/14/21 - this is removing legitimate music files
 # *.ogg
 
+# Rider IDE files
+.idea/
+
 # Created by https://www.gitignore.io/api/visualstudio
 # Edit at https://www.gitignore.io/?templates=visualstudio
 

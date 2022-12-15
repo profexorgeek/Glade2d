@@ -1,4 +1,6 @@
-﻿using Glade2d.Graphics;
+﻿using System;
+using System.Diagnostics;
+using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
@@ -8,6 +10,8 @@ namespace Glade2d
 {
     public class Game
     {
+        private readonly Stopwatch _stopwatch = new Stopwatch();
+        
         /// <summary>
         /// The engine operating mode, this can currently only be set
         /// during Initialize
@@ -69,8 +73,15 @@ namespace Glade2d
         /// </summary>
         public void Tick()
         {
+            _stopwatch.Restart();
             Update();
+            var updateTime = _stopwatch.ElapsedMilliseconds;
             Draw();
+            _stopwatch.Stop();
+            var totalTime = _stopwatch.ElapsedMilliseconds;
+            var drawTime = totalTime - updateTime;
+            
+            Console.WriteLine($"Update: {updateTime}ms, Draw: {drawTime}ms");
         }
 
         /// <summary>
@@ -90,19 +101,36 @@ namespace Glade2d
         /// </summary>
         public void Draw()
         {
+            var accessTime = TimeSpan.Zero;
+            var drawTime = TimeSpan.Zero;
+            var startTime = _stopwatch.Elapsed;
             Renderer.Reset();
+            var resetTime = _stopwatch.Elapsed;
             var screen = GameService.Instance.CurrentScreen;
             if (screen != null)
             {
                 // TODO: this is a hack, figure out how to protect list
                 // while also making it available to the renderer
                 var sprites = screen.AccessSpritesForRenderingOnly();
+                Console.WriteLine($"Sprite count: {sprites.Count}");
+                accessTime = _stopwatch.Elapsed;
                 for (var i = 0; i < sprites.Count; i++)
                 {
                     Renderer.DrawSprite(sprites[i]);
                 }
+
+                drawTime = _stopwatch.Elapsed;
             }
+            
             Renderer.RenderToDisplay();
+            var totalTime = _stopwatch.Elapsed;
+            
+            Console.WriteLine($"Draw timings: " +
+                              $"Reset: {(resetTime - startTime).TotalMilliseconds}ms " +
+                              $"Access: {(accessTime - resetTime).TotalMilliseconds}ms " +
+                              $"Draw: {(drawTime - accessTime).TotalMilliseconds}ms " +
+                              $"Render: {(totalTime - drawTime).TotalMilliseconds}ms ");
+            
         }
     }
 }

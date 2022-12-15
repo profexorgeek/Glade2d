@@ -60,7 +60,7 @@ namespace SampleInput
         {
             LogService.Log.Trace("Starting Glade2d...");
             glade = new Game();
-            glade.Initialize(display, 2, EngineMode.RenderOnDemand, RotationType._90Degrees);
+            glade.Initialize(display, 1, EngineMode.RenderOnDemand, RotationType._90Degrees);
             glade.Start();
         }
 

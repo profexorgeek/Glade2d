@@ -25,7 +25,7 @@ namespace Glade2d.Utility
         /// <param name="min">The inclusive minimum value</param>
         /// <param name="max">The exclusive maximum value</param>
         /// <returns>A random single precision number</returns>
-        public static float Between(this Random rand, float min, float max)
+        public static float Between(this Random random, float min, float max)
         {
             // early out for equal. This may not be perfectly accurate
             // but it makes no difference, all it's doing is saving
@@ -36,7 +36,7 @@ namespace Glade2d.Utility
             }
 
             var range = max - min;
-            var randInRange = (float)(rand.NextDouble() * range);
+            var randInRange = (float)(random.NextDouble() * range);
             return min + randInRange;
         }
     }
