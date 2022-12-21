@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
 using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
 using System.Threading;
 using Glade2d.Input;
+using Glade2d.Profiling;
 
 namespace Glade2d
 {
     public class Game
     {
-        private readonly Stopwatch _stopwatch = new Stopwatch();
-        
         /// <summary>
         /// The engine operating mode, this can currently only be set
         /// during Initialize
@@ -35,6 +33,11 @@ namespace Glade2d
         /// </summary>
         public InputManager InputManager { get; } = new();
 
+        /// <summary>
+        /// The profiler instance to track performance metrics
+        /// </summary>
+        public Profiler Profiler { get; } = new();
+
         public Game() { }
 
         public virtual void Initialize(IGraphicsDisplay display, int displayScale = 1, EngineMode mode = EngineMode.GameLoop, RotationType displayRotation = RotationType.Default)
@@ -54,6 +57,7 @@ namespace Glade2d
 
         public void Start(Screen startupScreen = null)
         {
+            Profiler.Reset();
             var screen = startupScreen ?? new Screen();
 
             GameService.Instance.Initialize();
@@ -79,16 +83,16 @@ namespace Glade2d
         /// </summary>
         public void Tick()
         {
-            _stopwatch.Restart();
             InputManager.Tick();
+            Profiler.StartTiming("Game.Update");
             Update();
-            var updateTime = _stopwatch.ElapsedMilliseconds;
-            Draw();
-            _stopwatch.Stop();
-            var totalTime = _stopwatch.ElapsedMilliseconds;
-            var drawTime = totalTime - updateTime;
+            Profiler.StopTiming("Game.Update");
             
-            // Console.WriteLine($"Update: {updateTime}ms, Draw: {drawTime}ms");
+            Profiler.StartTiming("Game.Draw");
+            Draw();
+            Profiler.StopTiming("Game.Draw");
+            
+            Profiler.WriteReport();
         }
 
         /// <summary>
@@ -108,35 +112,25 @@ namespace Glade2d
         /// </summary>
         public void Draw()
         {
-            var accessTime = TimeSpan.Zero;
-            var drawTime = TimeSpan.Zero;
-            var startTime = _stopwatch.Elapsed;
             Renderer.Reset();
-            var resetTime = _stopwatch.Elapsed;
             var screen = GameService.Instance.CurrentScreen;
             if (screen != null)
             {
                 // TODO: this is a hack, figure out how to protect list
                 // while also making it available to the renderer
+                
+                Profiler.StartTiming("Renderer.DrawSprites");
                 var sprites = screen.AccessSpritesForRenderingOnly();
-                accessTime = _stopwatch.Elapsed;
                 for (var i = 0; i < sprites.Count; i++)
                 {
                     Renderer.DrawSprite(sprites[i]);
                 }
-
-                drawTime = _stopwatch.Elapsed;
+                Profiler.StopTiming("Renderer.DrawSprites");
             }
-            
+           
+            Profiler.StartTiming("Renderer.RenderToDisplay");
             Renderer.RenderToDisplay();
-            var totalTime = _stopwatch.Elapsed;
-            
-            // Console.WriteLine($"Draw timings: " +
-            //                   $"Reset: {(resetTime - startTime).TotalMilliseconds}ms " +
-            //                   $"Access: {(accessTime - resetTime).TotalMilliseconds}ms " +
-            //                   $"Draw: {(drawTime - accessTime).TotalMilliseconds}ms " +
-            //                   $"Render: {(totalTime - drawTime).TotalMilliseconds}ms ");
-            
+            Profiler.StopTiming("Renderer.RenderToDisplay");
         }
     }
 }

@@ -13,6 +13,7 @@ public static class GladeInvadeGame
         // _engine.Renderer.ShowPerf = true;
 
         LogService.Log.Trace("Running game...");
+        engine.Profiler.IsActive = true;
         engine.Start(new TitleScreen());
     }
 }

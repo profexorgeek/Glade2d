@@ -204,6 +204,7 @@ namespace Glade2d.Graphics
 
         public override void Show()
         {
+            GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Show");
             // If we are doing a scaled draw, we must perform special copy logic
             if (Scale > 1)
             {
@@ -223,7 +224,10 @@ namespace Glade2d.Graphics
                 display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
             }
 
+            GameService.Instance.GameInstance.Profiler.StartTiming("Micrographics.Show");
             base.Show();
+            GameService.Instance.GameInstance.Profiler.StopTiming("Micrographics.Show");
+            GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Show");
         }
 
         void ShowSafeMode()
