@@ -15,7 +15,7 @@ public class Profiler
     private readonly Stopwatch _globalStopwatch = Stopwatch.StartNew();
     private readonly Dictionary<string, long> _startingTicks = new();
     private readonly Dictionary<string, ProfileData> _elapsedTicks = new();
-    private readonly StringBuilder _reportString = new(500);
+    private readonly StringBuilder _reportString = new(1000);
     private bool _isActive;
     private DateTime? _lastReportAt;
 
@@ -104,6 +104,7 @@ public class Profiler
             return;
         }
 
+        var timer = Stopwatch.StartNew();
         const long ticksPerMilli = TimeSpan.TicksPerMillisecond;
         _reportString.Clear();
         _reportString.AppendLine("Profiling timings:");
@@ -116,5 +117,8 @@ public class Profiler
         
         Console.WriteLine(_reportString);
         _lastReportAt = DateTime.Now;
+        timer.Stop();
+        
+        Console.WriteLine($"Profile report took {timer.ElapsedMilliseconds}ms");
     }
 }
