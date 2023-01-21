@@ -31,6 +31,12 @@ namespace Glade2d.Logging
             Write(LogLevel.Error, msg);
         }
 
+        public void Error(string msg, Exception exception)
+        {
+            var message = $"{msg}\n\n{exception}";
+            Write(LogLevel.Error, message);
+        }
+
         void Write(LogLevel level, string msg)
         {
             if (Level <= level)

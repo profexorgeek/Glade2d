@@ -38,6 +38,8 @@ namespace Glade2d
         /// </summary>
         public Profiler Profiler { get; } = new();
 
+        public TextureManager TextureManager { get; } = new();
+
         public Game() { }
 
         public virtual void Initialize(
@@ -51,7 +53,7 @@ namespace Glade2d
             GameService.Instance.GameInstance = this;
 
             // init renderer
-            Renderer = new Renderer(display, displayScale);
+            Renderer = new Renderer(display, TextureManager, displayScale);
 
             Mode = mode;
 
