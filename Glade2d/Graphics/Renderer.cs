@@ -3,6 +3,7 @@ using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
+using Glade2d.Graphics.Layers;
 
 namespace Glade2d.Graphics
 {

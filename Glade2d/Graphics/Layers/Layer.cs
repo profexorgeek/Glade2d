@@ -5,7 +5,7 @@ using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics;
+namespace Glade2d.Graphics.Layers;
 
 /// <summary>
 /// A layer represents an isolated pixel buffer that can be drawn to, cached, and manipulated individually. 
@@ -48,7 +48,7 @@ public class Layer
     /// <summary>
     /// Creates a new Layer with the specified dimension and assumed rotation.
     /// </summary>
-    public static Layer Create(Dimensions dimensions, RotationType rotationType)
+    internal static Layer Create(Dimensions dimensions, RotationType rotationType)
     {
         var pixelBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
         return new Layer(pixelBuffer, rotationType);
