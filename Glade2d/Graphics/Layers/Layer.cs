@@ -126,6 +126,25 @@ public class Layer
             }
         }
     }
+
+    /// <summary>
+    /// Renders the layer from its own buffer to the specified buffer.
+    /// The passed in buffer is assumed to be the "camera" and thus the
+    /// first byte of the target buffer is assumed to be the camera's
+    /// 0,0/origin.
+    /// </summary>
+    internal void RenderToBuffer(BufferRgb565 target)
+    {
+        // Don't render if our buffer is the same as the target. This is
+        // essentially a "don't do anything with the sprite layer" 
+        // condition.
+        if (target == _pixelBuffer)
+        {
+            return;
+        }
+
+        throw new NotImplementedException();
+    }
     
     /// <summary>
     /// Takes target coordinates and adjusts them for a rotated display

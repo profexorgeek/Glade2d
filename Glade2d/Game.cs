@@ -4,6 +4,7 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
 using System.Threading;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Profiling;
 
@@ -37,6 +38,8 @@ namespace Glade2d
         /// The profiler instance to track performance metrics
         /// </summary>
         public Profiler Profiler { get; } = new();
+        
+        public LayerManager LayerManager { get; private set; }
 
         public TextureManager TextureManager { get; } = new();
 
@@ -49,6 +52,8 @@ namespace Glade2d
         {
             LogService.Log.Trace("Initializing Renderer...");
 
+            LayerManager = new LayerManager(displayRotation);
+            
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
 
@@ -118,6 +123,7 @@ namespace Glade2d
         public void Draw()
         {
             Renderer.Reset();
+            
             var screen = GameService.Instance.CurrentScreen;
             if (screen != null)
             {

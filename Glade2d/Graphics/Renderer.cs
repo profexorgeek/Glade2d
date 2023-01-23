@@ -35,7 +35,7 @@ namespace Glade2d.Graphics
         {
             if (display.PixelBuffer.ColorMode != ColorType.Format16bppRgb565)
             {
-                var message = $"Only color mode rgb565 is supported, but {base.display.PixelBuffer.ColorMode} " +
+                var message = $"Only color mode rgb565 is supported, but {display.PixelBuffer.ColorMode} " +
                               "was given.";
 
                 throw new InvalidOperationException(message);
@@ -75,7 +75,9 @@ namespace Glade2d.Graphics
             
             // Should we be clearing the display buffer too???
         }
-
+        
+        public void Render()
+        
         /// <summary>
         /// Draws a sprite's CurrentFrame into the graphics buffer
         /// </summary>
