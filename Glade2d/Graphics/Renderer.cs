@@ -3,7 +3,9 @@ using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
+using System.Collections.Generic;
 using Glade2d.Graphics.Layers;
+using Glade2d.Profiling;
 
 namespace Glade2d.Graphics
 {
@@ -11,7 +13,9 @@ namespace Glade2d.Graphics
     {
         private const int BytesPerPixel = 2;
         private readonly TextureManager _textureManager;
+        private readonly LayerManager _layerManager;
         private readonly Layer _spriteLayer;
+        private readonly Profiler _profiler;
         
         public Color BackgroundColor
         {
@@ -31,6 +35,8 @@ namespace Glade2d.Graphics
 
         public Renderer(IGraphicsDisplay display, 
             TextureManager textureManager,
+            LayerManager layerManager,
+            Profiler profiler,
             int scale = 1) : base(display)
         {
             if (display.PixelBuffer.ColorMode != ColorType.Format16bppRgb565)
@@ -40,8 +46,10 @@ namespace Glade2d.Graphics
 
                 throw new InvalidOperationException(message);
             }
-            
+
+            _layerManager = layerManager;
             _textureManager = textureManager;
+            _profiler = profiler;
             Scale = scale;
             Rotation = rotation;
 
@@ -75,41 +83,33 @@ namespace Glade2d.Graphics
             
             // Should we be clearing the display buffer too???
         }
-        
-        public void Render()
-        
-        /// <summary>
-        /// Draws a sprite's CurrentFrame into the graphics buffer
-        /// </summary>
-        /// <param name="sprite">The sprite to draw</param>
-        public void DrawSprite(Sprite sprite)
-        {
-            if (sprite.CurrentFrame != null)
-            {
-                var spriteOrigin = new Point((int)sprite.X, (int)sprite.Y);
-                var textureOrigin = new Point(sprite.CurrentFrame.X, sprite.CurrentFrame.Y);
-                var dimensions = new Dimensions(sprite.CurrentFrame.Width, sprite.CurrentFrame.Height);
-
-                var texture = _textureManager.GetTexture(sprite.CurrentFrame.TextureName);
-                _spriteLayer.DrawTexture(texture, textureOrigin, spriteOrigin, dimensions);
-            }
-        }
 
         /// <summary>
-        /// Renders the contents of the internal buffer to the driver buffer and
-        /// then blits the driver buffer to the device
+        /// Renders the current scene
         /// </summary>
-        public void RenderToDisplay()
+        public void Render(IReadOnlyList<Sprite> sprites)
         {
-            // draw the FPS counter
-            if (ShowPerf)
-            {
-                DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
-                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
-            }
+            _profiler.StartTiming("Renderer.Render");
+            _profiler.StartTiming("LayerManager.RenderBackgroundLayers");
+            _layerManager.RenderBackgroundLayers((BufferRgb565)pixelBuffer);
+            _profiler.StopTiming("LayerManager.RenderBackgroundLayers");
 
-            // send the driver buffer to device
-            Show();
+            _profiler.StartTiming("Renderer.DrawSprites");
+            sprites ??= Array.Empty<Sprite>();
+            foreach (var sprite in sprites)
+            {
+                DrawSprite(sprite);
+            }
+            _profiler.StopTiming("Renderer.DrawSprites");
+            
+            _profiler.StartTiming("LayerManager.RenderForegroundLayers");
+            _layerManager.RenderForegroundLayers((BufferRgb565)pixelBuffer);
+            _profiler.StopTiming("LayerManager.RenderForegroundLayers");
+           
+            _profiler.StartTiming("Renderer.RenderToDisplay");
+            RenderToDisplay();
+            _profiler.StopTiming("Renderer.RenderToDisplay");
+            _profiler.StartTiming("Renderer.Render");
         }
 
         public override void Show()
@@ -140,7 +140,41 @@ namespace Glade2d.Graphics
             GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Show");
         }
 
-        void ShowSafeMode()
+        /// <summary>
+        /// Renders the contents of the internal buffer to the driver buffer and
+        /// then blits the driver buffer to the device
+        /// </summary>
+        private void RenderToDisplay()
+        {
+            // draw the FPS counter
+            if (ShowPerf)
+            {
+                DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
+                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
+            }
+
+            // send the driver buffer to device
+            Show();
+        }
+        
+        /// <summary>
+        /// Draws a sprite's CurrentFrame into the graphics buffer
+        /// </summary>
+        /// <param name="sprite">The sprite to draw</param>
+        private void DrawSprite(Sprite sprite)
+        {
+            if (sprite.CurrentFrame != null)
+            {
+                var spriteOrigin = new Point((int)sprite.X, (int)sprite.Y);
+                var textureOrigin = new Point(sprite.CurrentFrame.X, sprite.CurrentFrame.Y);
+                var dimensions = new Dimensions(sprite.CurrentFrame.Width, sprite.CurrentFrame.Height);
+
+                var texture = _textureManager.GetTexture(sprite.CurrentFrame.TextureName);
+                _spriteLayer.DrawTexture(texture, textureOrigin, spriteOrigin, dimensions);
+            }
+        }
+
+        private void ShowSafeMode()
         {
             // loop through X & Y, drawing pixels from buffer to device
             for (int x = 0; x < pixelBuffer.Width; x++)

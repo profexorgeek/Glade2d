@@ -142,8 +142,10 @@ public class Layer
         {
             return;
         }
-
-        throw new NotImplementedException();
+       
+        // TODO: Do we need different logic for each rotation? Maybe adjusting offset
+        // is enough?
+        RenderUnRotated(target);
     }
     
     /// <summary>
@@ -196,5 +198,33 @@ public class Layer
     private static int GetBufferIndex(int x, int y, int width, int bytesPerPixel)
     {
         return (y * width + x) * bytesPerPixel;
+    }
+
+    private void RenderUnRotated(BufferRgb565 buffer)
+    {
+        var sourceBuffer = _pixelBuffer.Buffer;
+        var targetBuffer = buffer.Buffer;
+
+        var sourceWidth = _dimensions.Width;
+        var sourceHeight = _dimensions.Height;
+        var targetWidth = buffer.Width;
+        var targetHeight = buffer.Height;
+
+        var rowOffset = (int)CameraOffset.Y;
+
+        for (var sourceRow = 0; sourceRow < sourceHeight; sourceRow++)
+        {
+            var targetRow = sourceRow + rowOffset;
+            if (targetRow < 0 || targetRow > targetHeight)
+            {
+                // Row is off the target buffer's area
+                continue;
+            }
+            
+            // Todo: Compute how many bytes on this row to copy. We need to adjust
+            // this width for any pixels in the layer that are off the display's buffer. 
+            // The width is probably static and we can probably calculate this
+            // out of the hot loop
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 

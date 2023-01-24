@@ -11,8 +11,6 @@ internal class TrackedLayers
     private readonly SortedSet<TrackedLayer> _backgroundLayers = new(new TrackedLayerComparer());
     private readonly SortedSet<TrackedLayer> _foregroundLayers = new(new TrackedLayerComparer());
     
-    public Layer SpriteLayer { get; set; }
-
     public void AddLayer(Layer layer, int zIndex)
     {
         if (layer == null) throw new ArgumentNullException(nameof(layer));
