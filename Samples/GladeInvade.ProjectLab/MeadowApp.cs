@@ -17,8 +17,8 @@ public class MeadowApp : App<F7FeatherV2>
     public override Task Initialize()
     {
         _projectLab = new Meadow.Devices.ProjectLab();
-        _projectLab.Display!.SetRotation(TftSpiBase.Rotation.Rotate_90);
-        _display = _projectLab.Display;
+        // _projectLab.Display!.SetRotation(TftSpiBase.Rotation.Rotate_90);
+        _display = _projectLab.Display!;
         
         return base.Initialize();
     }
