@@ -65,7 +65,7 @@ namespace SampleProjectLab
                 colorMode: ColorType.Format16bppRgb565
                 );
             
-            st7789.SetRotation(TftSpiBase.Rotation.Rotate_90);
+            // st7789.SetRotation(TftSpiBase.Rotation.Rotate_90);
 
             display = st7789;
         }
