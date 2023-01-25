@@ -138,30 +138,15 @@ public class Layer
         {
             return;
         }
-       
-        // TODO: Do we need different logic for each rotation? Maybe adjusting offset
-        // is enough?
-        RenderUnRotated(target);
-    }
-    
-    /// <summary>
-    /// Gets the index for a specific x and y coordinate in a pixel buffer
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetBufferIndex(int x, int y, int width, int bytesPerPixel)
-    {
-        return (y * width + x) * bytesPerPixel;
-    }
-
-    private void RenderUnRotated(BufferRgb565 buffer)
-    {
+      
+        
         var sourceBuffer = _pixelBuffer.Buffer;
-        var targetBuffer = buffer.Buffer;
+        var targetBuffer = target.Buffer;
 
         var sourceWidth = _dimensions.Width;
         var sourceHeight = _dimensions.Height;
-        var targetWidth = buffer.Width;
-        var targetHeight = buffer.Height;
+        var targetWidth = target.Width;
+        var targetHeight = target.Height;
 
         var rowOffset = (int)CameraOffset.Y;
 
@@ -179,5 +164,14 @@ public class Layer
             // The width is probably static and we can probably calculate this
             // out of the hot loop
         }
+    }
+    
+    /// <summary>
+    /// Gets the index for a specific x and y coordinate in a pixel buffer
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetBufferIndex(int x, int y, int width, int bytesPerPixel)
+    {
+        return (y * width + x) * bytesPerPixel;
     }
 }
