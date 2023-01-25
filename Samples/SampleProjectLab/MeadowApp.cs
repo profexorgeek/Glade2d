@@ -21,8 +21,7 @@ namespace SampleProjectLab
         {
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();
-            glade.Initialize(display, 1, EngineMode.GameLoop);
-            glade.Profiler.IsActive = true;
+            glade.Initialize(display, 2, EngineMode.GameLoop);
 
             LogService.Log.Trace("Running game...");
             glade.Start(new GladeDemoScreen());
