@@ -23,11 +23,10 @@ namespace Glade2d.Graphics
         public bool UseTransparency { get; set; } = true;
         public bool RenderInSafeMode { get; set; } = false;
 
-        public Renderer(IGraphicsDisplay display, int scale = 1, RotationType rotation = RotationType.Default)
+        public Renderer(IGraphicsDisplay display, int scale = 1)
             : base(display)
         {
-            this.Scale = scale;
-            this.Rotation = rotation;
+            Scale = scale;
 
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
@@ -84,7 +83,6 @@ namespace Glade2d.Graphics
 
             var imgBufferWidth = imgBuffer.Width;
             var pixelBufferWidth = pixelBuffer.Width;
-            var pixelBufferHeight = pixelBuffer.Height;
             var frameHeight = frame.Height;
             var frameWidth = frame.Width;
             var frameX = frame.X;
@@ -99,8 +97,6 @@ namespace Glade2d.Graphics
                     var tX = originX + x - frameX;
                     var tY = originY + y - frameY;
                     
-                    RotateCoordinates(ref tX, ref tY, pixelBufferWidth, pixelBufferHeight, Rotation);
-
                     // only draw if not transparent and within buffer
                     if (tX >= 0 && tY >= 0 && tX < _width && tY < _height)
                     {
@@ -319,39 +315,6 @@ namespace Glade2d.Graphics
             }
 
             return buffer;
-        }
-
-        /// <summary>
-        /// Takes target coordinates and adjusts them for a rotated display
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RotateCoordinates(ref int x, ref int y, int width, int height, RotationType rotationType)
-        {
-            switch (rotationType)
-            {
-                case RotationType._90Degrees:
-                {
-                    var temp = y;
-                    y = x;
-                    x = width - temp;
-                    break;
-                }
-
-                case RotationType._180Degrees:
-                {
-                    x = width - x;
-                    y = height - y;
-                    break;
-                }
-
-                case RotationType._270Degrees:
-                {
-                    var temp = y;
-                    y = width - x;
-                    x = temp;
-                    break;
-                }
-            }
         }
 
         /// <summary>

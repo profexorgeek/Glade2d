@@ -4,6 +4,7 @@ using Glade2d.Services;
 using GladeInvade.Shared;
 using Meadow;
 using Meadow.Devices;
+using Meadow.Foundation.Displays;
 using Meadow.Foundation.Graphics;
 
 namespace GladeInvade.ProjectLab;
@@ -16,7 +17,8 @@ public class MeadowApp : App<F7FeatherV2>
     public override Task Initialize()
     {
         _projectLab = new Meadow.Devices.ProjectLab();
-        _display = _projectLab.Display!;
+        _projectLab.Display!.SetRotation(TftSpiBase.Rotation.Rotate_90);
+        _display = _projectLab.Display;
         
         return base.Initialize();
     }
@@ -25,7 +27,7 @@ public class MeadowApp : App<F7FeatherV2>
     {
         LogService.Log.Trace("Initializing Glade game engine...");
         var glade = new Game();
-        glade.Initialize(_display, 2, EngineMode.GameLoop, RotationType._90Degrees);
+        glade.Initialize(_display, 2, EngineMode.GameLoop);
         InitializeInput(glade.InputManager);
         
         GladeInvadeGame.Run(glade);

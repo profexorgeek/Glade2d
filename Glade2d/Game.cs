@@ -40,7 +40,10 @@ namespace Glade2d
 
         public Game() { }
 
-        public virtual void Initialize(IGraphicsDisplay display, int displayScale = 1, EngineMode mode = EngineMode.GameLoop, RotationType displayRotation = RotationType.Default)
+        public virtual void Initialize(
+            IGraphicsDisplay display, 
+            int displayScale = 1, 
+            EngineMode mode = EngineMode.GameLoop)
         {
             LogService.Log.Trace("Initializing Renderer...");
 
@@ -48,7 +51,7 @@ namespace Glade2d
             GameService.Instance.GameInstance = this;
 
             // init renderer
-            Renderer = new Renderer(display, displayScale, displayRotation);
+            Renderer = new Renderer(display, displayScale);
 
             Mode = mode;
 

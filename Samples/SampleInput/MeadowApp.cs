@@ -60,7 +60,7 @@ namespace SampleInput
         {
             LogService.Log.Trace("Starting Glade2d...");
             glade = new Game();
-            glade.Initialize(display, 1, EngineMode.RenderOnDemand, RotationType._90Degrees);
+            glade.Initialize(display, 1, EngineMode.RenderOnDemand);
             glade.Start();
         }
 
@@ -87,7 +87,7 @@ namespace SampleInput
             var chipSelectPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP5);
             var dcPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP6);
             var resetPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP7);
-            display = new St7789(
+            var st7789 = new St7789(
                 spiBus: spi,
                 chipSelectPort: chipSelectPort,
                 dataCommandPort: dcPort,
@@ -95,6 +95,9 @@ namespace SampleInput
                 width: 240, height: 240,
                 colorMode: ColorType.Format16bppRgb565
                 );
+            
+            st7789.SetRotation(TftSpiBase.Rotation.Rotate_90);
+            display = st7789;
         }
 
         void InitializeInput()

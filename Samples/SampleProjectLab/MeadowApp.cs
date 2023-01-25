@@ -21,7 +21,7 @@ namespace SampleProjectLab
         {
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();
-            glade.Initialize(display, 2, EngineMode.GameLoop, RotationType._90Degrees);
+            glade.Initialize(display, 2, EngineMode.GameLoop);
 
             LogService.Log.Trace("Running game...");
             glade.Start(new GladeDemoScreen());
@@ -35,7 +35,7 @@ namespace SampleProjectLab
             return base.Initialize();
         }
 
-        void InitializeDisplay()
+        private void InitializeDisplay()
         {
             LogService.Log.Trace("Initializing SPI bus...");
             var config = new SpiClockConfiguration(
@@ -55,7 +55,8 @@ namespace SampleProjectLab
             var chipSelectPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP5);
             var dcPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP6);
             var resetPort = mcp.CreateDigitalOutputPort(mcp.Pins.GP7);
-            display = new St7789(
+            
+            var st7789 = new St7789(
                 spiBus: spi,
                 chipSelectPort: chipSelectPort,
                 dataCommandPort: dcPort,
@@ -63,6 +64,10 @@ namespace SampleProjectLab
                 width: 240, height: 240,
                 colorMode: ColorType.Format16bppRgb565
                 );
+            
+            st7789.SetRotation(TftSpiBase.Rotation.Rotate_90);
+
+            display = st7789;
         }
     }
 }
