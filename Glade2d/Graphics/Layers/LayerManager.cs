@@ -9,39 +9,7 @@ namespace Glade2d.Graphics.Layers;
 /// </summary>
 public class LayerManager
 {
-    private readonly RotationType _rotation;
     private readonly TrackedLayers _trackedLayers = new();
-
-    public LayerManager(RotationType rotation)
-    {
-        _rotation = rotation;
-    }
-
-    /// <summary>
-    /// Creates a new layer and optionally adds it as an active layer
-    /// </summary>
-    /// <param name="dimensions">The size of the drawable area for the layer</param>
-    /// <param name="zIndex">
-    /// A priority value for when this layer should be rendered compared to others. All layers will be
-    /// rendered in ascending order based on z index values specified. Layers with a z index
-    /// less than 0 will be rendered before sprites, and layers with a z index greater than
-    /// zero will be rendered after sprites. Z index values of 0 are not allowed, as that is reserved
-    /// for sprites.
-    ///
-    /// A z index of `null` indicates that the layer should not be added as an actively rendered
-    /// layer.
-    /// </param>
-    /// <returns>The created layer</returns>
-    public Layer Create(Dimensions dimensions, int? zIndex)
-    {
-        var layer = Layer.Create(dimensions, _rotation);
-        if (zIndex != null)
-        {
-            AddLayer(layer, zIndex.Value);
-        }
-
-        return layer;
-    }
 
     /// <summary>
     /// Adds a layer to be actively rendered. If the layer is already active, then it

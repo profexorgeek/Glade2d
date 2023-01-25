@@ -51,13 +51,13 @@ namespace Glade2d
         {
             LogService.Log.Trace("Initializing Renderer...");
 
-            LayerManager = new LayerManager(displayRotation);
+            LayerManager = new LayerManager();
             
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
 
             // init renderer
-            Renderer = new Renderer(display, TextureManager, displayScale, displayRotation);
+            Renderer = new Renderer(display,
                 TextureManager, 
                 LayerManager,
                 Profiler,

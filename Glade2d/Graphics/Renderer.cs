@@ -51,7 +51,6 @@ namespace Glade2d.Graphics
             _textureManager = textureManager;
             _profiler = profiler;
             Scale = scale;
-            Rotation = rotation;
 
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
@@ -73,7 +72,7 @@ namespace Glade2d.Graphics
 
             CurrentFont = new Font4x6();
             
-            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer, Rotation);
+            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer);
         }
 
         public void Reset()

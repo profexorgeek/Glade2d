@@ -15,7 +15,6 @@ public class Layer
     private const int BytesPerPixel = 2; 
 
     private readonly BufferRgb565 _pixelBuffer;
-    private readonly RotationType _rotation;
     private readonly Dimensions _dimensions;
     
     /// <summary>
@@ -34,10 +33,9 @@ public class Layer
     /// </summary>
     public Color TransparentColor { get; set; } = Color.Magenta;
 
-    private Layer(BufferRgb565 pixelBuffer, RotationType rotation)
+    private Layer(BufferRgb565 pixelBuffer)
     {
         _pixelBuffer = pixelBuffer;
-        _rotation = rotation;
         _dimensions = new Dimensions
         {
             Width = pixelBuffer.Width,
@@ -46,22 +44,22 @@ public class Layer
     }
 
     /// <summary>
-    /// Creates a new Layer with the specified dimension and assumed rotation.
+    /// Creates a new Layer with the specified dimensions
     /// </summary>
-    internal static Layer Create(Dimensions dimensions, RotationType rotationType)
+    public static Layer Create(Dimensions dimensions)
     {
         var pixelBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
-        return new Layer(pixelBuffer, rotationType);
+        return new Layer(pixelBuffer);
     }
    
     /// <summary>
     /// Creates a new Layer from an existing pixel buffer. Only really used for the internal sprite layer, so that
     /// we can immediately draw sprite textures to the MicroGraphics display buffer instead of adding the overhead of
-    /// an intermediary buffer. Having sprites rendered via a layer allows consolidation of drawing/rotation code.
+    /// an intermediary buffer. Having sprites rendered via a layer allows consolidation of drawing code.
     /// </summary>
-    internal static Layer FromExistingBuffer(BufferRgb565 pixelBuffer, RotationType rotationType)
+    internal static Layer FromExistingBuffer(BufferRgb565 pixelBuffer)
     {
-        return new Layer(pixelBuffer, rotationType);
+        return new Layer(pixelBuffer);
     }
 
     /// <summary>
@@ -108,8 +106,6 @@ public class Layer
                 var tX = topLeftOnLayer.X + x - frameX;
                 var tY = topLeftOnLayer.Y + y - frameY;
                 
-                RotateCoordinates(ref tX, ref tY, pixelBufferWidth, pixelBufferHeight, _rotation);
-
                 // only draw if not transparent and within buffer
                 if (tX >= 0 && tY >= 0 && tX < _dimensions.Width && tY < _dimensions.Height)
                 {
@@ -146,49 +142,6 @@ public class Layer
         // TODO: Do we need different logic for each rotation? Maybe adjusting offset
         // is enough?
         RenderUnRotated(target);
-    }
-    
-    /// <summary>
-    /// Takes target coordinates and adjusts them for a rotated display
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RotateCoordinates(ref int x, ref int y, int width, int height, RotationType rotationType)
-    {
-        switch (rotationType)
-        {
-            case RotationType.Default:
-            {
-                // no change
-                return;
-            }
-            
-            case RotationType._90Degrees:
-            {
-                var temp = y;
-                y = x;
-                x = width - temp;
-                break;
-            }
-
-            case RotationType._180Degrees:
-            {
-                x = width - x;
-                y = height - y;
-                break;
-            }
-
-            case RotationType._270Degrees:
-            {
-                var temp = y;
-                y = width - x;
-                x = temp;
-                break;
-            }
-            
-            default:
-                var message = $"Rotation {rotationType} is not supported";
-                throw new NotSupportedException(message);
-        }
     }
     
     /// <summary>
