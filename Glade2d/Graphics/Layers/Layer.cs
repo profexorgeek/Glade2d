@@ -20,7 +20,7 @@ public class Layer
     /// <summary>
     /// How far the layer's origin (0,0) is offset from the camera's origin. 
     /// </summary>
-    public Vector2 CameraOffset { get; set; }
+    public Point CameraOffset { get; set; }
    
     /// <summary>
     /// The default background for this layer
@@ -91,7 +91,6 @@ public class Layer
 
         var imgBufferWidth = texture.Width;
         var pixelBufferWidth = _pixelBuffer.Width;
-        var pixelBufferHeight = _pixelBuffer.Height;
         var frameHeight = drawSize.Height;
         var frameWidth = drawSize.Width;
         var frameX = topLeftOnTexture.X;
@@ -138,7 +137,27 @@ public class Layer
         {
             return;
         }
-      
+
+        // Figure out where the source buffer overlaps the camera. All this code
+        // assumes the engine does not support zooming, thus 1 unit is 1 pixel.
+        if (_pixelBuffer.Height + CameraOffset.Y < 0 || // Layer is fully above the camera
+            _pixelBuffer.Width + CameraOffset.X < 0 || // Layer is fully left of the camera
+            CameraOffset.Y >= target.Height || // Layer is fully below the camera
+            CameraOffset.X >= target.Width) // Layer is fully right of the camera
+        {
+            return;
+        }
+
+        var sourceStartRow = Math.Min(0, -CameraOffset.Y);
+        var sourceStartCol = Math.Min(0, -CameraOffset.X);
+            
+        var sourceRowCount = _pixelBuffer.Height 
+        if (CameraOffset.Y >= 1)
+        {
+            
+        }
+        
+        
         
         var sourceBuffer = _pixelBuffer.Buffer;
         var targetBuffer = target.Buffer;
