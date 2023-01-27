@@ -14,7 +14,7 @@ public class Layer
 {
     private const int BytesPerPixel = 2; 
 
-    private readonly BufferRgb565 _pixelBuffer;
+    private readonly BufferRgb565 _layerBuffer;
     private readonly Dimensions _dimensions;
     
     /// <summary>
@@ -33,13 +33,13 @@ public class Layer
     /// </summary>
     public Color TransparentColor { get; set; } = Color.Magenta;
 
-    private Layer(BufferRgb565 pixelBuffer)
+    private Layer(BufferRgb565 layerBuffer)
     {
-        _pixelBuffer = pixelBuffer;
+        _layerBuffer = layerBuffer;
         _dimensions = new Dimensions
         {
-            Width = pixelBuffer.Width,
-            Height = pixelBuffer.Height,
+            Width = layerBuffer.Width,
+            Height = layerBuffer.Height,
         };
     }
 
@@ -67,7 +67,7 @@ public class Layer
     /// </summary>
     public void Clear()
     {
-        _pixelBuffer.Clear(BackgroundColor.Color16bppRgb565);
+        _layerBuffer.Clear(BackgroundColor.Color16bppRgb565);
     }
 
     /// <summary>
@@ -90,12 +90,12 @@ public class Layer
         var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
 
         var imgBufferWidth = texture.Width;
-        var pixelBufferWidth = _pixelBuffer.Width;
+        var pixelBufferWidth = _layerBuffer.Width;
         var frameHeight = drawSize.Height;
         var frameWidth = drawSize.Width;
         var frameX = topLeftOnTexture.X;
         var frameY = topLeftOnTexture.Y;
-        var innerPixelBuffer = _pixelBuffer.Buffer;
+        var innerPixelBuffer = _layerBuffer.Buffer;
         var innerImgBuffer = texture.Buffer;
         
         for (var x = frameX; x < frameX + frameWidth; x++)
@@ -113,7 +113,7 @@ public class Layer
                     var colorByte2 = innerImgBuffer[frameIndex + 1];
                     if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
                     {
-                        var bufferIndex = GetBufferIndex(tX, tY, pixelBufferWidth, BytesPerPixel);
+                        var bufferIndex = GetBufferIndex(tX, tY, pixelBufferWidth);
                         innerPixelBuffer[bufferIndex] = colorByte1;
                         innerPixelBuffer[bufferIndex + 1] = colorByte2;
                     }
@@ -133,55 +133,53 @@ public class Layer
         // Don't render if our buffer is the same as the target. This is
         // essentially a "don't do anything with the sprite layer" 
         // condition.
-        if (target == _pixelBuffer)
+        if (target == _layerBuffer)
         {
             return;
         }
 
         // Figure out where the source buffer overlaps the camera. All this code
-        // assumes the engine does not support zooming, thus 1 unit is 1 pixel.
-        if (_pixelBuffer.Height + CameraOffset.Y < 0 || // Layer is fully above the camera
-            _pixelBuffer.Width + CameraOffset.X < 0 || // Layer is fully left of the camera
+        // assumes the engine does not support zooming, thus 1 unit is 1 pixel. This 
+        // works with game scaling because the target buffer should be the 
+        // renderer's pixel buffer, *not* the display buffer in that case.
+        if (_layerBuffer.Height + CameraOffset.Y < 0 || // Layer is fully above the camera
+            _layerBuffer.Width + CameraOffset.X < 0 || // Layer is fully left of the camera
             CameraOffset.Y >= target.Height || // Layer is fully below the camera
             CameraOffset.X >= target.Width) // Layer is fully right of the camera
         {
             return;
         }
 
+        // When figuring out the first row and column we pull pixels 
+        // from on the layer's buffer, we need to take the offset into account.  
+        // If the offset is positive, then we start from 0. If the offset is
+        // negative, then we start at `0 - offset`.
         var sourceStartRow = Math.Min(0, -CameraOffset.Y);
         var sourceStartCol = Math.Min(0, -CameraOffset.X);
-            
-        var sourceRowCount = _pixelBuffer.Height 
-        if (CameraOffset.Y >= 1)
-        {
-            
-        }
+        var targetStartCol = sourceStartCol + CameraOffset.X;
+
+        // How many rows and columns will we be moving? This helps with byte counts
+        var sourceRowCount = Math.Clamp(_layerBuffer.Height - sourceStartRow, 0, target.Height);
+        var sourceColCount = Math.Clamp(_layerBuffer.Width - sourceStartCol, 0, target.Width);
         
-        
-        
-        var sourceBuffer = _pixelBuffer.Buffer;
+        var sourceBuffer = _layerBuffer.Buffer;
         var targetBuffer = target.Buffer;
 
-        var sourceWidth = _dimensions.Width;
-        var sourceHeight = _dimensions.Height;
+        var sourceWidth = _layerBuffer.Width;
         var targetWidth = target.Width;
-        var targetHeight = target.Height;
 
-        var rowOffset = (int)CameraOffset.Y;
-
-        for (var sourceRow = 0; sourceRow < sourceHeight; sourceRow++)
+        for (var sourceRow = sourceStartRow; sourceRow < sourceStartRow + sourceRowCount; sourceRow++)
         {
-            var targetRow = sourceRow + rowOffset;
-            if (targetRow < 0 || targetRow > targetHeight)
-            {
-                // Row is off the target buffer's area
-                continue;
-            }
+            var targetRow = sourceRow + CameraOffset.Y;
+            var sourceBufferIndex = GetBufferIndex(sourceStartCol, sourceRow, sourceWidth);
+            var targetBufferIndex = GetBufferIndex(targetStartCol, targetRow, targetWidth);
             
-            // Todo: Compute how many bytes on this row to copy. We need to adjust
-            // this width for any pixels in the layer that are off the display's buffer. 
-            // The width is probably static and we can probably calculate this
-            // out of the hot loop
+            // Copy the whole set of pixels from the source to the target
+            Array.Copy(sourceBuffer, 
+                sourceBufferIndex, 
+                targetBuffer, 
+                targetBufferIndex, 
+                sourceColCount * BytesPerPixel);
         }
     }
     
@@ -189,8 +187,8 @@ public class Layer
     /// Gets the index for a specific x and y coordinate in a pixel buffer
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetBufferIndex(int x, int y, int width, int bytesPerPixel)
+    private static int GetBufferIndex(int x, int y, int width)
     {
-        return (y * width + x) * bytesPerPixel;
+        return (y * width + x) * BytesPerPixel;
     }
 }
