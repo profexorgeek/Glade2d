@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Glade2d.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
@@ -16,6 +17,7 @@ public class Layer
 
     private readonly BufferRgb565 _layerBuffer;
     private readonly Dimensions _dimensions;
+    private readonly TextureManager _textureManager;
     
     /// <summary>
     /// How far the layer's origin (0,0) is offset from the camera's origin. 
@@ -33,9 +35,10 @@ public class Layer
     /// </summary>
     public Color TransparentColor { get; set; } = Color.Magenta;
 
-    private Layer(BufferRgb565 layerBuffer)
+    private Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
     {
         _layerBuffer = layerBuffer;
+        _textureManager = textureManager;
         _dimensions = new Dimensions
         {
             Width = layerBuffer.Width,
@@ -49,7 +52,7 @@ public class Layer
     public static Layer Create(Dimensions dimensions)
     {
         var pixelBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
-        return new Layer(pixelBuffer);
+        return new Layer(pixelBuffer, GameService.Instance.GameInstance.TextureManager);
     }
    
     /// <summary>
@@ -59,7 +62,7 @@ public class Layer
     /// </summary>
     internal static Layer FromExistingBuffer(BufferRgb565 pixelBuffer)
     {
-        return new Layer(pixelBuffer);
+        return new Layer(pixelBuffer, GameService.Instance.GameInstance.TextureManager);
     }
 
     /// <summary>
@@ -68,6 +71,22 @@ public class Layer
     public void Clear()
     {
         _layerBuffer.Clear(BackgroundColor.Color16bppRgb565);
+    }
+
+    /// <summary>
+    /// Draws the texture defined by the passed in frame
+    /// </summary>
+    /// <param name="frame">The texture frame to draw</param>
+    /// <param name="topLeftOnLayer">
+    /// The X and Y coordinates on the layer that we will start drawing onto.
+    /// </param>
+    public void DrawTexture(Frame frame, Point topLeftOnLayer)
+    {
+        var buffer = _textureManager.GetTexture(frame.TextureName);
+        DrawTexture(buffer,
+            new Point(frame.X, frame.Y),
+            topLeftOnLayer,
+            new Dimensions(frame.Width, frame.Height));
     }
 
     /// <summary>

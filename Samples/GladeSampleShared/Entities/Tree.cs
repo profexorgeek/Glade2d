@@ -4,8 +4,8 @@ namespace GladeSampleShared.Entities
 {
     public class Tree : Sprite
     {
-        public const int ChunkWidth = 32;
-        public const int ChunkHeight = 32;
+        private const int ChunkWidth = 32;
+        private const int ChunkHeight = 32;
         public const int GroundOffset = 26;
 
         public Tree(float x = 0, float y = 0)
