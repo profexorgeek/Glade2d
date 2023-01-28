@@ -147,28 +147,24 @@ public class Layer
     /// move pixels left, while positive values move them right. Any pixels that shift
     /// off the layer will be wrapped around to the opposite side.
     /// </summary>
-    /// <param name="shiftAmount"></param>
     public void ShiftHorizontally(float shiftAmount)
     {
         _horizontalShift += shiftAmount;
         var wholePixelShiftAmount = (int)_horizontalShift;
         _horizontalShift -= wholePixelShiftAmount; // Remove the whole number from the float
 
-        if (wholePixelShiftAmount < 0)
+        while (wholePixelShiftAmount <= -_layerBuffer.Width || wholePixelShiftAmount >= _layerBuffer.Width)
         {
-            while (wholePixelShiftAmount <= -_layerBuffer.Width)
+            if (wholePixelShiftAmount < 0)
             {
                 wholePixelShiftAmount += _layerBuffer.Width;
             }
-        } 
-        else if (wholePixelShiftAmount > 0)
-        {
-            while (wholePixelShiftAmount >= _layerBuffer.Width)
+            else if (wholePixelShiftAmount > 0)
             {
                 wholePixelShiftAmount -= _layerBuffer.Width;
             }
         }
-
+        
         if (wholePixelShiftAmount == 0)
         {
             return;
@@ -177,55 +173,47 @@ public class Layer
         var bytesToShift = Math.Abs(wholePixelShiftAmount) * BytesPerPixel;
         var remainingBytes = _layerBuffer.Width * BytesPerPixel - bytesToShift;
         var tempBuffer = new byte[bytesToShift];
-        var layerBuffer = _layerBuffer.Buffer;
-        var layerWidth = _layerBuffer.Width;
-
-        for (var row = 0; row < _layerBuffer.Height; row++)
-        {
-            var rowStartIndex = GetBufferIndex(0, row, layerWidth);
-            var splitIndex = rowStartIndex + bytesToShift;
-        }
-    }
-
-    /// <summary>
-    /// Shifts all pixels on the layer left by the specified amount. Any pixels that
-    /// end up shifted off the layer will wrap around to the right. Any remaining
-    /// decimal shift amounts will be tracked and applied to the next shift operation.
-    /// </summary>
-    public void ShiftLeft(float shiftAmount)
-    {
-        _horizontalShift -= shiftAmount;
-        var wholePixelShiftAmount = (int)-_horizontalShift;
-        _horizontalShift += wholePixelShiftAmount; // Remove the whole number from the float
-
-        while (wholePixelShiftAmount >= _layerBuffer.Width)
-        {
-            wholePixelShiftAmount -= _layerBuffer.Width;
-        }
-
-        if (wholePixelShiftAmount == 0)
-        {
-            // We haven't gotten a whole pixel to shift yet
-            return;
-        }
-
-        var bytesToShift = wholePixelShiftAmount * BytesPerPixel;
-        var remainingBytes = (_layerBuffer.Width * BytesPerPixel) - bytesToShift; 
         
-        var tempBuffer = new byte[bytesToShift];
-        var layerBuffer = _layerBuffer.Buffer;
+        // To perform a wrap around we have 3 shifts. The first shift is moving the bytes
+        // leaving the boundaries into the temporary buffer, the second shift is moving the
+        // remaining bytes over, and the third shift is moving the bytes from the temporary
+        // buffer into the wrapped around spot. 
+        //
+        // Pre-figure out the shift indexes ahead of time, so that we can use a single code
+        // path for both right and left shifts.
+        var firstShiftByte = wholePixelShiftAmount > 0
+            ? remainingBytes // right shift starts on the bytes not moving right
+            : 0; // left shift starts at the beginning of the row
+
+        var secondShiftSourceByte = wholePixelShiftAmount > 0
+            ? 0 // Right shift moves the bytes from the beginning of the row
+            : bytesToShift; // left shift starts from first pixel not wrapping around
+
+        var secondShiftTargetByte = wholePixelShiftAmount > 0
+            ? bytesToShift // Right shift moves the bytes from the row start to the shift amount
+            : 0; // Left shift moves the bytes from the shift amount to the beginning of the row
+
+        var thirdShiftTargetByte = wholePixelShiftAmount > 0
+            ? 0 // Right shift moves the off screen bytes to the beginning of the row
+            : remainingBytes; // Left shift moves the off screen bytes to the end of the row
+        
+        var buffer = _layerBuffer.Buffer;
         var layerWidth = _layerBuffer.Width;
+
         for (var row = 0; row < _layerBuffer.Height; row++)
         {
             var rowStartIndex = GetBufferIndex(0, row, layerWidth);
-            var splitIndex = rowStartIndex + bytesToShift;
+            var firstShiftIndex = rowStartIndex + firstShiftByte;
+            var secondShiftSourceIndex = rowStartIndex + secondShiftSourceByte;
+            var secondShiftTargetIndex = rowStartIndex + secondShiftTargetByte;
+            var thirdShiftTargetIndex = rowStartIndex + thirdShiftTargetByte;
             
-            Array.Copy(layerBuffer, rowStartIndex, tempBuffer, 0, bytesToShift);
-            Array.Copy(layerBuffer, splitIndex, layerBuffer, rowStartIndex, remainingBytes);
-            Array.Copy(tempBuffer, 0, layerBuffer, splitIndex, bytesToShift);
+            Array.Copy(buffer, firstShiftIndex, tempBuffer, 0, bytesToShift);
+            Array.Copy(buffer, secondShiftSourceIndex, buffer, secondShiftTargetIndex, remainingBytes);
+            Array.Copy(tempBuffer, 0, buffer, thirdShiftTargetIndex, bytesToShift);
         }
     }
-    
+
     /// <summary>
     /// Renders the layer from its own buffer to the specified buffer.
     /// The passed in buffer is assumed to be the "camera" and thus the

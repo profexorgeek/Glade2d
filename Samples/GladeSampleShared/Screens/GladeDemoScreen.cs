@@ -14,6 +14,9 @@ namespace GladeSampleShared.Screens
     public class GladeDemoScreen : Screen, IDisposable
     {
         private const int NumberOfClouds = 3;
+        private const float TreeVelocity = -5f;
+        private const float GroundVelocity = -10f;
+        private const float MountainVelocity = -2f;
 
         private readonly int _screenWidth;
         private readonly int _screenHeight;
@@ -45,6 +48,12 @@ namespace GladeSampleShared.Screens
         public override void Activity()
         {
             DoClouds();
+            
+            // Shift layers by their velocity
+            var timeSinceLastFrame = (float)GameService.Instance.Time.FrameDelta;
+            _treeLayer.ShiftHorizontally(TreeVelocity * timeSinceLastFrame);
+            _mountainLayer.ShiftHorizontally(MountainVelocity * timeSinceLastFrame);
+            _groundLayer.ShiftHorizontally(GroundVelocity * timeSinceLastFrame);
 
             base.Activity();
         }
