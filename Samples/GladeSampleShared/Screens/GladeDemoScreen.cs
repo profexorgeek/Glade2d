@@ -6,6 +6,7 @@ using GladeSampleShared.Entities;
 using System.Collections.Generic;
 using Glade2d;
 using Glade2d.Graphics.Layers;
+using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 
 namespace GladeSampleShared.Screens
@@ -21,6 +22,7 @@ namespace GladeSampleShared.Screens
         private readonly Layer _mountainLayer;
         private readonly Layer _groundLayer;
         private readonly List<Cloud> _clouds = new List<Cloud>();
+        private readonly Color _backgroundColor = new Color(57, 120, 168);
 
         public GladeDemoScreen()
         {
@@ -29,7 +31,7 @@ namespace GladeSampleShared.Screens
             _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
             
             // Set background color
-            GameService.Instance.GameInstance.Renderer.BackgroundColor = new Meadow.Foundation.Color(57, 120, 168, 255);
+            GameService.Instance.GameInstance.Renderer.BackgroundColor = _backgroundColor;
 
             _skyLayer = CreateSkyLayer();
             _treeLayer = CreateTreeLayer();
@@ -67,6 +69,7 @@ namespace GladeSampleShared.Screens
         private Layer CreateTreeLayer()
         {
             var tree = new Tree();
+            var ground = new GroundChunk();
             
             // We want to make sure the layer is at least as wide as the screen, 
             // but also wide enough that it can tile with itself, so no seams show
@@ -76,7 +79,9 @@ namespace GladeSampleShared.Screens
                              (_screenWidth % (tree.CurrentFrame.Width / 2));
             
             var layer = Layer.Create(new Dimensions(layerWidth, tree.CurrentFrame.Height));
-            layer.CameraOffset = new Point( 0, _screenHeight - tree.CurrentFrame.Height - Tree.GroundOffset);
+            layer.CameraOffset = new Point( 0, _screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
+            layer.BackgroundColor = new Color(79, 84, 107);
+            layer.Clear();
             
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             
@@ -108,7 +113,8 @@ namespace GladeSampleShared.Screens
             var layerWidth = _screenWidth + (_screenWidth % (mountain.CurrentFrame.Width));
             
             var layer = Layer.Create(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
-            layer.BackgroundColor = GameService.Instance.GameInstance.Renderer.BackgroundColor;
+            layer.BackgroundColor = _backgroundColor;
+            layer.Clear();
             layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
             
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);

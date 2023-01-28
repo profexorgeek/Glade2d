@@ -131,12 +131,10 @@ namespace Glade2d
         /// </summary>
         public void Draw()
         {
-            Profiler.StartTiming("Game.Draw");
             Renderer.Reset();
 
             var sprites = GameService.Instance.CurrentScreen?.AccessSpritesForRenderingOnly();
             Renderer.Render(sprites);
-            Profiler.StartTiming("Game.Draw");
         }
     }
 }

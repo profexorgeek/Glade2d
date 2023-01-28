@@ -4,15 +4,9 @@ namespace GladeSampleShared.Entities
 {
     public class Tree : Sprite
     {
-        private const int ChunkWidth = 32;
-        private const int ChunkHeight = 32;
-        public const int GroundOffset = 26;
-
-        public Tree(float x = 0, float y = 0)
+        public Tree()
         {
-            CurrentFrame = new Frame("spritesheet.bmp", 64, 0, ChunkWidth, ChunkHeight);
-            this.X = x;
-            this.Y = y;
+            CurrentFrame = new Frame("spritesheet.bmp", 69, 3, 23, 26);
         }
     }
 }
