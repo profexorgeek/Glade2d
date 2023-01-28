@@ -1,4 +1,5 @@
-﻿using Glade2d.Screens;
+﻿using System;
+using Glade2d.Screens;
 using Glade2d.Services;
 using Glade2d.Utility;
 using GladeSampleShared.Entities;
@@ -9,7 +10,7 @@ using Meadow.Foundation.Graphics;
 
 namespace GladeSampleShared.Screens
 {
-    public class GladeDemoScreen : Screen
+    public class GladeDemoScreen : Screen, IDisposable
     {
         private const int NumberOfClouds = 3;
 
@@ -140,7 +141,7 @@ namespace GladeSampleShared.Screens
         /// <summary>
         /// Add a sun in the top left of the screen
         /// </summary>
-        public void CreateSun()
+        private void CreateSun()
         {
             var sun = new Sun(_screenWidth - 8 - Sun.ChunkWidth, 8);
             sun.Layer = 0;
@@ -150,7 +151,7 @@ namespace GladeSampleShared.Screens
         /// <summary>
         /// Add some starting clouds so they are on the screen at the begining
         /// </summary>
-        public void CreateInitialClouds()
+        private void CreateInitialClouds()
         {
             var rand = GameService.Instance.Random;
             int yOffsetMin = _screenHeight - 16 - MountainChunk.ChunkHeight;
@@ -170,7 +171,7 @@ namespace GladeSampleShared.Screens
         /// <summary>
         /// Dynamically create and destroy clouds as they drift to the left
         /// </summary>
-        public void DoClouds()
+        private void DoClouds()
         {
             var rand = GameService.Instance.Random;
             int yOffsetMin = _screenHeight - 16 - MountainChunk.ChunkHeight;
@@ -201,5 +202,16 @@ namespace GladeSampleShared.Screens
             }
         }
 
+        /// <summary>
+        /// Cleans up the screen's resources
+        /// </summary>
+        public void Dispose()
+        {
+            var layerManager = GameService.Instance.GameInstance.LayerManager;
+            layerManager.RemoveLayer(_skyLayer);
+            layerManager.RemoveLayer(_groundLayer);
+            layerManager.RemoveLayer(_treeLayer);
+            layerManager.RemoveLayer(_mountainLayer);
+        }
     }
 }

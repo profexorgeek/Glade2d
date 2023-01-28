@@ -18,6 +18,7 @@ public class Layer
     private readonly BufferRgb565 _layerBuffer;
     private readonly Dimensions _dimensions;
     private readonly TextureManager _textureManager;
+    private float _horizontalShift, _verticalShift;
     
     /// <summary>
     /// How far the layer's origin (0,0) is offset from the camera's origin. 
@@ -142,66 +143,89 @@ public class Layer
     }
 
     /// <summary>
-    /// Renders the layer from its own buffer to the specified buffer.
-    /// The passed in buffer is assumed to be the "camera" and thus the
-    /// first byte of the target buffer is assumed to be the camera's
-    /// 0,0/origin.
+    /// Shifts all pixels horizontally by the specified amount. Negative shift values
+    /// move pixels left, while positive values move them right. Any pixels that shift
+    /// off the layer will be wrapped around to the opposite side.
     /// </summary>
-    internal void RenderToBuffer(BufferRgb565 target)
+    /// <param name="shiftAmount"></param>
+    public void ShiftHorizontally(float shiftAmount)
     {
-        // Don't render if our buffer is the same as the target. This is
-        // essentially a "don't do anything with the sprite layer" 
-        // condition.
-        if (target == _layerBuffer)
+        _horizontalShift += shiftAmount;
+        var wholePixelShiftAmount = (int)_horizontalShift;
+        _horizontalShift -= wholePixelShiftAmount; // Remove the whole number from the float
+
+        if (wholePixelShiftAmount < 0)
+        {
+            while (wholePixelShiftAmount <= -_layerBuffer.Width)
+            {
+                wholePixelShiftAmount += _layerBuffer.Width;
+            }
+        } 
+        else if (wholePixelShiftAmount > 0)
+        {
+            while (wholePixelShiftAmount >= _layerBuffer.Width)
+            {
+                wholePixelShiftAmount -= _layerBuffer.Width;
+            }
+        }
+
+        if (wholePixelShiftAmount == 0)
         {
             return;
         }
 
-        // Figure out where the source buffer overlaps the camera. All this code
-        // assumes the engine does not support zooming, thus 1 unit is 1 pixel. This 
-        // works with game scaling because the target buffer should be the 
-        // renderer's pixel buffer, *not* the display buffer in that case.
-        if (_layerBuffer.Height + CameraOffset.Y < 0 || // Layer is fully above the camera
-            _layerBuffer.Width + CameraOffset.X < 0 || // Layer is fully left of the camera
-            CameraOffset.Y >= target.Height || // Layer is fully below the camera
-            CameraOffset.X >= target.Width) // Layer is fully right of the camera
+        var bytesToShift = Math.Abs(wholePixelShiftAmount) * BytesPerPixel;
+        var remainingBytes = _layerBuffer.Width * BytesPerPixel - bytesToShift;
+        var tempBuffer = new byte[bytesToShift];
+        var layerBuffer = _layerBuffer.Buffer;
+        var layerWidth = _layerBuffer.Width;
+
+        for (var row = 0; row < _layerBuffer.Height; row++)
         {
-            return;
-        }
-
-        // When figuring out the first row and column we pull pixels 
-        // from on the layer's buffer, we need to take the offset into account.  
-        // If the offset is positive, then we start from 0. If the offset is
-        // negative, then we start at `0 - offset`.
-        var sourceStartRow = Math.Min(0, -CameraOffset.Y);
-        var sourceStartCol = Math.Min(0, -CameraOffset.X);
-        var targetStartCol = sourceStartCol + CameraOffset.X;
-
-        // How many rows and columns will we be moving? This helps with byte counts
-        var sourceRowCount = Math.Clamp(_layerBuffer.Height - sourceStartRow, 0, target.Height);
-        var sourceColCount = Math.Clamp(_layerBuffer.Width - sourceStartCol, 0, target.Width);
-        
-        var sourceBuffer = _layerBuffer.Buffer;
-        var targetBuffer = target.Buffer;
-
-        var sourceWidth = _layerBuffer.Width;
-        var targetWidth = target.Width;
-
-        for (var sourceRow = sourceStartRow; sourceRow < sourceStartRow + sourceRowCount; sourceRow++)
-        {
-            var targetRow = sourceRow + CameraOffset.Y;
-            var sourceBufferIndex = GetBufferIndex(sourceStartCol, sourceRow, sourceWidth);
-            var targetBufferIndex = GetBufferIndex(targetStartCol, targetRow, targetWidth);
-            
-            // Copy the whole set of pixels from the source to the target
-            Array.Copy(sourceBuffer, 
-                sourceBufferIndex, 
-                targetBuffer, 
-                targetBufferIndex, 
-                sourceColCount * BytesPerPixel);
+            var rowStartIndex = GetBufferIndex(0, row, layerWidth);
+            var splitIndex = rowStartIndex + bytesToShift;
         }
     }
-    
+
+    /// <summary>
+    /// Shifts all pixels on the layer left by the specified amount. Any pixels that
+    /// end up shifted off the layer will wrap around to the right. Any remaining
+    /// decimal shift amounts will be tracked and applied to the next shift operation.
+    /// </summary>
+    public void ShiftLeft(float shiftAmount)
+    {
+        _horizontalShift -= shiftAmount;
+        var wholePixelShiftAmount = (int)-_horizontalShift;
+        _horizontalShift += wholePixelShiftAmount; // Remove the whole number from the float
+
+        while (wholePixelShiftAmount >= _layerBuffer.Width)
+        {
+            wholePixelShiftAmount -= _layerBuffer.Width;
+        }
+
+        if (wholePixelShiftAmount == 0)
+        {
+            // We haven't gotten a whole pixel to shift yet
+            return;
+        }
+
+        var bytesToShift = wholePixelShiftAmount * BytesPerPixel;
+        var remainingBytes = (_layerBuffer.Width * BytesPerPixel) - bytesToShift; 
+        
+        var tempBuffer = new byte[bytesToShift];
+        var layerBuffer = _layerBuffer.Buffer;
+        var layerWidth = _layerBuffer.Width;
+        for (var row = 0; row < _layerBuffer.Height; row++)
+        {
+            var rowStartIndex = GetBufferIndex(0, row, layerWidth);
+            var splitIndex = rowStartIndex + bytesToShift;
+            
+            Array.Copy(layerBuffer, rowStartIndex, tempBuffer, 0, bytesToShift);
+            Array.Copy(layerBuffer, splitIndex, layerBuffer, rowStartIndex, remainingBytes);
+            Array.Copy(tempBuffer, 0, layerBuffer, splitIndex, bytesToShift);
+        }
+    }
+
     /// <summary>
     /// Gets the index for a specific x and y coordinate in a pixel buffer
     /// </summary>

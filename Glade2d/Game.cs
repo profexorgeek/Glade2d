@@ -1,4 +1,5 @@
-﻿using Glade2d.Graphics;
+﻿using System;
+using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
@@ -70,6 +71,11 @@ namespace Glade2d
 
         public void Start(Screen startupScreen = null)
         {
+            if (GameService.Instance.CurrentScreen is IDisposable oldScreen)
+            {
+                oldScreen.Dispose();
+            }
+            
             Profiler.Reset();
             var screen = startupScreen ?? new Screen();
 
