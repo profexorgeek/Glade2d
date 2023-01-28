@@ -225,6 +225,67 @@ public class Layer
             Array.Copy(tempBuffer, 0, layerBuffer, splitIndex, bytesToShift);
         }
     }
+    
+    /// <summary>
+    /// Renders the layer from its own buffer to the specified buffer.
+    /// The passed in buffer is assumed to be the "camera" and thus the
+    /// first byte of the target buffer is assumed to be the camera's
+    /// 0,0/origin.
+    /// </summary>
+    internal void RenderToBuffer(BufferRgb565 target)
+    {
+        // Don't render if our buffer is the same as the target. This is
+        // essentially a "don't do anything with the sprite layer" 
+        // condition.
+        if (target == _layerBuffer)
+        {
+            return;
+        }
+
+        // Figure out where the source buffer overlaps the camera. All this code
+        // assumes the engine does not support zooming, thus 1 unit is 1 pixel. This 
+        // works with game scaling because the target buffer should be the 
+        // renderer's pixel buffer, *not* the display buffer in that case.
+        if (_layerBuffer.Height + CameraOffset.Y < 0 || // Layer is fully above the camera
+            _layerBuffer.Width + CameraOffset.X < 0 || // Layer is fully left of the camera
+            CameraOffset.Y >= target.Height || // Layer is fully below the camera
+            CameraOffset.X >= target.Width) // Layer is fully right of the camera
+        {
+            return;
+        }
+
+        // When figuring out the first row and column we pull pixels 
+        // from on the layer's buffer, we need to take the offset into account.  
+        // If the offset is positive, then we start from 0. If the offset is
+        // negative, then we start at `0 - offset`.
+        var sourceStartRow = CameraOffset.Y < 0 ? -CameraOffset.Y : 0;
+        var sourceStartCol = CameraOffset.X < 0 ? -CameraOffset.X : 0;
+        var targetStartCol = CameraOffset.X;
+
+        // How many rows and columns will we be moving? This helps with byte counts
+        var sourceRowCount = Math.Clamp(_layerBuffer.Height - sourceStartRow, 0, target.Height);
+        var sourceColCount = Math.Clamp(_layerBuffer.Width - sourceStartCol, 0, target.Width);
+        
+        var sourceBuffer = _layerBuffer.Buffer;
+        var targetBuffer = target.Buffer;
+
+        var sourceWidth = _layerBuffer.Width;
+        var targetWidth = target.Width;
+
+        for (var sourceRow = sourceStartRow; sourceRow < sourceStartRow + sourceRowCount; sourceRow++)
+        {
+            var targetRow = sourceRow + CameraOffset.Y;
+            var sourceBufferIndex = GetBufferIndex(sourceStartCol, sourceRow, sourceWidth);
+            var targetBufferIndex = GetBufferIndex(targetStartCol, targetRow, targetWidth);
+
+            // Copy the whole set of pixels from the source to the target
+            Array.Copy(sourceBuffer, 
+                sourceBufferIndex, 
+                targetBuffer, 
+                targetBufferIndex, 
+                sourceColCount * BytesPerPixel);
+        }
+    }
 
     /// <summary>
     /// Gets the index for a specific x and y coordinate in a pixel buffer

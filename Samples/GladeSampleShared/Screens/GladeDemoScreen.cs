@@ -111,7 +111,7 @@ namespace GladeSampleShared.Screens
             layer.BackgroundColor = GameService.Instance.GameInstance.Renderer.BackgroundColor;
             layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
             
-            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
 
             for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
             {
