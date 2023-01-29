@@ -13,12 +13,14 @@ namespace Glade2d.Graphics.Layers;
 /// </summary>
 public class Layer
 {
+    private readonly record struct DrawQuadrant(int StartX, int StartY, int Width, int Height);
     private const int BytesPerPixel = 2; 
 
     private readonly BufferRgb565 _layerBuffer;
     private readonly Dimensions _dimensions;
     private readonly TextureManager _textureManager;
     private float _horizontalShift, _verticalShift;
+    private Vector2 _internalOrigin;
     
     /// <summary>
     /// How far the layer's origin (0,0) is offset from the camera's origin. 
@@ -143,75 +145,30 @@ public class Layer
     }
 
     /// <summary>
-    /// Shifts all pixels horizontally by the specified amount. Negative shift values
-    /// move pixels left, while positive values move them right. Any pixels that shift
-    /// off the layer will be wrapped around to the opposite side.
+    /// Shifts the pixels in the layer by the specified amount. Pixels that shift off the layer
+    /// will be wrapped to the other side.
     /// </summary>
-    public void ShiftHorizontally(float shiftAmount)
+    /// <param name="shiftAmount"></param>
+    public void Shift(Vector2 shiftAmount)
     {
-        _horizontalShift += shiftAmount;
-        var wholePixelShiftAmount = (int)_horizontalShift;
-        _horizontalShift -= wholePixelShiftAmount; // Remove the whole number from the float
-
-        while (wholePixelShiftAmount <= -_layerBuffer.Width || wholePixelShiftAmount >= _layerBuffer.Width)
-        {
-            if (wholePixelShiftAmount < 0)
-            {
-                wholePixelShiftAmount += _layerBuffer.Width;
-            }
-            else if (wholePixelShiftAmount > 0)
-            {
-                wholePixelShiftAmount -= _layerBuffer.Width;
-            }
-        }
+        // The naive approach to shifting the layer around would be to rotate the actual bytes
+        // in the buffer around. This requires 3 array copy calls per row (1 for the pixels that
+        // will move off layer into a temporary buffer, one to move the remaining pixels over,
+        // then a third to move the pixels from the temporary buffer to their wrapped around
+        // area. This is particularly costly when most layers will only shift one pixel at a
+        // time in any direction.
+        // 
+        // Instead we can fake it by just changing where the origin/top-left of the layer is
+        // considered to be. This adds a tiny bit of extra draw calculations but should still
+        // be cheaper than constant byte transferring.
+        _internalOrigin += shiftAmount;
         
-        if (wholePixelShiftAmount == 0)
-        {
-            return;
-        }
-
-        var bytesToShift = Math.Abs(wholePixelShiftAmount) * BytesPerPixel;
-        var remainingBytes = _layerBuffer.Width * BytesPerPixel - bytesToShift;
-        var tempBuffer = new byte[bytesToShift];
-        
-        // To perform a wrap around we have 3 shifts. The first shift is moving the bytes
-        // leaving the boundaries into the temporary buffer, the second shift is moving the
-        // remaining bytes over, and the third shift is moving the bytes from the temporary
-        // buffer into the wrapped around spot. 
-        //
-        // Pre-figure out the shift indexes ahead of time, so that we can use a single code
-        // path for both right and left shifts.
-        var firstShiftByte = wholePixelShiftAmount > 0
-            ? remainingBytes // right shift starts on the bytes not moving right
-            : 0; // left shift starts at the beginning of the row
-
-        var secondShiftSourceByte = wholePixelShiftAmount > 0
-            ? 0 // Right shift moves the bytes from the beginning of the row
-            : bytesToShift; // left shift starts from first pixel not wrapping around
-
-        var secondShiftTargetByte = wholePixelShiftAmount > 0
-            ? bytesToShift // Right shift moves the bytes from the row start to the shift amount
-            : 0; // Left shift moves the bytes from the shift amount to the beginning of the row
-
-        var thirdShiftTargetByte = wholePixelShiftAmount > 0
-            ? 0 // Right shift moves the off screen bytes to the beginning of the row
-            : remainingBytes; // Left shift moves the off screen bytes to the end of the row
-        
-        var buffer = _layerBuffer.Buffer;
-        var layerWidth = _layerBuffer.Width;
-
-        for (var row = 0; row < _layerBuffer.Height; row++)
-        {
-            var rowStartIndex = GetBufferIndex(0, row, layerWidth);
-            var firstShiftIndex = rowStartIndex + firstShiftByte;
-            var secondShiftSourceIndex = rowStartIndex + secondShiftSourceByte;
-            var secondShiftTargetIndex = rowStartIndex + secondShiftTargetByte;
-            var thirdShiftTargetIndex = rowStartIndex + thirdShiftTargetByte;
-            
-            Array.Copy(buffer, firstShiftIndex, tempBuffer, 0, bytesToShift);
-            Array.Copy(buffer, secondShiftSourceIndex, buffer, secondShiftTargetIndex, remainingBytes);
-            Array.Copy(tempBuffer, 0, buffer, thirdShiftTargetIndex, bytesToShift);
-        }
+        // Normalize the origin so it's always somewhere within the bounds
+        // of the layer.
+        while (_internalOrigin.X < 0) _internalOrigin.X += _layerBuffer.Width;
+        while (_internalOrigin.X >= _layerBuffer.Width) _internalOrigin.X -= _layerBuffer.Width;
+        while (_internalOrigin.Y < 0) _internalOrigin.Y += _layerBuffer.Height;
+        while (_internalOrigin.Y >= _layerBuffer.Height) _internalOrigin.Y -= _layerBuffer.Height;
     }
 
     /// <summary>
@@ -229,7 +186,7 @@ public class Layer
         {
             return;
         }
-
+        
         // Figure out where the source buffer overlaps the camera. All this code
         // assumes the engine does not support zooming, thus 1 unit is 1 pixel. This 
         // works with game scaling because the target buffer should be the 
@@ -241,6 +198,26 @@ public class Layer
         {
             return;
         }
+        
+        // We have four quadrants to draw from depending on how the internal origin
+        // has shifted around. Calculate them out.
+        var topLeft = new DrawQuadrant(0, 0, (int)_internalOrigin.X, (int)_internalOrigin.Y);
+        var topRight = new DrawQuadrant((int)_internalOrigin.X,
+            0,
+            _layerBuffer.Width - (int)_internalOrigin.X,
+            (int)_internalOrigin.Y);
+
+        var bottomLeft = new DrawQuadrant(0,
+            (int)_internalOrigin.Y,
+            (int)_internalOrigin.X,
+            _layerBuffer.Height - (int)_internalOrigin.Y);
+
+        var bottomRight = new DrawQuadrant((int)_internalOrigin.X,
+            (int)_internalOrigin.Y,
+            _layerBuffer.Width - (int)_internalOrigin.X,
+            _layerBuffer.Height - (int)_internalOrigin.Y);
+        
+        Draw each of the four quadrants
 
         // When figuring out the first row and column we pull pixels 
         // from on the layer's buffer, we need to take the offset into account.  
