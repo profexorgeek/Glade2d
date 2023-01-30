@@ -13,7 +13,16 @@ namespace Glade2d.Graphics.Layers;
 /// </summary>
 public class Layer
 {
-    private readonly record struct DrawQuadrant(int StartX, int StartY, int Width, int Height);
+    private readonly record struct Quadrant(int StartX, int StartY, int Width, int Height);
+
+    private readonly record struct DrawOperation(
+        Point LayerStart,
+        Point LayerEnd,
+        Point TargetStart,
+        Point TargetEnd,
+        bool AtOrPastTargetEdgeX,
+        bool AtOrPastTargetEdgeY);
+    
     private const int BytesPerPixel = 2; 
 
     private readonly BufferRgb565 _layerBuffer;
@@ -119,11 +128,16 @@ public class Layer
         var frameY = topLeftOnTexture.Y;
         var innerPixelBuffer = _layerBuffer.Buffer;
         var innerImgBuffer = texture.Buffer;
-        
+       
         for (var x = frameX; x < frameX + frameWidth; x++)
         {
             for (var y = frameY; y < frameY + frameHeight; y++)
             {
+                // BUG: This will be wrong if drawing occurs after a shift happens. We need
+                // to account for the internal origin of the layer. This is more complicated
+                // because we need to figure out if the pixels should be wrapped around to
+                // the other side of the layer (due to a shifted origin) or if it should be
+                // considered off the layer and not rendered.
                 var tX = topLeftOnLayer.X + x - frameX;
                 var tY = topLeftOnLayer.Y + y - frameY;
                 
@@ -201,35 +215,73 @@ public class Layer
         
         // We have four quadrants to draw from depending on how the internal origin
         // has shifted around. Calculate them out.
-        var topLeft = new DrawQuadrant(0, 0, (int)_internalOrigin.X, (int)_internalOrigin.Y);
-        var topRight = new DrawQuadrant((int)_internalOrigin.X,
+        var topLeft = new Quadrant(0, 0, (int)_internalOrigin.X, (int)_internalOrigin.Y);
+        var topRight = new Quadrant((int)_internalOrigin.X,
             0,
             _layerBuffer.Width - (int)_internalOrigin.X,
             (int)_internalOrigin.Y);
 
-        var bottomLeft = new DrawQuadrant(0,
+        var bottomLeft = new Quadrant(0,
             (int)_internalOrigin.Y,
             (int)_internalOrigin.X,
             _layerBuffer.Height - (int)_internalOrigin.Y);
 
-        var bottomRight = new DrawQuadrant((int)_internalOrigin.X,
+        var bottomRight = new Quadrant((int)_internalOrigin.X,
             (int)_internalOrigin.Y,
             _layerBuffer.Width - (int)_internalOrigin.X,
             _layerBuffer.Height - (int)_internalOrigin.Y);
         
-        Draw each of the four quadrants
-
+        // If the layer was the same size as the target and with zero offset, then
+        // we could just start drawing with the quadrants as is. However, since
+        // layers can be different sizes and can be off the target's area
+        // we have to calculate where each quadrant is drawn onto the target.
+        
         // When figuring out the first row and column we pull pixels 
         // from on the layer's buffer, we need to take the offset into account.  
         // If the offset is positive, then we start from 0. If the offset is
         // negative, then we start at `0 - offset`.
-        var sourceStartRow = CameraOffset.Y < 0 ? -CameraOffset.Y : 0;
-        var sourceStartCol = CameraOffset.X < 0 ? -CameraOffset.X : 0;
-        var targetStartCol = CameraOffset.X;
+        var originalSourceStartRow = Math.Max(-CameraOffset.Y, 0);
+        var originalSourceStartCol = Math.Max(-CameraOffset.X, 0);
+        var originalTargetStartRow = Math.Max(CameraOffset.Y, 0);
+        var originalTargetStartCol = Math.Max(CameraOffset.X, 0);
+        
+        // Since we are drawing considering the internal origin as the top left/start
+        // of the layer, we need to flip the quadrants. So instead of
+        // top left -> top right -> bottom left -> bottom right we need to draw them
+        // bottom right -> bottom left -> top right -> top left. This allows us to
+        // pretend like we are wrapping the layer around.
+        var bottomRightDraw = CalculateDrawAreas(bottomRight,
+            target,
+            new Point(originalSourceStartCol, originalSourceStartRow),
+            new Point(originalTargetStartCol, originalTargetStartRow));
+
+        var bottomLeftDraw = CalculateBottomLeftDrawOperation(target, 
+            bottomRightDraw, 
+            bottomLeft, 
+            originalSourceStartRow, 
+            originalTargetStartRow, 
+            originalSourceStartCol, 
+            originalTargetStartCol);
+
+        
+        var bottomRightSourceStartRow = originalSourceStartRow;
+        var bottomRightTargetStartRow = originalTargetStartRow;
+        var bottomRightSourceEndRow = Math.Min(
+            bottomRight.Height - bottomRightSourceStartRow,
+            target.Height - bottomRightTargetStartRow);
+
+        var bottomRightSourceStartCol = originalSourceStartCol;
+        var bottomRightTargetStartCol = originalTargetStartCol;
+        var bottomRightSourceEndCol = Math.Min(
+            bottomRight.Width - bottomRightSourceStartCol,
+            target.Width - bottomRightTargetStartCol);
+        
+        
+        
 
         // How many rows and columns will we be moving? This helps with byte counts
-        var sourceRowCount = Math.Clamp(_layerBuffer.Height - sourceStartRow, 0, target.Height);
-        var sourceColCount = Math.Clamp(_layerBuffer.Width - sourceStartCol, 0, target.Width);
+        var sourceRowCount = Math.Clamp(_layerBuffer.Height - originalSourceStartRow, 0, target.Height);
+        var sourceColCount = Math.Clamp(_layerBuffer.Width - originalSourceStartCol, 0, target.Width);
         
         var sourceBuffer = _layerBuffer.Buffer;
         var targetBuffer = target.Buffer;
@@ -237,11 +289,11 @@ public class Layer
         var sourceWidth = _layerBuffer.Width;
         var targetWidth = target.Width;
 
-        for (var sourceRow = sourceStartRow; sourceRow < sourceStartRow + sourceRowCount; sourceRow++)
+        for (var sourceRow = originalSourceStartRow; sourceRow < originalSourceStartRow + sourceRowCount; sourceRow++)
         {
             var targetRow = sourceRow + CameraOffset.Y;
-            var sourceBufferIndex = GetBufferIndex(sourceStartCol, sourceRow, sourceWidth);
-            var targetBufferIndex = GetBufferIndex(targetStartCol, targetRow, targetWidth);
+            var sourceBufferIndex = GetBufferIndex(originalSourceStartCol, sourceRow, sourceWidth);
+            var targetBufferIndex = GetBufferIndex(originalTargetStartCol, targetRow, targetWidth);
 
             // Copy the whole set of pixels from the source to the target
             Array.Copy(sourceBuffer, 
@@ -252,6 +304,42 @@ public class Layer
         }
     }
 
+    private static DrawOperation? CalculateBottomLeftDrawOperation(BufferRgb565 target, 
+        DrawOperation? bottomRightDraw,
+        Quadrant bottomLeft, 
+        int originalSourceStartRow, 
+        int originalTargetStartRow, 
+        int originalSourceStartCol,
+        int originalTargetStartCol)
+    {
+        if (bottomRightDraw == null)
+        {
+            // The bottom right was completely offset from the target, so we are starting
+            // from the original offsets calculated
+            return CalculateDrawAreas(bottomLeft,
+                target,
+                new Point(originalSourceStartCol, originalSourceStartRow),
+                new Point(originalTargetStartCol, originalTargetStartRow));
+        }
+
+        if (bottomRightDraw.Value.AtOrPastTargetEdgeX)
+        {
+            // The bottom right quadrant was visible but hit the edge of
+            // the target. This means that none of the bottom left is 
+            // visible, so nothing to draw
+            return null;
+        }
+
+        var layerStartCol = bottomRightDraw.Value.LayerEnd.X + 1;
+        var targetStartCol = bottomRightDraw.Value.TargetEnd.X + 1;
+        return CalculateDrawAreas(bottomLeft,
+            target,
+            new Point(layerStartCol, originalSourceStartRow),
+            new Point(targetStartCol, originalTargetStartRow));
+    }
+    
+    private st
+
     /// <summary>
     /// Gets the index for a specific x and y coordinate in a pixel buffer
     /// </summary>
@@ -259,5 +347,58 @@ public class Layer
     private static int GetBufferIndex(int x, int y, int width)
     {
         return (y * width + x) * BytesPerPixel;
+    }
+
+    /// <summary>
+    /// Calculates the exact area on the source to pull pixels from, and the
+    /// corresponding area on the target. This ensures that we don't try to
+    /// draw past the buffer's dimensions, and already takes camera offsets
+    /// into account (due to the passed in start values).
+    /// </summary>
+    private static DrawOperation? CalculateDrawAreas(Quadrant quadrant, 
+        BufferRgb565 target, 
+        Point sourceStart, 
+        Point targetStart)
+    {
+        var atOrPastTargetEdgeX = false;
+        var atOrPastTargetEdgeY = false;
+
+        var rowCount = quadrant.Height - sourceStart.Y;
+        if (rowCount <= 0)
+        {
+            // This quadrant is too high up and completely off the target
+            return null;
+        }
+        
+        var targetRowsRemaining = target.Height - targetStart.Y;
+        if (rowCount >= targetRowsRemaining)
+        {
+            atOrPastTargetEdgeY = true;
+            rowCount = targetRowsRemaining;
+        }
+
+        var columnCount = quadrant.Width - sourceStart.X;
+        if (columnCount <= 0)
+        {
+            // This quadrant is too far left of the target and not visible
+            return null;
+        }
+        
+        var targetColsRemaining = target.Width - targetStart.X;
+        if (columnCount >= targetColsRemaining)
+        {
+            atOrPastTargetEdgeX = true;
+            columnCount = targetColsRemaining;
+        }
+
+        var layerEnd = new Point(sourceStart.X + columnCount, sourceStart.Y + rowCount);
+        var targetEnd = new Point(targetStart.X + columnCount, targetStart.Y + rowCount);
+
+        return new DrawOperation(sourceStart, 
+            layerEnd, 
+            targetStart, 
+            targetEnd, 
+            atOrPastTargetEdgeX,
+            atOrPastTargetEdgeY);
     }
 }
