@@ -67,7 +67,7 @@ namespace GladeSampleShared.Screens
             var layer = Layer.Create(new Dimensions(_screenWidth, skyChunk.CurrentFrame.Height));
             layer.CameraOffset = new Point(0, 0);
             
-            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             for (var x = 0; x < _screenWidth; x += skyChunk.CurrentFrame.Width)
             {
                 layer.DrawTexture(skyChunk.CurrentFrame, new Point(x, 0));
@@ -93,7 +93,7 @@ namespace GladeSampleShared.Screens
             layer.BackgroundColor = new Color(79, 84, 107);
             layer.Clear();
             
-            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             
             // TODO: Clear layer to the main color of mountains, to pretend it has
             // transparency.
@@ -127,7 +127,7 @@ namespace GladeSampleShared.Screens
             layer.Clear();
             layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
             
-            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
+            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
 
             for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
             {

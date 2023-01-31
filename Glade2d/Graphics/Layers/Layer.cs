@@ -167,7 +167,7 @@ public class Layer
         // Instead we can fake it by just changing where the origin/top-left of the layer is
         // considered to be. This adds a tiny bit of extra draw calculations but should still
         // be cheaper than constant byte transferring.
-        _internalOrigin += shiftAmount;
+        _internalOrigin -= shiftAmount;
         
         // Normalize the origin so it's always somewhere within the bounds
         // of the layer.
@@ -185,7 +185,6 @@ public class Layer
     /// </summary>
     internal void RenderToBuffer(BufferRgb565 target)
     {
-        Console.WriteLine($"Internal origin: ({_internalOrigin.X}, {_internalOrigin.Y})");
         // Don't render if our buffer is the same as the target. This is
         // essentially a "don't do anything with the sprite layer" 
         // condition.
@@ -229,20 +228,19 @@ public class Layer
         // top left -> top right -> bottom left -> bottom right we need to draw them
         // bottom right -> bottom left -> top right -> top left. This allows us to
         // pretend like we are wrapping the layer around.
-        void PerformDraw(Quadrant quadrant, BufferRgb565 innerTarget)
+        void PerformDraw(Quadrant quadrant, BufferRgb565 innerTarget, Point targetOrigin)
         {
-            Console.WriteLine(quadrant);
-            var operation = CalculateDrawOperation(quadrant, innerTarget);
+            var operation = CalculateDrawOperation(quadrant, innerTarget, targetOrigin.X, targetOrigin.Y);
             if (operation != null)
             {
                 ExecuteDrawOperation(operation.Value, innerTarget);
             }
         }
         
-        PerformDraw(bottomRight, target);
-        PerformDraw(bottomLeft, target);
-        PerformDraw(topRight, target);
-        PerformDraw(topLeft, target);
+        PerformDraw(bottomRight, target, new Point(0, 0));
+        PerformDraw(bottomLeft, target, new Point(bottomRight.Width, 0));
+        PerformDraw(topRight, target, new Point(0, bottomRight.Height));
+        PerformDraw(topLeft, target, new Point(bottomRight.Width, bottomRight.Height));
     }
     
     /// <summary>
@@ -258,7 +256,10 @@ public class Layer
     /// <summary>
     /// Calculate how to draw the quadrant onto its correct area on the target
     /// </summary>
-    private DrawOperation? CalculateDrawOperation(Quadrant quadrant, BufferRgb565 target)
+    private DrawOperation? CalculateDrawOperation(Quadrant quadrant, 
+        BufferRgb565 target,
+        int targetOriginX,
+        int targetOriginY)
     {
         if (quadrant.Width <= 0 || quadrant.Height <= 0)
         {
@@ -267,12 +268,13 @@ public class Layer
         
         // Function to consolidate the code for both vertical and horizontal axis values.
         // This prevents us from copy/pasting code just to swap X and Y variable names
-        (int layerStart, int targetStart, int dimension)? CalculateAxis(int start, 
+        (int layerStart, int targetStart, int dimension)? CalculateAxis(int layerStart, 
             int offset, 
             int quadrantDimension,
-            int targetDimension)
+            int targetDimension,
+            int targetOrigin)
         {
-            var targetStart = offset;
+            var targetStart = targetOrigin + offset;
             var targetEnd = targetStart + quadrantDimension;
             if (targetStart >= targetDimension || targetEnd <= 0)
             {
@@ -280,11 +282,10 @@ public class Layer
                 return null;
             }
 
-            var layerStart = start;
             if (targetStart < 0)
             {
-                // Adjust the target start back to 0 (to be within bounds) and adjust
-                // the layer's start position by the same amount
+                // Adjust the target layerStart back to 0 (to be within bounds) and adjust
+                // the layer's layerStart position by the same amount
                 layerStart += -targetStart;
                 targetStart = 0;
             }
@@ -294,8 +295,8 @@ public class Layer
             return (layerStart, targetStart, dimension);
         }
 
-        var horizontal = CalculateAxis(quadrant.StartX, CameraOffset.X, quadrant.Width, target.Width);
-        var vertical = CalculateAxis(quadrant.StartY, CameraOffset.Y, quadrant.Height, target.Height);
+        var horizontal = CalculateAxis(quadrant.StartX, CameraOffset.X, quadrant.Width, target.Width, targetOriginX);
+        var vertical = CalculateAxis(quadrant.StartY, CameraOffset.Y, quadrant.Height, target.Height, targetOriginY);
         if (horizontal == null || vertical == null)
         {
             // One of the axis was not on the target, so nothing to draw
