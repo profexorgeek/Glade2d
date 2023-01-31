@@ -19,9 +19,7 @@ public class Layer
         Point LayerStart,
         Point LayerEnd,
         Point TargetStart,
-        Point TargetEnd,
-        bool AtOrPastTargetEdgeX,
-        bool AtOrPastTargetEdgeY);
+        Point TargetEnd);
     
     private const int BytesPerPixel = 2; 
 
@@ -303,43 +301,7 @@ public class Layer
                 sourceColCount * BytesPerPixel);
         }
     }
-
-    private static DrawOperation? CalculateBottomLeftDrawOperation(BufferRgb565 target, 
-        DrawOperation? bottomRightDraw,
-        Quadrant bottomLeft, 
-        int originalSourceStartRow, 
-        int originalTargetStartRow, 
-        int originalSourceStartCol,
-        int originalTargetStartCol)
-    {
-        if (bottomRightDraw == null)
-        {
-            // The bottom right was completely offset from the target, so we are starting
-            // from the original offsets calculated
-            return CalculateDrawAreas(bottomLeft,
-                target,
-                new Point(originalSourceStartCol, originalSourceStartRow),
-                new Point(originalTargetStartCol, originalTargetStartRow));
-        }
-
-        if (bottomRightDraw.Value.AtOrPastTargetEdgeX)
-        {
-            // The bottom right quadrant was visible but hit the edge of
-            // the target. This means that none of the bottom left is 
-            // visible, so nothing to draw
-            return null;
-        }
-
-        var layerStartCol = bottomRightDraw.Value.LayerEnd.X + 1;
-        var targetStartCol = bottomRightDraw.Value.TargetEnd.X + 1;
-        return CalculateDrawAreas(bottomLeft,
-            target,
-            new Point(layerStartCol, originalSourceStartRow),
-            new Point(targetStartCol, originalTargetStartRow));
-    }
     
-    private st
-
     /// <summary>
     /// Gets the index for a specific x and y coordinate in a pixel buffer
     /// </summary>
@@ -349,56 +311,17 @@ public class Layer
         return (y * width + x) * BytesPerPixel;
     }
 
-    /// <summary>
-    /// Calculates the exact area on the source to pull pixels from, and the
-    /// corresponding area on the target. This ensures that we don't try to
-    /// draw past the buffer's dimensions, and already takes camera offsets
-    /// into account (due to the passed in start values).
-    /// </summary>
-    private static DrawOperation? CalculateDrawAreas(Quadrant quadrant, 
-        BufferRgb565 target, 
-        Point sourceStart, 
-        Point targetStart)
+    private DrawOperation? CalculateDrawOperation(Quadrant quadrant, BufferRgb565 target)
     {
-        var atOrPastTargetEdgeX = false;
-        var atOrPastTargetEdgeY = false;
-
-        var rowCount = quadrant.Height - sourceStart.Y;
-        if (rowCount <= 0)
+        var layerStartX = Math.Max(quadrant.StartX, -CameraOffset.X);
+        var width = quadrant.StartX + quadrant.Width - layerStartX;
+        if (width <= 0)
         {
-            // This quadrant is too high up and completely off the target
             return null;
         }
         
-        var targetRowsRemaining = target.Height - targetStart.Y;
-        if (rowCount >= targetRowsRemaining)
-        {
-            atOrPastTargetEdgeY = true;
-            rowCount = targetRowsRemaining;
-        }
+        var layerEndX = Math.Min(layerStartX + width, )
 
-        var columnCount = quadrant.Width - sourceStart.X;
-        if (columnCount <= 0)
-        {
-            // This quadrant is too far left of the target and not visible
-            return null;
-        }
-        
-        var targetColsRemaining = target.Width - targetStart.X;
-        if (columnCount >= targetColsRemaining)
-        {
-            atOrPastTargetEdgeX = true;
-            columnCount = targetColsRemaining;
-        }
 
-        var layerEnd = new Point(sourceStart.X + columnCount, sourceStart.Y + rowCount);
-        var targetEnd = new Point(targetStart.X + columnCount, targetStart.Y + rowCount);
-
-        return new DrawOperation(sourceStart, 
-            layerEnd, 
-            targetStart, 
-            targetEnd, 
-            atOrPastTargetEdgeX,
-            atOrPastTargetEdgeY);
     }
 }
