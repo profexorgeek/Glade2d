@@ -4,6 +4,7 @@ using Glade2d.Services;
 using Glade2d.Utility;
 using GladeSampleShared.Entities;
 using System.Collections.Generic;
+using System.Numerics;
 using Glade2d;
 using Glade2d.Graphics.Layers;
 using Meadow.Foundation;
@@ -14,9 +15,6 @@ namespace GladeSampleShared.Screens
     public class GladeDemoScreen : Screen, IDisposable
     {
         private const int NumberOfClouds = 3;
-        private const float TreeVelocity = -5f;
-        private const float GroundVelocity = -10f;
-        private const float MountainVelocity = -2f;
 
         private readonly int _screenWidth;
         private readonly int _screenHeight;
@@ -26,6 +24,9 @@ namespace GladeSampleShared.Screens
         private readonly Layer _groundLayer;
         private readonly List<Cloud> _clouds = new List<Cloud>();
         private readonly Color _backgroundColor = new Color(57, 120, 168);
+        private readonly Vector2 _treeVelocity = new Vector2(-5, 0);
+        private readonly Vector2 _groundVelocity = new Vector2(-10, 0);
+        private readonly Vector2 _mountainVelocity = new Vector2(-2, 0);
 
         public GladeDemoScreen()
         {
@@ -51,9 +52,9 @@ namespace GladeSampleShared.Screens
             
             // Shift layers by their velocity
             var timeSinceLastFrame = (float)GameService.Instance.Time.FrameDelta;
-            _treeLayer.ShiftHorizontally(TreeVelocity * timeSinceLastFrame);
-            _mountainLayer.ShiftHorizontally(MountainVelocity * timeSinceLastFrame);
-            _groundLayer.ShiftHorizontally(GroundVelocity * timeSinceLastFrame);
+            _treeLayer.Shift(_treeVelocity * timeSinceLastFrame);
+            _mountainLayer.Shift(_mountainVelocity * timeSinceLastFrame);
+            _groundLayer.Shift(_groundVelocity * timeSinceLastFrame);
 
             base.Activity();
         }
@@ -66,7 +67,7 @@ namespace GladeSampleShared.Screens
             var layer = Layer.Create(new Dimensions(_screenWidth, skyChunk.CurrentFrame.Height));
             layer.CameraOffset = new Point(0, 0);
             
-            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             for (var x = 0; x < _screenWidth; x += skyChunk.CurrentFrame.Width)
             {
                 layer.DrawTexture(skyChunk.CurrentFrame, new Point(x, 0));
@@ -92,7 +93,7 @@ namespace GladeSampleShared.Screens
             layer.BackgroundColor = new Color(79, 84, 107);
             layer.Clear();
             
-            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             
             // TODO: Clear layer to the main color of mountains, to pretend it has
             // transparency.
@@ -126,7 +127,7 @@ namespace GladeSampleShared.Screens
             layer.Clear();
             layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
             
-            GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
+            // GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
 
             for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
             {

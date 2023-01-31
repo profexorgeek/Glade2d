@@ -14,19 +14,13 @@ namespace Glade2d.Graphics.Layers;
 public class Layer
 {
     private readonly record struct Quadrant(int StartX, int StartY, int Width, int Height);
-
-    private readonly record struct DrawOperation(
-        Point LayerStart,
-        Point LayerEnd,
-        Point TargetStart,
-        Point TargetEnd);
+    private readonly record struct DrawOperation(Point LayerStart, Point TargetStart, int Width, int Height);
     
     private const int BytesPerPixel = 2; 
 
     private readonly BufferRgb565 _layerBuffer;
     private readonly Dimensions _dimensions;
     private readonly TextureManager _textureManager;
-    private float _horizontalShift, _verticalShift;
     private Vector2 _internalOrigin;
     
     /// <summary>
@@ -191,6 +185,7 @@ public class Layer
     /// </summary>
     internal void RenderToBuffer(BufferRgb565 target)
     {
+        Console.WriteLine($"Internal origin: ({_internalOrigin.X}, {_internalOrigin.Y})");
         // Don't render if our buffer is the same as the target. This is
         // essentially a "don't do anything with the sprite layer" 
         // condition.
@@ -229,81 +224,30 @@ public class Layer
             _layerBuffer.Width - (int)_internalOrigin.X,
             _layerBuffer.Height - (int)_internalOrigin.Y);
         
-        // If the layer was the same size as the target and with zero offset, then
-        // we could just start drawing with the quadrants as is. However, since
-        // layers can be different sizes and can be off the target's area
-        // we have to calculate where each quadrant is drawn onto the target.
-        
-        // When figuring out the first row and column we pull pixels 
-        // from on the layer's buffer, we need to take the offset into account.  
-        // If the offset is positive, then we start from 0. If the offset is
-        // negative, then we start at `0 - offset`.
-        var originalSourceStartRow = Math.Max(-CameraOffset.Y, 0);
-        var originalSourceStartCol = Math.Max(-CameraOffset.X, 0);
-        var originalTargetStartRow = Math.Max(CameraOffset.Y, 0);
-        var originalTargetStartCol = Math.Max(CameraOffset.X, 0);
-        
         // Since we are drawing considering the internal origin as the top left/start
         // of the layer, we need to flip the quadrants. So instead of
         // top left -> top right -> bottom left -> bottom right we need to draw them
         // bottom right -> bottom left -> top right -> top left. This allows us to
         // pretend like we are wrapping the layer around.
-        var bottomRightDraw = CalculateDrawAreas(bottomRight,
-            target,
-            new Point(originalSourceStartCol, originalSourceStartRow),
-            new Point(originalTargetStartCol, originalTargetStartRow));
-
-        var bottomLeftDraw = CalculateBottomLeftDrawOperation(target, 
-            bottomRightDraw, 
-            bottomLeft, 
-            originalSourceStartRow, 
-            originalTargetStartRow, 
-            originalSourceStartCol, 
-            originalTargetStartCol);
-
-        
-        var bottomRightSourceStartRow = originalSourceStartRow;
-        var bottomRightTargetStartRow = originalTargetStartRow;
-        var bottomRightSourceEndRow = Math.Min(
-            bottomRight.Height - bottomRightSourceStartRow,
-            target.Height - bottomRightTargetStartRow);
-
-        var bottomRightSourceStartCol = originalSourceStartCol;
-        var bottomRightTargetStartCol = originalTargetStartCol;
-        var bottomRightSourceEndCol = Math.Min(
-            bottomRight.Width - bottomRightSourceStartCol,
-            target.Width - bottomRightTargetStartCol);
-        
-        
-        
-
-        // How many rows and columns will we be moving? This helps with byte counts
-        var sourceRowCount = Math.Clamp(_layerBuffer.Height - originalSourceStartRow, 0, target.Height);
-        var sourceColCount = Math.Clamp(_layerBuffer.Width - originalSourceStartCol, 0, target.Width);
-        
-        var sourceBuffer = _layerBuffer.Buffer;
-        var targetBuffer = target.Buffer;
-
-        var sourceWidth = _layerBuffer.Width;
-        var targetWidth = target.Width;
-
-        for (var sourceRow = originalSourceStartRow; sourceRow < originalSourceStartRow + sourceRowCount; sourceRow++)
+        void PerformDraw(Quadrant quadrant, BufferRgb565 innerTarget)
         {
-            var targetRow = sourceRow + CameraOffset.Y;
-            var sourceBufferIndex = GetBufferIndex(originalSourceStartCol, sourceRow, sourceWidth);
-            var targetBufferIndex = GetBufferIndex(originalTargetStartCol, targetRow, targetWidth);
-
-            // Copy the whole set of pixels from the source to the target
-            Array.Copy(sourceBuffer, 
-                sourceBufferIndex, 
-                targetBuffer, 
-                targetBufferIndex, 
-                sourceColCount * BytesPerPixel);
+            Console.WriteLine(quadrant);
+            var operation = CalculateDrawOperation(quadrant, innerTarget);
+            if (operation != null)
+            {
+                ExecuteDrawOperation(operation.Value, innerTarget);
+            }
         }
+        
+        PerformDraw(bottomRight, target);
+        PerformDraw(bottomLeft, target);
+        PerformDraw(topRight, target);
+        PerformDraw(topLeft, target);
     }
     
     /// <summary>
-    /// Gets the index for a specific x and y coordinate in a pixel buffer
+    /// Gets the index for a specific x and y coordinate in a pixel buffer. All values provided
+    /// are pixel based, not byte based.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetBufferIndex(int x, int y, int width)
@@ -311,17 +255,77 @@ public class Layer
         return (y * width + x) * BytesPerPixel;
     }
 
+    /// <summary>
+    /// Calculate how to draw the quadrant onto its correct area on the target
+    /// </summary>
     private DrawOperation? CalculateDrawOperation(Quadrant quadrant, BufferRgb565 target)
     {
-        var layerStartX = Math.Max(quadrant.StartX, -CameraOffset.X);
-        var width = quadrant.StartX + quadrant.Width - layerStartX;
-        if (width <= 0)
+        if (quadrant.Width <= 0 || quadrant.Height <= 0)
         {
             return null;
         }
         
-        var layerEndX = Math.Min(layerStartX + width, )
+        // Function to consolidate the code for both vertical and horizontal axis values.
+        // This prevents us from copy/pasting code just to swap X and Y variable names
+        (int layerStart, int targetStart, int dimension)? CalculateAxis(int start, 
+            int offset, 
+            int quadrantDimension,
+            int targetDimension)
+        {
+            var targetStart = offset;
+            var targetEnd = targetStart + quadrantDimension;
+            if (targetStart >= targetDimension || targetEnd <= 0)
+            {
+                // It starts past the target or ends before the target
+                return null;
+            }
 
+            var layerStart = start;
+            if (targetStart < 0)
+            {
+                // Adjust the target start back to 0 (to be within bounds) and adjust
+                // the layer's start position by the same amount
+                layerStart += -targetStart;
+                targetStart = 0;
+            }
 
+            var dimension = targetEnd - targetStart;
+
+            return (layerStart, targetStart, dimension);
+        }
+
+        var horizontal = CalculateAxis(quadrant.StartX, CameraOffset.X, quadrant.Width, target.Width);
+        var vertical = CalculateAxis(quadrant.StartY, CameraOffset.Y, quadrant.Height, target.Height);
+        if (horizontal == null || vertical == null)
+        {
+            // One of the axis was not on the target, so nothing to draw
+            return null;
+        }
+
+        return new DrawOperation(
+            new Point(horizontal.Value.layerStart, vertical.Value.layerStart),
+            new Point(horizontal.Value.targetStart, vertical.Value.targetStart),
+            horizontal.Value.dimension,
+            vertical.Value.dimension);
+    }
+
+    private void ExecuteDrawOperation(DrawOperation operation, BufferRgb565 target)
+    {
+        var bytesPerRowToCopy = operation.Width * BytesPerPixel;
+        var layerBuffer = _layerBuffer.Buffer;
+        var targetBuffer = target.Buffer;
+        for (var row = 0; row < operation.Height; row++)
+        {
+            var layerRow = row + operation.LayerStart.Y;
+            var targetRow = row + operation.TargetStart.Y;
+            var layerIndex = GetBufferIndex(operation.LayerStart.X, layerRow, _layerBuffer.Width);
+            var targetIndex = GetBufferIndex(operation.TargetStart.X, targetRow, target.Width);
+            
+            Array.Copy(layerBuffer,
+                layerIndex,
+                targetBuffer,
+                targetIndex,
+                bytesPerRowToCopy);
+        }
     }
 }
