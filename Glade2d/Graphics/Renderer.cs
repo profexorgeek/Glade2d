@@ -95,9 +95,11 @@ namespace Glade2d.Graphics
 
             _profiler.StartTiming("Renderer.DrawSprites");
             sprites ??= Array.Empty<Sprite>();
-            foreach (var sprite in sprites)
+            for (var x = 0; x < sprites.Count; x++)
             {
-                DrawSprite(sprite);
+                // Use direct indexing instead of foreach for performance
+                // due to IEnumerable allocations.
+                DrawSprite(sprites[x]);
             }
             _profiler.StopTiming("Renderer.DrawSprites");
             
