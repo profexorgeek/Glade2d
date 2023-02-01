@@ -1,5 +1,4 @@
 ﻿using System;
-using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 
 namespace Glade2d.Graphics.Layers;
@@ -49,9 +48,11 @@ public class LayerManager
     /// </summary>
     internal void RenderBackgroundLayers(BufferRgb565 buffer)
     {
-        foreach (var layer in _trackedLayers.BackgroundLayers())
+        // Use the enumerator directly, to avoid garbage from IEnumerator
+        var enumerator = _trackedLayers.BackgroundLayerEnumerator();
+        while (enumerator.MoveNext())
         {
-            layer.RenderToBuffer(buffer);
+            enumerator.Current.Layer.RenderToBuffer(buffer);
         }
     }
 
@@ -60,9 +61,11 @@ public class LayerManager
     /// </summary>
     internal void RenderForegroundLayers(BufferRgb565 buffer)
     {
-        foreach (var layer in _trackedLayers.ForegroundLayers())
+        // Use the enumerator directly, to avoid garbage from IEnumerator
+        var enumerator = _trackedLayers.ForegroundLayerEnumerator();
+        while (enumerator.MoveNext())
         {
-            layer.RenderToBuffer(buffer);
+            enumerator.Current.Layer.RenderToBuffer(buffer);
         }
     }
 }

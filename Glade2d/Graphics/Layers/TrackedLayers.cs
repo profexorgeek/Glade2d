@@ -5,7 +5,7 @@ namespace Glade2d.Graphics.Layers;
 
 internal class TrackedLayers
 {
-    private readonly record struct TrackedLayer(Layer Layer, int ZIndex);
+    internal readonly record struct TrackedLayer(Layer Layer, int ZIndex);
 
     private readonly Dictionary<Layer, int> _knownLayerZIndexes = new();
     private readonly SortedSet<TrackedLayer> _backgroundLayers = new(new TrackedLayerComparer());
@@ -58,23 +58,17 @@ internal class TrackedLayers
     /// <summary>
     /// Returns all background layers in order by their z index
     /// </summary>
-    public IEnumerable<Layer> BackgroundLayers()
+    public SortedSet<TrackedLayer>.Enumerator BackgroundLayerEnumerator()
     {
-        foreach (var backgroundLayer in _backgroundLayers)
-        {
-            yield return backgroundLayer.Layer;
-        }
+        return _backgroundLayers.GetEnumerator();
     }
 
     /// <summary>
     /// Returns all background layers in order by their z index
     /// </summary>
-    public IEnumerable<Layer> ForegroundLayers()
+    public SortedSet<TrackedLayer>.Enumerator ForegroundLayerEnumerator()
     {
-        foreach (var foregroundLayer in _foregroundLayers)
-        {
-            yield return foregroundLayer.Layer;
-        }
+        return _foregroundLayers.GetEnumerator();
     }
 
     /// <summary>
