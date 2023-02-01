@@ -13,7 +13,7 @@ namespace Glade2d.Graphics.Layers;
 /// </summary>
 public class Layer
 {
-    private readonly record struct Quadrant(int StartX, int StartY, int Width, int Height);
+    private readonly record struct Quadrant(Point Start, Dimensions Dimensions);
     private readonly record struct DrawOperation(Point LayerStart, Point TargetStart, int Width, int Height);
     
     private const int BytesPerPixel = 2; 
@@ -167,6 +167,9 @@ public class Layer
         // Instead we can fake it by just changing where the origin/top-left of the layer is
         // considered to be. This adds a tiny bit of extra draw calculations but should still
         // be cheaper than constant byte transferring.
+        //
+        // We apply the shift amount in the opposite direction as provided, as if the layer
+        // is being shifted left then we want to execute that by shifting the origin right.
         _internalOrigin -= shiftAmount;
         
         // Normalize the origin so it's always somewhere within the bounds
@@ -207,21 +210,23 @@ public class Layer
         
         // We have four quadrants to draw from depending on how the internal origin
         // has shifted around. Calculate them out.
-        var topLeft = new Quadrant(0, 0, (int)_internalOrigin.X, (int)_internalOrigin.Y);
-        var topRight = new Quadrant((int)_internalOrigin.X,
-            0,
-            _layerBuffer.Width - (int)_internalOrigin.X,
-            (int)_internalOrigin.Y);
+        var topLeft = new Quadrant(
+            new Point(0, 0), 
+            new Dimensions((int)_internalOrigin.X, (int)_internalOrigin.Y));
 
-        var bottomLeft = new Quadrant(0,
-            (int)_internalOrigin.Y,
-            (int)_internalOrigin.X,
-            _layerBuffer.Height - (int)_internalOrigin.Y);
+        var topRight = new Quadrant(
+            new Point((int)_internalOrigin.X, 0),
+            new Dimensions(_layerBuffer.Width - (int)_internalOrigin.X, (int)_internalOrigin.Y));
 
-        var bottomRight = new Quadrant((int)_internalOrigin.X,
-            (int)_internalOrigin.Y,
-            _layerBuffer.Width - (int)_internalOrigin.X,
-            _layerBuffer.Height - (int)_internalOrigin.Y);
+        var bottomLeft = new Quadrant(
+            new Point(0, (int)_internalOrigin.Y),
+            new Dimensions((int)_internalOrigin.X, _layerBuffer.Height - (int)_internalOrigin.Y));
+
+        var bottomRight = new Quadrant(
+            new Point((int)_internalOrigin.X, (int)_internalOrigin.Y),
+            new Dimensions(
+                _layerBuffer.Width - (int)_internalOrigin.X,
+                _layerBuffer.Height - (int)_internalOrigin.Y));
         
         // Since we are drawing considering the internal origin as the top left/start
         // of the layer, we need to flip the quadrants. So instead of
@@ -238,9 +243,9 @@ public class Layer
         }
         
         PerformDraw(bottomRight, target, new Point(0, 0));
-        PerformDraw(bottomLeft, target, new Point(bottomRight.Width, 0));
-        PerformDraw(topRight, target, new Point(0, bottomRight.Height));
-        PerformDraw(topLeft, target, new Point(bottomRight.Width, bottomRight.Height));
+        PerformDraw(bottomLeft, target, new Point(bottomRight.Dimensions.Width, 0));
+        PerformDraw(topRight, target, new Point(0, bottomRight.Dimensions.Height));
+        PerformDraw(topLeft, target, new Point(bottomRight.Dimensions.Width, bottomRight.Dimensions.Height));
     }
     
     /// <summary>
@@ -261,7 +266,7 @@ public class Layer
         int targetOriginX,
         int targetOriginY)
     {
-        if (quadrant.Width <= 0 || quadrant.Height <= 0)
+        if (quadrant.Dimensions.Width <= 0 || quadrant.Dimensions.Height <= 0)
         {
             return null;
         }
@@ -295,8 +300,20 @@ public class Layer
             return (layerStart, targetStart, dimension);
         }
 
-        var horizontal = CalculateAxis(quadrant.StartX, CameraOffset.X, quadrant.Width, target.Width, targetOriginX);
-        var vertical = CalculateAxis(quadrant.StartY, CameraOffset.Y, quadrant.Height, target.Height, targetOriginY);
+        var horizontal = CalculateAxis(
+            quadrant.Start.X, 
+            CameraOffset.X, 
+            quadrant.Dimensions.Width, 
+            target.Width, 
+            targetOriginX);
+        
+        var vertical = CalculateAxis(
+            quadrant.Start.Y, 
+            CameraOffset.Y, 
+            quadrant.Dimensions.Height, 
+            target.Height, 
+            targetOriginY);
+        
         if (horizontal == null || vertical == null)
         {
             // One of the axis was not on the target, so nothing to draw
