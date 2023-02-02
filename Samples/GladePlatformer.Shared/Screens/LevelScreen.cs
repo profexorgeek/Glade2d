@@ -1,5 +1,7 @@
-﻿using Glade2d;
+﻿using System.Numerics;
+using Glade2d;
 using Glade2d.Graphics.Layers;
+using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;
@@ -10,6 +12,10 @@ namespace GladePlatformer.Shared.Screens;
 
 public class LevelScreen : Screen, IDisposable
 {
+    private const float PlayerSpeed = 30;
+    private const float TreeSpeedMultiplier = 0.5f;
+    private const float MountainSpeedMultiplier = 0.2f;
+    
     private readonly int _screenWidth;
     private readonly int _screenHeight;
     private readonly Layer _skyLayer;
@@ -17,6 +23,7 @@ public class LevelScreen : Screen, IDisposable
     private readonly Layer _mountainLayer;
     private readonly Layer _groundLayer;
     private readonly Color _backgroundColor = new(57, 120, 168);
+    private readonly Player _player;
 
     public LevelScreen()
     {
@@ -33,8 +40,33 @@ public class LevelScreen : Screen, IDisposable
         _groundLayer = CreateGroundLayer();
         
         CreateSun();
+
+        _player = new Player();
+        _player.X = (_screenWidth / 2) - (_player.CurrentFrame.Width / 2);
+        _player.Y = _screenHeight - (new GroundChunk().CurrentFrame.Height) - _player.CurrentFrame.Height;
+        AddSprite(_player);
     }
-    
+
+    public override void Activity()
+    {
+        var inputManager = GameService.Instance.GameInstance.InputManager;
+        var frameDelta = (float) GameService.Instance.Time.FrameDelta;
+        var speed = 0f;
+        if (inputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down)
+        {
+            speed = PlayerSpeed * frameDelta;
+        }
+        else if (inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
+        {
+            speed = -PlayerSpeed * frameDelta;
+        }
+        
+        // upon movement, move the scenery to fake the player moving
+        _groundLayer.Shift(new Vector2(speed, 0));
+        _treeLayer.Shift(new Vector2(speed * TreeSpeedMultiplier, 0));
+        _mountainLayer.Shift(new Vector2(speed * MountainSpeedMultiplier, 0));
+    }
+
     private Layer CreateTreeLayer()
     {
         var tree = new Tree();

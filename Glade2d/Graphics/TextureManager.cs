@@ -65,6 +65,7 @@ public class TextureManager
         try
         {
             var img = Image.LoadFromFile(filePath);
+            Console.WriteLine($"Color mode: {img.DisplayBuffer.ColorMode}");
 
             // Always make sure that the texture is formatted in the same color mode as the display
             var imgBuffer = new BufferRgb565(img.Width, img.Height);
