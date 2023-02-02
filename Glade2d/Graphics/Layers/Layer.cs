@@ -38,6 +38,14 @@ public class Layer
     /// will be skipped.
     /// </summary>
     public Color TransparentColor { get; set; } = Color.Magenta;
+   
+    /// <summary>
+    /// If true, then the layer will be drawn taking transparency into account. Any pixels that match the
+    /// set transparent color will not be drawn to the target, and thus layers below will be visible. Enabling
+    /// this slows down layer draw times and should only be enabled where a benefit to transparency will
+    /// be given.
+    /// </summary>
+    public bool DrawLayerWithTransparency { get; set; }
 
     private Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
     {
@@ -109,6 +117,8 @@ public class Layer
         Point topLeftOnLayer,
         Dimensions drawSize)
     {
+        // Should this code be consolidated with the rest of the quadrant/draw operation code
+        // for layer rendering??
         var transparentByte1 = (byte)(TransparentColor.Color16bppRgb565 >> 8);
         var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
 
@@ -233,19 +243,33 @@ public class Layer
         // top left -> top right -> bottom left -> bottom right we need to draw them
         // bottom right -> bottom left -> top right -> top left. This allows us to
         // pretend like we are wrapping the layer around.
-        void PerformDraw(Quadrant quadrant, BufferRgb565 innerTarget, Point targetOrigin)
+        void PerformDraw(Quadrant quadrant, 
+            BufferRgb565 innerTarget, 
+            Point targetOrigin, 
+            Color? transparentColor)
         {
             var operation = CalculateDrawOperation(quadrant, innerTarget, targetOrigin.X, targetOrigin.Y);
             if (operation != null)
             {
-                ExecuteDrawOperation(operation.Value, innerTarget);
+                if (transparentColor != null)
+                {
+                    var transparency = transparentColor.Value.Color16bppRgb565;
+                    var byte1 = (byte)(transparency >> 8);
+                    var byte2 = (byte)(transparency & 0x00FF);
+                    ExecuteTransparentDrawOperation(operation.Value, innerTarget, byte1, byte2);
+                }
+                else
+                {
+                    ExecuteDrawOperation(operation.Value, innerTarget);
+                }
             }
         }
-        
-        PerformDraw(bottomRight, target, new Point(0, 0));
-        PerformDraw(bottomLeft, target, new Point(bottomRight.Dimensions.Width, 0));
-        PerformDraw(topRight, target, new Point(0, bottomRight.Dimensions.Height));
-        PerformDraw(topLeft, target, new Point(bottomRight.Dimensions.Width, bottomRight.Dimensions.Height));
+
+        var transparentColor = DrawLayerWithTransparency ? TransparentColor : (Color?)null;
+        PerformDraw(bottomRight, target, new Point(0, 0), transparentColor);
+        PerformDraw(bottomLeft, target, new Point(bottomRight.Dimensions.Width, 0), transparentColor);
+        PerformDraw(topRight, target, new Point(0, bottomRight.Dimensions.Height), transparentColor);
+        PerformDraw(topLeft, target, new Point(bottomRight.Dimensions.Width, bottomRight.Dimensions.Height), transparentColor);
     }
     
     /// <summary>
@@ -344,6 +368,43 @@ public class Layer
                 targetBuffer,
                 targetIndex,
                 bytesPerRowToCopy);
+        }
+    }
+
+    private void ExecuteTransparentDrawOperation(DrawOperation operation, 
+        BufferRgb565 target, 
+        byte transparencyColorByte1,
+        byte transparencyColorByte2)
+    {
+        var layerBuffer = _layerBuffer.Buffer;
+        var layerWidth = _layerBuffer.Width;
+        var targetBuffer = target.Buffer;
+        var targetWidth = target.Width;
+        var totalHeight = operation.Height;
+        var totalWidth = operation.Width;
+        
+        for (var row = 0; row < totalHeight; row++)
+        {
+            var layerRow = row + operation.LayerStart.Y;
+            var targetRow = row + operation.TargetStart.Y;
+            var layerStartIndex = GetBufferIndex(operation.LayerStart.X, layerRow, layerWidth);
+            var targetStartIndex = GetBufferIndex(operation.TargetStart.X, targetRow, targetWidth);
+
+            for (var col = 0; col < totalWidth; col++)
+            {
+                var layerIndex = layerStartIndex + (col * BytesPerPixel);
+                var targetIndex = targetStartIndex + (col * BytesPerPixel);
+
+                if (layerBuffer[layerIndex] == transparencyColorByte1 &&
+                    layerBuffer[layerIndex + 1] == transparencyColorByte2)
+                {
+                    // Byte is transparent so ignore it
+                    continue;
+                }
+
+                targetBuffer[targetIndex] = layerBuffer[layerIndex];
+                targetBuffer[targetIndex + 1] = layerBuffer[layerIndex + 1];
+            }
         }
     }
 }

@@ -143,6 +143,8 @@ namespace GladeSampleShared.Screens
 
             var layer = Layer.Create(new Dimensions(_screenWidth, ground.CurrentFrame.Height));
             layer.CameraOffset = new Point(0, _screenHeight - ground.CurrentFrame.Height);
+            layer.DrawLayerWithTransparency = true;
+            layer.Clear();
             
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
 
