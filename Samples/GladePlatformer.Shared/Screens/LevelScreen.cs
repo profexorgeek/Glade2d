@@ -1,0 +1,156 @@
+﻿using Glade2d;
+using Glade2d.Graphics.Layers;
+using Glade2d.Screens;
+using Glade2d.Services;
+using GladePlatformer.Shared.Entities;
+using Meadow.Foundation;
+using Meadow.Foundation.Graphics;
+
+namespace GladePlatformer.Shared.Screens;
+
+public class LevelScreen : Screen, IDisposable
+{
+    private readonly int _screenWidth;
+    private readonly int _screenHeight;
+    private readonly Layer _skyLayer;
+    private readonly Layer _treeLayer;
+    private readonly Layer _mountainLayer;
+    private readonly Layer _groundLayer;
+    private readonly Color _backgroundColor = new(57, 120, 168);
+
+    public LevelScreen()
+    {
+        // set screen dimensions for easy reference
+        _screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
+        
+        // Set background color
+        GameService.Instance.GameInstance.Renderer.BackgroundColor = _backgroundColor;
+
+        _skyLayer = CreateSkyLayer();
+        _treeLayer = CreateTreeLayer();
+        _mountainLayer = CreateMountainLayer();
+        _groundLayer = CreateGroundLayer();
+        
+        CreateSun();
+    }
+    
+    private Layer CreateTreeLayer()
+    {
+        var tree = new Tree();
+        var ground = new GroundChunk();
+        
+        // We want to make sure the layer is at least as wide as the screen, 
+        // but also wide enough that it can tile with itself, so no seams show
+        // when it scrolls. The trees will be staggered in two "depths", with
+        // every other in front of the two surrounding to it.
+        var layerWidth = _screenWidth +
+                         (_screenWidth % (tree.CurrentFrame.Width / 2));
+        
+        var layer = Layer.Create(new Dimensions(layerWidth, tree.CurrentFrame.Height));
+        layer.CameraOffset = new Point( 0, _screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
+        layer.BackgroundColor = new Color(79, 84, 107);
+        layer.Clear();
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+        
+        // TODO: Clear layer to the main color of mountains, to pretend it has
+        // transparency.
+        
+        // Draw background trees first
+        for (var x = 0; x < layerWidth; x += tree.CurrentFrame.Width)
+        {
+            layer.DrawTexture(tree.CurrentFrame, new Point(x, 0));
+        }
+        
+        // Now draw the foreground trees
+        for (var x = tree.CurrentFrame.Width / 2; x < layerWidth; x += tree.CurrentFrame.Width)
+        {
+            layer.DrawTexture(tree.CurrentFrame, new Point(x, 0));
+        }
+
+        return layer;
+    }
+
+    private Layer CreateMountainLayer()
+    {
+        var mountain = new MountainChunk();
+        
+        // We want to make sure the layer is at least as wide as the screen, 
+        // but also wide enough that it can tile with itself, so no seams show
+        // when it scrolls. 
+        var layerWidth = _screenWidth + (_screenWidth % (mountain.CurrentFrame.Width));
+        
+        var layer = Layer.Create(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
+        layer.BackgroundColor = _backgroundColor;
+        layer.Clear();
+        layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
+
+        for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
+        {
+            layer.DrawTexture(mountain.CurrentFrame, new Point(x, 0));
+        }
+
+        return layer;
+    }
+
+    private Layer CreateGroundLayer()
+    {
+        var ground = new GroundChunk();
+
+        var layer = Layer.Create(new Dimensions(_screenWidth, ground.CurrentFrame.Height));
+        layer.CameraOffset = new Point(0, _screenHeight - ground.CurrentFrame.Height);
+        layer.DrawLayerWithTransparency = true;
+        layer.Clear();
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+
+        for (var x = 0; x < _screenWidth; x += ground.CurrentFrame.Width)
+        {
+            layer.DrawTexture(ground.CurrentFrame, new Point(x, 0));
+        }
+
+        return layer;
+    }
+
+    private Layer CreateSkyLayer()
+    {
+        var skyChunk = new SkyChunk();
+        
+        // Sky doesn't move, so it can be the same width of the screen
+        var layer = Layer.Create(new Dimensions(_screenWidth, skyChunk.CurrentFrame.Height));
+        layer.CameraOffset = new Point(0, 0);
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+        for (var x = 0; x < _screenWidth; x += skyChunk.CurrentFrame.Width)
+        {
+            layer.DrawTexture(skyChunk.CurrentFrame, new Point(x, 0));
+        }
+
+        return layer;
+    }
+
+    /// <summary>
+    /// Add a sun in the top left of the screen
+    /// </summary>
+    private void CreateSun()
+    {
+        var sun = new Sun(_screenWidth - 8 - Sun.ChunkWidth, 8)
+        {
+            Layer = 0
+        };
+        
+        AddSprite(sun);
+    }
+
+    public void Dispose()
+    {
+        var layerManager = GameService.Instance.GameInstance.LayerManager;
+        layerManager.RemoveLayer(_skyLayer);
+        layerManager.RemoveLayer(_groundLayer);
+        layerManager.RemoveLayer(_treeLayer);
+        layerManager.RemoveLayer(_mountainLayer);
+    }
+}
