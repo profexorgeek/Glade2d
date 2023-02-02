@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -8,13 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+      <Content Include="spritesheet.bmp">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="spritesheet.bmp">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
     </ItemGroup>
     
 </Project>
