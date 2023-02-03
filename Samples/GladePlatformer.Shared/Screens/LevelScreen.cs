@@ -15,6 +15,8 @@ public class LevelScreen : Screen, IDisposable
     private const float PlayerSpeed = 30;
     private const float TreeSpeedMultiplier = 0.5f;
     private const float MountainSpeedMultiplier = 0.2f;
+    private const float Gravity = 10f;
+    private const float JumpAcceleration = -50f;
     
     private readonly int _screenWidth;
     private readonly int _screenHeight;
@@ -24,6 +26,7 @@ public class LevelScreen : Screen, IDisposable
     private readonly Layer _groundLayer;
     private readonly Color _backgroundColor = new(57, 120, 168);
     private readonly Player _player;
+    private float _playerPositionX; // Where the player is considered to be in relation to the level
 
     public LevelScreen()
     {
@@ -49,22 +52,36 @@ public class LevelScreen : Screen, IDisposable
 
     public override void Activity()
     {
+        CheckPlayerGroundCollision();
+        
         var inputManager = GameService.Instance.GameInstance.InputManager;
         var frameDelta = (float) GameService.Instance.Time.FrameDelta;
-        var speed = 0f;
+        var horizontalSpeed = 0f;
         if (inputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down)
         {
-            speed = PlayerSpeed * frameDelta;
+            horizontalSpeed = PlayerSpeed * frameDelta;
         }
         else if (inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
         {
-            speed = -PlayerSpeed * frameDelta;
+            horizontalSpeed = -PlayerSpeed * frameDelta;
         }
         
-        // upon movement, move the scenery to fake the player moving
-        _groundLayer.Shift(new Vector2(speed, 0));
-        _treeLayer.Shift(new Vector2(speed * TreeSpeedMultiplier, 0));
-        _mountainLayer.Shift(new Vector2(speed * MountainSpeedMultiplier, 0));
+        // Since we don't have a camera system yet, but we want to keep the player in the center
+        // of the viewport, we need to instead move the scenery. This also helps with parallax
+        // of the scenery. However, we need to track where the player would be if he was actually
+        // moving so we know how to deal with collision properly.
+        _playerPositionX += horizontalSpeed;
+        _groundLayer.Shift(new Vector2(horizontalSpeed, 0));
+        _treeLayer.Shift(new Vector2(horizontalSpeed * TreeSpeedMultiplier, 0));
+        _mountainLayer.Shift(new Vector2(horizontalSpeed * MountainSpeedMultiplier, 0));
+        
+        // Apply gravity and jump acceleration if jumping. Sprites should probably have 
+        // acceleration built in
+        _player.VelocityY += Gravity;
+        if (inputManager.GetButtonState(GameConstants.InputNames.Up) == ButtonState.Pressed)
+        {
+            _player.VelocityY += JumpAcceleration;
+        }
     }
 
     private Layer CreateTreeLayer()
@@ -175,6 +192,16 @@ public class LevelScreen : Screen, IDisposable
         };
         
         AddSprite(sun);
+    }
+
+    private void CheckPlayerGroundCollision()
+    {
+        var groundYPosition = _screenHeight - GroundChunk.ChunkHeight;
+        if (_player.Y + _player.CurrentFrame.Height > groundYPosition)
+        {
+            _player.Y = groundYPosition - _player.CurrentFrame.Height;
+            _player.VelocityY = 0;
+        }
     }
 
     public void Dispose()
