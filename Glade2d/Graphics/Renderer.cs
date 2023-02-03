@@ -119,6 +119,7 @@ namespace Glade2d.Graphics
             // If we are doing a scaled draw, we must perform special copy logic
             if (Scale > 1)
             {
+                GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Scale");
                 if (RenderInSafeMode)
                 {
                     ShowSafeMode();
@@ -127,6 +128,7 @@ namespace Glade2d.Graphics
                 {
                     ShowFastMode();
                 }
+                GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Scale");
             }
             // if we're not doing a scaled draw, our buffers should match
             // draw the pixel buffer to the display
