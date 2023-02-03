@@ -1,6 +1,4 @@
-﻿using System;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Numerics;
 using Glade2d.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
@@ -13,13 +11,9 @@ namespace Glade2d.Graphics.Layers;
 /// </summary>
 public class Layer
 {
-    private readonly record struct Quadrant(Point Start, Dimensions Dimensions);
-    private readonly record struct DrawOperation(Point LayerStart, Point TargetStart, int Width, int Height);
+    private readonly record struct DrawableRectangle(Point Start, Dimensions Dimensions);
     
-    private const int BytesPerPixel = 2; 
-
     private readonly BufferRgb565 _layerBuffer;
-    private readonly Dimensions _dimensions;
     private readonly TextureManager _textureManager;
     private Vector2 _internalOrigin;
     
@@ -51,11 +45,6 @@ public class Layer
     {
         _layerBuffer = layerBuffer;
         _textureManager = textureManager;
-        _dimensions = new Dimensions
-        {
-            Width = layerBuffer.Width,
-            Height = layerBuffer.Height,
-        };
     }
 
     /// <summary>
@@ -117,47 +106,50 @@ public class Layer
         Point topLeftOnLayer,
         Dimensions drawSize)
     {
-        // Should this code be consolidated with the rest of the quadrant/draw operation code
-        // for layer rendering??
-        var transparentByte1 = (byte)(TransparentColor.Color16bppRgb565 >> 8);
-        var transparentByte2 = (byte)(TransparentColor.Color16bppRgb565 & 0x00FF);
-
-        var imgBufferWidth = texture.Width;
-        var pixelBufferWidth = _layerBuffer.Width;
-        var frameHeight = drawSize.Height;
-        var frameWidth = drawSize.Width;
-        var frameX = topLeftOnTexture.X;
-        var frameY = topLeftOnTexture.Y;
-        var innerPixelBuffer = _layerBuffer.Buffer;
-        var innerImgBuffer = texture.Buffer;
-       
-        for (var x = frameX; x < frameX + frameWidth; x++)
+        // The draw size and top left on layer needs to be adjusted to handle parts
+        // of the texture that would end up off the layer.
+        if (topLeftOnLayer.X < 0)
         {
-            for (var y = frameY; y < frameY + frameHeight; y++)
-            {
-                // BUG: This will be wrong if drawing occurs after a shift happens. We need
-                // to account for the internal origin of the layer. This is more complicated
-                // because we need to figure out if the pixels should be wrapped around to
-                // the other side of the layer (due to a shifted origin) or if it should be
-                // considered off the layer and not rendered.
-                var tX = topLeftOnLayer.X + x - frameX;
-                var tY = topLeftOnLayer.Y + y - frameY;
-                
-                // only draw if not transparent and within buffer
-                if (tX >= 0 && tY >= 0 && tX < _dimensions.Width && tY < _dimensions.Height)
-                {
-                    var frameIndex = (y * imgBufferWidth + x) * BytesPerPixel;
-                    var colorByte1 = innerImgBuffer[frameIndex];
-                    var colorByte2 = innerImgBuffer[frameIndex + 1];
-                    if (colorByte1 != transparentByte1 || colorByte2 != transparentByte2)
-                    {
-                        var bufferIndex = GetBufferIndex(tX, tY, pixelBufferWidth);
-                        innerPixelBuffer[bufferIndex] = colorByte1;
-                        innerPixelBuffer[bufferIndex + 1] = colorByte2;
-                    }
-                }
-            }
+            var moveCount = -topLeftOnLayer.X;
+            drawSize = new Dimensions(drawSize.Width - moveCount, drawSize.Height);
+            topLeftOnLayer = new Point(0, topLeftOnLayer.Y);
+            topLeftOnTexture = new Point(topLeftOnTexture.X + moveCount, topLeftOnTexture.Y);
         }
+
+        if (topLeftOnLayer.X + drawSize.Width >= _layerBuffer.Width)
+        {
+            var moveCount = topLeftOnLayer.X + drawSize.Width - _layerBuffer.Width;
+            drawSize = new Dimensions(drawSize.Width - moveCount, drawSize.Height);
+        }
+
+        if (topLeftOnLayer.Y < 0)
+        {
+            var moveCount = -topLeftOnLayer.Y;
+            drawSize = new Dimensions(drawSize.Width, drawSize.Height - moveCount);
+            topLeftOnLayer = new Point(topLeftOnLayer.X);
+            topLeftOnTexture = new Point(topLeftOnTexture.X, topLeftOnTexture.Y + moveCount);
+        }
+
+        if (topLeftOnLayer.Y + drawSize.Height >= _layerBuffer.Height)
+        {
+            var moveCount = topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height;
+            drawSize = new Dimensions(drawSize.Width, drawSize.Height - moveCount);
+        }
+        
+        // BUG: This will be wrong if drawing occurs after a shift happens. We need
+        // to account for the internal origin of the layer. This is more complicated
+        // because we need to figure out if the pixels should be wrapped around to
+        // the other side of the layer (due to a shifted origin) or if it should be
+        // considered off the layer and not rendered.
+        var operation = new Drawing.Operation(
+            texture,
+            _layerBuffer,
+            topLeftOnTexture,
+            topLeftOnLayer,
+            drawSize,
+            TransparentColor);
+        
+        Drawing.ExecuteOperation(operation);
     }
 
     /// <summary>
@@ -220,19 +212,19 @@ public class Layer
         
         // We have four quadrants to draw from depending on how the internal origin
         // has shifted around. Calculate them out.
-        var topLeft = new Quadrant(
-            new Point(0, 0), 
+        var topLeft = new DrawableRectangle(
+            new Point(0), 
             new Dimensions((int)_internalOrigin.X, (int)_internalOrigin.Y));
 
-        var topRight = new Quadrant(
-            new Point((int)_internalOrigin.X, 0),
+        var topRight = new DrawableRectangle(
+            new Point((int)_internalOrigin.X),
             new Dimensions(_layerBuffer.Width - (int)_internalOrigin.X, (int)_internalOrigin.Y));
 
-        var bottomLeft = new Quadrant(
+        var bottomLeft = new DrawableRectangle(
             new Point(0, (int)_internalOrigin.Y),
             new Dimensions((int)_internalOrigin.X, _layerBuffer.Height - (int)_internalOrigin.Y));
 
-        var bottomRight = new Quadrant(
+        var bottomRight = new DrawableRectangle(
             new Point((int)_internalOrigin.X, (int)_internalOrigin.Y),
             new Dimensions(
                 _layerBuffer.Width - (int)_internalOrigin.X,
@@ -243,54 +235,30 @@ public class Layer
         // top left -> top right -> bottom left -> bottom right we need to draw them
         // bottom right -> bottom left -> top right -> top left. This allows us to
         // pretend like we are wrapping the layer around.
-        void PerformDraw(Quadrant quadrant, 
-            BufferRgb565 innerTarget, 
-            Point targetOrigin, 
-            Color? transparentColor)
+        void PerformDraw(DrawableRectangle quadrant, BufferRgb565 innerTarget, Point targetOrigin)
         {
             var operation = CalculateDrawOperation(quadrant, innerTarget, targetOrigin.X, targetOrigin.Y);
             if (operation != null)
             {
-                if (transparentColor != null)
-                {
-                    var transparency = transparentColor.Value.Color16bppRgb565;
-                    var byte1 = (byte)(transparency >> 8);
-                    var byte2 = (byte)(transparency & 0x00FF);
-                    ExecuteTransparentDrawOperation(operation.Value, innerTarget, byte1, byte2);
-                }
-                else
-                {
-                    ExecuteDrawOperation(operation.Value, innerTarget);
-                }
+                Drawing.ExecuteOperation(operation.Value);
             }
         }
 
-        var transparentColor = DrawLayerWithTransparency ? TransparentColor : (Color?)null;
-        PerformDraw(bottomRight, target, new Point(0, 0), transparentColor);
-        PerformDraw(bottomLeft, target, new Point(bottomRight.Dimensions.Width, 0), transparentColor);
-        PerformDraw(topRight, target, new Point(0, bottomRight.Dimensions.Height), transparentColor);
-        PerformDraw(topLeft, target, new Point(bottomRight.Dimensions.Width, bottomRight.Dimensions.Height), transparentColor);
-    }
-    
-    /// <summary>
-    /// Gets the index for a specific x and y coordinate in a pixel buffer. All values provided
-    /// are pixel based, not byte based.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetBufferIndex(int x, int y, int width)
-    {
-        return (y * width + x) * BytesPerPixel;
+        PerformDraw(bottomRight, target, new Point(0));
+        PerformDraw(bottomLeft, target, new Point(bottomRight.Dimensions.Width));
+        PerformDraw(topRight, target, new Point(0, bottomRight.Dimensions.Height));
+        PerformDraw(topLeft, target, new Point(bottomRight.Dimensions.Width, bottomRight.Dimensions.Height));
     }
 
     /// <summary>
-    /// Calculate how to draw the quadrant onto its correct area on the target
+    /// Calculate how to draw the drawableRectangle onto its correct area on the target
     /// </summary>
-    private DrawOperation? CalculateDrawOperation(Quadrant quadrant, 
+    private Drawing.Operation? CalculateDrawOperation(DrawableRectangle drawableRectangle, 
         BufferRgb565 target,
         int targetOriginX,
         int targetOriginY)
     {
-        if (quadrant.Dimensions.Width <= 0 || quadrant.Dimensions.Height <= 0)
+        if (drawableRectangle.Dimensions.Width <= 0 || drawableRectangle.Dimensions.Height <= 0)
         {
             return null;
         }
@@ -325,16 +293,16 @@ public class Layer
         }
 
         var horizontal = CalculateAxis(
-            quadrant.Start.X, 
+            drawableRectangle.Start.X, 
             CameraOffset.X, 
-            quadrant.Dimensions.Width, 
+            drawableRectangle.Dimensions.Width, 
             target.Width, 
             targetOriginX);
         
         var vertical = CalculateAxis(
-            quadrant.Start.Y, 
+            drawableRectangle.Start.Y, 
             CameraOffset.Y, 
-            quadrant.Dimensions.Height, 
+            drawableRectangle.Dimensions.Height, 
             target.Height, 
             targetOriginY);
         
@@ -344,67 +312,17 @@ public class Layer
             return null;
         }
 
-        return new DrawOperation(
+        var transparency = DrawLayerWithTransparency
+            ? TransparentColor
+            : (Color?)null;
+
+        return new Drawing.Operation(
+            _layerBuffer,
+            target,
             new Point(horizontal.Value.layerStart, vertical.Value.layerStart),
             new Point(horizontal.Value.targetStart, vertical.Value.targetStart),
-            horizontal.Value.dimension,
-            vertical.Value.dimension);
-    }
-
-    private void ExecuteDrawOperation(DrawOperation operation, BufferRgb565 target)
-    {
-        var bytesPerRowToCopy = operation.Width * BytesPerPixel;
-        var layerBuffer = _layerBuffer.Buffer;
-        var targetBuffer = target.Buffer;
-        for (var row = 0; row < operation.Height; row++)
-        {
-            var layerRow = row + operation.LayerStart.Y;
-            var targetRow = row + operation.TargetStart.Y;
-            var layerIndex = GetBufferIndex(operation.LayerStart.X, layerRow, _layerBuffer.Width);
-            var targetIndex = GetBufferIndex(operation.TargetStart.X, targetRow, target.Width);
-            
-            Array.Copy(layerBuffer,
-                layerIndex,
-                targetBuffer,
-                targetIndex,
-                bytesPerRowToCopy);
-        }
-    }
-
-    private void ExecuteTransparentDrawOperation(DrawOperation operation, 
-        BufferRgb565 target, 
-        byte transparencyColorByte1,
-        byte transparencyColorByte2)
-    {
-        var layerBuffer = _layerBuffer.Buffer;
-        var layerWidth = _layerBuffer.Width;
-        var targetBuffer = target.Buffer;
-        var targetWidth = target.Width;
-        var totalHeight = operation.Height;
-        var totalWidth = operation.Width;
-        
-        for (var row = 0; row < totalHeight; row++)
-        {
-            var layerRow = row + operation.LayerStart.Y;
-            var targetRow = row + operation.TargetStart.Y;
-            var layerStartIndex = GetBufferIndex(operation.LayerStart.X, layerRow, layerWidth);
-            var targetStartIndex = GetBufferIndex(operation.TargetStart.X, targetRow, targetWidth);
-
-            for (var col = 0; col < totalWidth; col++)
-            {
-                var layerIndex = layerStartIndex + (col * BytesPerPixel);
-                var targetIndex = targetStartIndex + (col * BytesPerPixel);
-
-                if (layerBuffer[layerIndex] == transparencyColorByte1 &&
-                    layerBuffer[layerIndex + 1] == transparencyColorByte2)
-                {
-                    // Byte is transparent so ignore it
-                    continue;
-                }
-
-                targetBuffer[targetIndex] = layerBuffer[layerIndex];
-                targetBuffer[targetIndex + 1] = layerBuffer[layerIndex + 1];
-            }
-        }
+            new Dimensions(horizontal.Value.dimension, vertical.Value.dimension),
+            transparency
+        );
     }
 }
