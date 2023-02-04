@@ -203,7 +203,7 @@ public class LevelScreen : Screen, IDisposable
             _player.VelocityY = 0;
         }
     }
-
+    
     public void Dispose()
     {
         var layerManager = GameService.Instance.GameInstance.LayerManager;
