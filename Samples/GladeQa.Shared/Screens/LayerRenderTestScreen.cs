@@ -18,14 +18,11 @@ public class LayerRenderTestScreen : Screen, IDisposable
 
     private static Layer CreateTestLayer()
     {
-        var renderer = GameService.Instance.GameInstance.Renderer;
         var textureManager = GameService.Instance.GameInstance.TextureManager;
 
-        var screenWidth = renderer.Width;
-        var screenHeight = renderer.Height;
         var texture = textureManager.GetTexture("layertest.bmp");
 
-        var layer = Layer.Create(new Dimensions(screenWidth, screenHeight));
+        var layer = Layer.Create(new Dimensions(texture.Width, texture.Height));
         layer.BackgroundColor = Color.Black;
         layer.TransparentColor = Color.Black;
         layer.Clear();
@@ -33,7 +30,7 @@ public class LayerRenderTestScreen : Screen, IDisposable
         layer.DrawTexture(texture, 
             new Point(), 
             new Point(), 
-            new Dimensions(screenWidth, screenHeight));
+            new Dimensions(texture.Width, texture.Height));
         
         GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
 

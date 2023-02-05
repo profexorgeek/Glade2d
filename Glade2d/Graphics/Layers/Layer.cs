@@ -286,8 +286,17 @@ public class Layer
                 layerStart += -targetStart;
                 targetStart = 0;
             }
-
+            
             var dimension = targetEnd - targetStart;
+            
+            // Make sure this doesn't go past the target's dimensions. Horizontally,
+            // that will cause overdraw to the next row, while vertically that will
+            // cause crashes.
+            var overdraw = (targetStart + dimension) - targetDimension;
+            if (overdraw > 0)
+            {
+                dimension -= overdraw;
+            }
 
             return (layerStart, targetStart, dimension);
         }

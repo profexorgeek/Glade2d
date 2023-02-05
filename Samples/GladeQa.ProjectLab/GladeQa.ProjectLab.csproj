@@ -15,6 +15,7 @@
         <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.94.0" />
         <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.94.1" />
         <PackageReference Include="Meadow.ProjectLab" Version="0.94.0" />
+        <PackageReference Include="Meadow.Foundation.Graphics.MicroGraphics" Version="0.94.1" />
     </ItemGroup>
 
     <ItemGroup>
