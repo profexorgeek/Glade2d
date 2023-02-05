@@ -59,11 +59,11 @@ public class LevelScreen : Screen, IDisposable
         var horizontalSpeed = 0f;
         if (inputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down)
         {
-            horizontalSpeed = PlayerSpeed * frameDelta;
+            horizontalSpeed = -PlayerSpeed * frameDelta;
         }
         else if (inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
         {
-            horizontalSpeed = -PlayerSpeed * frameDelta;
+            horizontalSpeed = PlayerSpeed * frameDelta;
         }
         
         // Since we don't have a camera system yet, but we want to keep the player in the center
