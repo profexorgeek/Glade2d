@@ -36,9 +36,9 @@ public class MeadowApp : App<F7FeatherV2>
 
     private void InitializeInput(InputManager inputManager)
     {
-        inputManager.RegisterPushButton(_projectLab.LeftButton!, InputConstants.Up);
-        inputManager.RegisterPushButton(_projectLab.UpButton!, InputConstants.Left);
-        inputManager.RegisterPushButton(_projectLab.DownButton!, InputConstants.Right);
-        inputManager.RegisterPushButton(_projectLab.RightButton!, InputConstants.Down);
+        inputManager.RegisterPushButton(_projectLab.UpButton!, InputConstants.Up);
+        inputManager.RegisterPushButton(_projectLab.LeftButton!, InputConstants.Left);
+        inputManager.RegisterPushButton(_projectLab.RightButton!, InputConstants.Right);
+        inputManager.RegisterPushButton(_projectLab.DownButton!, InputConstants.Down);
     }
 }
