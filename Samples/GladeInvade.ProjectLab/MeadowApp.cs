@@ -12,11 +12,11 @@ namespace GladeInvade.ProjectLab;
 public class MeadowApp : App<F7FeatherV2>
 {
     private IGraphicsDisplay _display = default!;
-    private Meadow.Devices.ProjectLab _projectLab = default!;
+    private IProjectLabHardware _projectLab = default!;
     
     public override Task Initialize()
     {
-        _projectLab = new Meadow.Devices.ProjectLab();
+        _projectLab = Meadow.Devices.ProjectLab.Create();
         // _projectLab.Display!.SetRotation(TftSpiBase.Rotation.Rotate_90);
         _display = _projectLab.Display!;
         

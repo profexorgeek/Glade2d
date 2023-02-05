@@ -11,11 +11,11 @@ namespace GladeQa.ProjectLab;
 public class MeadowApp : App<F7FeatherV2>
 {
     private IGraphicsDisplay _display = default!;
-    private Meadow.Devices.ProjectLab _projectLab = default!;
+    private IProjectLabHardware _projectLab = default!;
     
     public override Task Initialize()
     {
-        _projectLab = new Meadow.Devices.ProjectLab();
+        _projectLab = Meadow.Devices.ProjectLab.Create();
         _display = _projectLab.Display!;
         
         return base.Initialize();

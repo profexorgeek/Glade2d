@@ -39,7 +39,7 @@ namespace Glade2d.Graphics
             Profiler profiler,
             int scale = 1) : base(display)
         {
-            if (display.PixelBuffer.ColorMode != ColorType.Format16bppRgb565)
+            if (display.PixelBuffer.ColorMode != ColorMode.Format16bppRgb565)
             {
                 var message = $"Only color mode rgb565 is supported, but {display.PixelBuffer.ColorMode} " +
                               "was given.";
