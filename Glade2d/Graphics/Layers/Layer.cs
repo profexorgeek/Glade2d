@@ -40,6 +40,16 @@ public class Layer
     /// be given.
     /// </summary>
     public bool DrawLayerWithTransparency { get; set; }
+    
+    /// <summary>
+    /// The width of the layer's canvas
+    /// </summary>
+    public int Width => _layerBuffer.Width;
+
+    /// <summary>
+    /// The height of the layer's canvas
+    /// </summary>
+    public int Height => _layerBuffer.Height;
 
     private Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
     {
@@ -101,10 +111,15 @@ public class Layer
     /// The X and Y coordinates on the layer that we will start drawing onto.
     /// </param>
     /// <param name="drawSize">The height and width of the amount of pixel data to draw</param>
+    /// <param name="ignoreTransparency">
+    /// If true, all pixels from the buffer will be drawn, even if it matches the
+    /// transparency color
+    /// </param>
     public void DrawTexture(BufferRgb565 texture,
         Point topLeftOnTexture,
         Point topLeftOnLayer,
-        Dimensions drawSize)
+        Dimensions drawSize,
+        bool ignoreTransparency = false)
     {
         // The draw size and top left on layer needs to be adjusted to handle parts
         // of the texture that would end up off the layer.
@@ -141,14 +156,18 @@ public class Layer
         // because we need to figure out if the pixels should be wrapped around to
         // the other side of the layer (due to a shifted origin) or if it should be
         // considered off the layer and not rendered.
+        var transparencyColor = ignoreTransparency
+            ? (Color?)null
+            : TransparentColor;
+        
         var operation = new Drawing.Operation(
             texture,
             _layerBuffer,
             topLeftOnTexture,
             topLeftOnLayer,
             drawSize,
-            TransparentColor);
-        
+            transparencyColor);
+    
         Drawing.ExecuteOperation(operation);
     }
 

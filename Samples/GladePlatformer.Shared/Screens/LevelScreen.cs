@@ -23,9 +23,9 @@ public class LevelScreen : Screen, IDisposable
     private readonly Layer _skyLayer;
     private readonly Layer _treeLayer;
     private readonly Layer _mountainLayer;
-    private readonly Layer _groundLayer;
     private readonly Color _backgroundColor = new(57, 120, 168);
     private readonly Player _player;
+    private readonly LevelHandler _levelHandler;
     private float _playerPositionX; // Where the player is considered to be in relation to the level
 
     public LevelScreen()
@@ -40,9 +40,11 @@ public class LevelScreen : Screen, IDisposable
         _skyLayer = CreateSkyLayer();
         _treeLayer = CreateTreeLayer();
         _mountainLayer = CreateMountainLayer();
-        _groundLayer = CreateGroundLayer();
         
         CreateSun();
+
+        var levelData = new LevelHandler.LevelData(new byte[] { 1, 2, 3, 2, 1 });
+        _levelHandler = new LevelHandler(levelData);
 
         _player = new Player();
         _player.X = (_screenWidth / 2) - (_player.CurrentFrame.Width / 2);
@@ -71,7 +73,6 @@ public class LevelScreen : Screen, IDisposable
         // of the scenery. However, we need to track where the player would be if he was actually
         // moving so we know how to deal with collision properly.
         _playerPositionX += horizontalSpeed;
-        _groundLayer.Shift(new Vector2(horizontalSpeed, 0));
         _treeLayer.Shift(new Vector2(horizontalSpeed * TreeSpeedMultiplier, 0));
         _mountainLayer.Shift(new Vector2(horizontalSpeed * MountainSpeedMultiplier, 0));
         
@@ -145,25 +146,6 @@ public class LevelScreen : Screen, IDisposable
         return layer;
     }
 
-    private Layer CreateGroundLayer()
-    {
-        var ground = new GroundChunk();
-
-        var layer = Layer.Create(new Dimensions(_screenWidth, ground.CurrentFrame.Height));
-        layer.CameraOffset = new Point(0, _screenHeight - ground.CurrentFrame.Height);
-        layer.DrawLayerWithTransparency = true;
-        layer.Clear();
-        
-        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
-
-        for (var x = 0; x < _screenWidth; x += ground.CurrentFrame.Width)
-        {
-            layer.DrawTexture(ground.CurrentFrame, new Point(x, 0));
-        }
-
-        return layer;
-    }
-
     private Layer CreateSkyLayer()
     {
         var skyChunk = new SkyChunk();
@@ -208,7 +190,6 @@ public class LevelScreen : Screen, IDisposable
     {
         var layerManager = GameService.Instance.GameInstance.LayerManager;
         layerManager.RemoveLayer(_skyLayer);
-        layerManager.RemoveLayer(_groundLayer);
         layerManager.RemoveLayer(_treeLayer);
         layerManager.RemoveLayer(_mountainLayer);
     }

@@ -6,8 +6,8 @@ namespace GladePlatformer.Shared.Entities;
 
 public class Player : Sprite
 {
+    public const int FrameWidth = 10;
     private const int FrameHeight = 11;
-    private const int FrameWidth = 10;
     private const double SecondsPerWalkFrame = 0.1f;
 
     private readonly Frame _standingFrame;
