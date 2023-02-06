@@ -78,6 +78,8 @@ public class LevelHandler : IDisposable
         var horizontalOffset = -((layerWidth - renderer.Width) / 2);
         var verticalOffset = renderer.Height - layerHeight;
         layer.CameraOffset = new Point(horizontalOffset, verticalOffset);
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
 
         return layer;
     }
@@ -131,7 +133,7 @@ public class LevelHandler : IDisposable
         for (var x = 0; x < height; x++)
         {
             var startX = sectionToDraw.LayerStartX;
-            var startY = _layer.Height - _ground.CurrentFrame.Height * x;
+            var startY = _layer.Height - _ground.CurrentFrame.Height * (x + 1);
             _layer.DrawTexture(_ground.CurrentFrame, new Point(startX, startY));
         }
     }

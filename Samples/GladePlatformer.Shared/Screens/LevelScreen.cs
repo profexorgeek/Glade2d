@@ -46,9 +46,12 @@ public class LevelScreen : Screen, IDisposable
         var levelData = new LevelHandler.LevelData(new byte[] { 1, 2, 3, 2, 1 });
         _levelHandler = new LevelHandler(levelData);
 
-        _player = new Player();
-        _player.X = (_screenWidth / 2) - (_player.CurrentFrame.Width / 2);
-        _player.Y = _screenHeight - (new GroundChunk().CurrentFrame.Height) - _player.CurrentFrame.Height;
+        _player = new Player
+        {
+            X = _screenWidth / 2.0f
+        };
+        
+        _player.Y = _screenHeight - new GroundChunk().CurrentFrame.Height - _player.CurrentFrame.Height;
         AddSprite(_player);
     }
 
