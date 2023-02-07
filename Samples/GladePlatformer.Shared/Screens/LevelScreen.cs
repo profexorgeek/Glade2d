@@ -61,6 +61,7 @@ public class LevelScreen : Screen, IDisposable
         var frameDelta = (float) GameService.Instance.Time.FrameDelta;
         var lastPositionX = _playerPositionX;
         _playerPositionX += _playerVelocityX * frameDelta;
+        _playerVelocityX = 0;
 
         var playerPositionY = _player.Y;
         var playerVelocityY = _player.VelocityY;
@@ -80,7 +81,7 @@ public class LevelScreen : Screen, IDisposable
         }
         else if (inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
         {
-            _playerVelocityX = PlayerSpeed;
+            _playerVelocityX = -PlayerSpeed;
         }
         
         _player.VelocityY += Gravity;
@@ -107,7 +108,7 @@ public class LevelScreen : Screen, IDisposable
         layer.BackgroundColor = new Color(79, 84, 107);
         layer.Clear();
         
-        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
         
         // TODO: Clear layer to the main color of mountains, to pretend it has
         // transparency.
@@ -141,7 +142,7 @@ public class LevelScreen : Screen, IDisposable
         layer.Clear();
         layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
         
-        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -3);
 
         for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
         {

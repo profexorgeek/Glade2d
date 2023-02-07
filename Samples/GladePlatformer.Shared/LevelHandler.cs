@@ -1,4 +1,5 @@
-﻿using Glade2d;
+﻿using System.Numerics;
+using Glade2d;
 using Glade2d.Graphics.Layers;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;
@@ -20,8 +21,6 @@ public class LevelHandler : IDisposable
     private readonly BufferRgb565 _sectionClearTexture;
     private readonly int _screenHeight;
     private float _lastPlayerPositionX;
-    private GroundSection _lastLeft, _lastRight;
-    private byte _previousHighestHeight;
 
     public LevelHandler(LevelData levelData)
     {
@@ -31,6 +30,8 @@ public class LevelHandler : IDisposable
         _ground = new GroundChunk();
         _layer = CreateLevelLayer(_ground);
         _sectionClearTexture = CreateSectionClearTexture();
+        
+        Console.WriteLine($"Layer: {_layer.Width}x{_layer.Height}");
         
         // Draw the initial level sections that are "visible" on the layer
         var (left, right) = GetSectionUnderPlayer(0);
@@ -59,9 +60,6 @@ public class LevelHandler : IDisposable
         }
 
         _lastPlayerPositionX = 0;
-        _lastLeft = left;
-        _lastRight = right;
-        _previousHighestHeight = Math.Max(GetSectionHeight(left.Index), GetSectionHeight(right.Index));
     }
 
     public void Update(ref float playerPositionX,
@@ -69,43 +67,54 @@ public class LevelHandler : IDisposable
         ref float playerVelocityY)
     {
         var (newLeft, newRight) = GetSectionUnderPlayer(playerPositionX);
-        var highestHeight = Math.Max(GetSectionHeight(newLeft.Index), GetSectionHeight(newRight.Index));
+        var leftHeight = GetSectionHeight(newLeft.Index);
+        var rightHeight = GetSectionHeight(newRight.Index);
+        var highestHeight = Math.Max(leftHeight, rightHeight);
         var highestHeightY = _screenHeight - _ground.CurrentFrame.Height * highestHeight;
+        var collisionPositionY = playerPositionY + Player.FrameHeight;
         
         // Check for collision into the ground
-        if (playerPositionY > highestHeightY)
+        if (collisionPositionY > highestHeightY)
         {
-            var previousHeightY = _screenHeight - _ground.CurrentFrame.Height * _previousHighestHeight;
-            if (playerPositionY < previousHeightY)
+            Vector2 collisionAdjustment;
+            var topOverlapAmount = collisionPositionY - highestHeightY;
+            if (newLeft == newRight || leftHeight == rightHeight)
             {
-                // Player is above the new section but not of the old. This means the player
-                // was trying to move into a taller section. So we move him back to the edge
-                // of the section he was trying to move into.
-                if (playerPositionX < _lastPlayerPositionX)
-                {
-                    playerPositionX = _lastLeft.Index * _ground.CurrentFrame.Width;
-                }
-                else
-                {
-                    playerPositionX = _lastRight.Index * _ground.CurrentFrame.Width - Player.FrameWidth;
-                }
-                
-                newLeft = _lastLeft;
-                newRight = _lastRight;
-                highestHeight = _previousHighestHeight;
+                // Left and right ends are on the same section or same height. This is a 
+                // pretty likely it's a collision from the top
+                collisionAdjustment = new Vector2(0, -topOverlapAmount);
+            }
+            else if (leftHeight < rightHeight)
+            {
+                // We collided against the right, so check if the right side collided
+                // further than the top
+                var rightOverlapAmount = (Player.FrameWidth + playerPositionX) % GroundChunk.ChunkWidth;
+                collisionAdjustment = topOverlapAmount < rightOverlapAmount
+                    ? new Vector2(0, -topOverlapAmount) // move up
+                    : new Vector2(-rightOverlapAmount, 0); // move left
             }
             else
             {
-                // Player is colliding with the ground directly below them
-                playerPositionY = highestHeightY;
+                // Left side collided
+                var leftOverlapAmount = GroundChunk.ChunkWidth - (playerPositionX % GroundChunk.ChunkWidth);
+                collisionAdjustment = topOverlapAmount < leftOverlapAmount
+                    ? new Vector2(0, -topOverlapAmount) // move up
+                    : new Vector2(leftOverlapAmount, 0); // move right
+            }
+
+            playerPositionY += collisionAdjustment.Y;
+            playerPositionX += collisionAdjustment.X;
+
+            if (collisionAdjustment.Y < 0)
+            {
+                // Since the player collided from above, we need to zero out their velocity
                 playerVelocityY = 0;
             }
-            
         }
 
-        _lastLeft = newLeft;
-        _lastRight = newRight;
-        _previousHighestHeight = highestHeight;
+        var movedBy = playerPositionX - _lastPlayerPositionX;
+        _layer.Shift(new Vector2(-movedBy, 0));
+
         _lastPlayerPositionX = playerPositionX;
     }
 
@@ -180,6 +189,7 @@ public class LevelHandler : IDisposable
             true); // ignore transparency for this draw call
 
         var height = GetSectionHeight(sectionToDraw.Index);
+        Console.WriteLine($"Drawing section {sectionToDraw.Index} height = {height}");
         for (var x = 0; x < height; x++)
         {
             var startX = sectionToDraw.LayerStartX;
