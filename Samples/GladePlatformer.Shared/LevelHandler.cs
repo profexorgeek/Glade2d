@@ -21,6 +21,7 @@ public class LevelHandler : IDisposable
     private readonly BufferRgb565 _sectionClearTexture;
     private readonly int _screenHeight;
     private float _lastPlayerPositionX;
+    private float _movementSinceLastDraw;
 
     public LevelHandler(LevelData levelData)
     {
@@ -114,8 +115,44 @@ public class LevelHandler : IDisposable
 
         var movedBy = playerPositionX - _lastPlayerPositionX;
         _layer.Shift(new Vector2(-movedBy, 0));
-
         _lastPlayerPositionX = playerPositionX;
+
+        _movementSinceLastDraw += movedBy;
+        if (Math.Abs(_movementSinceLastDraw) >= GroundChunk.ChunkWidth)
+        {
+            // We've moved at least a full tile width, so redraw tile at edge
+            var (leftTile, _) = GetSectionUnderPlayer(playerPositionX);
+            var totalTilesOnLayer = _layer.Width / GroundChunk.ChunkWidth;
+
+            GroundSection sectionToDraw;
+            if (_movementSinceLastDraw < 0)
+            {
+                var layerStartX = leftTile.LayerStartX;
+                var tileIndex = leftTile.Index;
+                for (var x = 0; x < totalTilesOnLayer / 2; x++)
+                {
+                    layerStartX -= GroundChunk.ChunkWidth;
+                    tileIndex--;
+                }
+
+                sectionToDraw = new GroundSection(tileIndex, layerStartX);
+            }
+            else
+            {
+                var layerStartX = leftTile.LayerStartX;
+                var tileIndex = leftTile.Index;
+                for (var x = 0; x < totalTilesOnLayer / 2; x++)
+                {
+                    layerStartX += GroundChunk.ChunkWidth;
+                    tileIndex++;
+                }
+
+                sectionToDraw = new GroundSection(tileIndex, layerStartX);
+            }
+            
+            DrawGround(sectionToDraw);
+            _movementSinceLastDraw = 0;
+        }
     }
 
     public void Dispose()
@@ -127,9 +164,9 @@ public class LevelHandler : IDisposable
     {
         var renderer = GameService.Instance.GameInstance.Renderer;
         
-        // Layer should be double the width of the screen, and tall enough to
-        // show the max number of stacked ground chunks
-        var layerWidth = renderer.Width * 2;
+        // Layer should be the same width as the screen, with enough area on
+        // both sides for two and a half chunks as a buffer.
+        var layerWidth = renderer.Width + (GroundChunk.ChunkWidth * 5);
         var layerHeight = ground.CurrentFrame.Height * MaxGroundStack;
         var layer = Layer.Create(new Dimensions(layerWidth, layerHeight));
         layer.TransparentColor = Color.Magenta;

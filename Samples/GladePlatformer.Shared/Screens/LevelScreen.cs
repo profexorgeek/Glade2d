@@ -44,7 +44,7 @@ public class LevelScreen : Screen, IDisposable
         
         CreateSun();
 
-        var levelData = new LevelHandler.LevelData(new byte[] { 1, 2, 3, 2, 1 });
+        var levelData = new LevelHandler.LevelData(new byte[] { 1, 2, 3, 2, 1, 2, 2, 1, 3, 1, 3 });
         _levelHandler = new LevelHandler(levelData);
 
         _player = new Player
