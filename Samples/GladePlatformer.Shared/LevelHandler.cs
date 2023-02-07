@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Glade2d;
+﻿using Glade2d;
 using Glade2d.Graphics.Layers;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;
@@ -19,19 +18,25 @@ public class LevelHandler : IDisposable
     private readonly LevelData _levelData;
     private readonly GroundChunk _ground;
     private readonly BufferRgb565 _sectionClearTexture;
+    private readonly int _screenHeight;
+    private float _lastPlayerPositionX;
+    private GroundSection _lastLeft, _lastRight;
+    private byte _previousHighestHeight;
 
     public LevelHandler(LevelData levelData)
     {
+        _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
+        
         _levelData = levelData;
         _ground = new GroundChunk();
         _layer = CreateLevelLayer(_ground);
         _sectionClearTexture = CreateSectionClearTexture();
         
         // Draw the initial level sections that are "visible" on the layer
-        var (centerSection, _) = GetSectionUnderPlayer(0);
+        var (left, right) = GetSectionUnderPlayer(0);
         
         // Draw right sections
-        var section = centerSection;
+        var section = left;
         while (section.LayerStartX <= _layer.Width)
         {
             DrawGround(section);
@@ -42,8 +47,8 @@ public class LevelHandler : IDisposable
 
         // Draw left sections
         section = new GroundSection(
-            centerSection.Index - 1,
-            centerSection.LayerStartX - _ground.CurrentFrame.Width);
+            left.Index - 1,
+            left.LayerStartX - _ground.CurrentFrame.Width);
 
         while (section.LayerStartX + _ground.CurrentFrame.Width >= 0)
         {
@@ -52,6 +57,56 @@ public class LevelHandler : IDisposable
                 section.Index - 1,
                 section.LayerStartX - _ground.CurrentFrame.Width);
         }
+
+        _lastPlayerPositionX = 0;
+        _lastLeft = left;
+        _lastRight = right;
+        _previousHighestHeight = Math.Max(GetSectionHeight(left.Index), GetSectionHeight(right.Index));
+    }
+
+    public void Update(ref float playerPositionX,
+        ref float playerPositionY,
+        ref float playerVelocityY)
+    {
+        var (newLeft, newRight) = GetSectionUnderPlayer(playerPositionX);
+        var highestHeight = Math.Max(GetSectionHeight(newLeft.Index), GetSectionHeight(newRight.Index));
+        var highestHeightY = _screenHeight - _ground.CurrentFrame.Height * highestHeight;
+        
+        // Check for collision into the ground
+        if (playerPositionY > highestHeightY)
+        {
+            var previousHeightY = _screenHeight - _ground.CurrentFrame.Height * _previousHighestHeight;
+            if (playerPositionY < previousHeightY)
+            {
+                // Player is above the new section but not of the old. This means the player
+                // was trying to move into a taller section. So we move him back to the edge
+                // of the section he was trying to move into.
+                if (playerPositionX < _lastPlayerPositionX)
+                {
+                    playerPositionX = _lastLeft.Index * _ground.CurrentFrame.Width;
+                }
+                else
+                {
+                    playerPositionX = _lastRight.Index * _ground.CurrentFrame.Width - Player.FrameWidth;
+                }
+                
+                newLeft = _lastLeft;
+                newRight = _lastRight;
+                highestHeight = _previousHighestHeight;
+            }
+            else
+            {
+                // Player is colliding with the ground directly below them
+                playerPositionY = highestHeightY;
+                playerVelocityY = 0;
+            }
+            
+        }
+
+        _lastLeft = newLeft;
+        _lastRight = newRight;
+        _previousHighestHeight = highestHeight;
+        _lastPlayerPositionX = playerPositionX;
     }
 
     public void Dispose()
@@ -124,17 +179,23 @@ public class LevelHandler : IDisposable
             new Dimensions(_sectionClearTexture.Width, _sectionClearTexture.Height),
             true); // ignore transparency for this draw call
 
-        byte height = 0;
-        if (sectionToDraw.Index >= 0 && sectionToDraw.Index < _levelData.SectionHeights.Count)
-        {
-            height = Math.Min(_levelData.SectionHeights[sectionToDraw.Index], MaxGroundStack);
-        }
-
+        var height = GetSectionHeight(sectionToDraw.Index);
         for (var x = 0; x < height; x++)
         {
             var startX = sectionToDraw.LayerStartX;
             var startY = _layer.Height - _ground.CurrentFrame.Height * (x + 1);
             _layer.DrawTexture(_ground.CurrentFrame, new Point(startX, startY));
         }
+    }
+
+    private byte GetSectionHeight(int sectionIndex)
+    {
+        if (sectionIndex < 0 || sectionIndex >= _levelData.SectionHeights.Count())
+        {
+            // Out of defined level bounds, so no ground.
+            return 0;
+        }
+
+        return Math.Min(_levelData.SectionHeights[sectionIndex], MaxGroundStack);
     }
 }
