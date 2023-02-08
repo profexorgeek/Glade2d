@@ -26,7 +26,6 @@ public class MeadowApp : App<F7FeatherV2>
         LogService.Log.Trace("Initializing Glade game engine...");
         var glade = new Game();
         glade.Initialize(_display);
-        glade.Profiler.IsActive = true;
         InitializeInput(glade.InputManager);
 
         GladeQaRunner.Run(glade);

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Glade2d.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
@@ -160,17 +161,28 @@ public class Layer
         // draw calls due to pixel wrapping.
         topLeftOnLayer += new Point((int)_internalOrigin.X, (int)_internalOrigin.Y);
 
-        var horizontalOverdraw = topLeftOnLayer.X + drawSize.Width - _layerBuffer.Width;
-        var verticalOverdraw = topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height;
-        
-        // We can immediately draw the full texture from the adjusted point as overdraw will be culled
-        Drawing.ExecuteOperation(new Drawing.Operation(
-            texture,
-            _layerBuffer,
-            topLeftOnTexture,
-            topLeftOnLayer,
-            drawSize,
-            transparencyColor));
+        var horizontalOverdraw = Math.Max(topLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0);
+        var verticalOverdraw = Math.Max(topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0);
+       
+        Console.WriteLine($"Layer width: {_layerBuffer.Width}");
+        Console.WriteLine($"Texture drawing: {drawSize}, {horizontalOverdraw}, {verticalOverdraw}, ({topLeftOnLayer})");
+
+        if (drawSize.Width > horizontalOverdraw && drawSize.Height > verticalOverdraw)
+        {
+            var innerDrawSize = new Dimensions(
+                drawSize.Width - horizontalOverdraw, 
+                drawSize.Height - verticalOverdraw);
+            
+            Console.WriteLine($"First draw: ({topLeftOnLayer}), ({topLeftOnTexture}), {innerDrawSize}");
+
+            Drawing.ExecuteOperation(new Drawing.Operation(
+                texture,
+                _layerBuffer,
+                topLeftOnTexture,
+                topLeftOnLayer,
+                innerDrawSize,
+                transparencyColor));
+        }
 
         if (horizontalOverdraw > 0)
         {
@@ -178,13 +190,16 @@ public class Layer
             var textureCoords = new Point(
                 topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
                 topLeftOnTexture.Y);
+
+            var innerDrawSize = new Dimensions(horizontalOverdraw, drawSize.Height - verticalOverdraw);
             
+            Console.WriteLine($"Second draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
                 textureCoords,
                 layerCoords,
-                new Dimensions(horizontalOverdraw, drawSize.Height),
+                innerDrawSize,
                 transparencyColor));
         }
 
@@ -194,13 +209,16 @@ public class Layer
             var textureCoords = new Point(
                 topLeftOnTexture.X,
                 topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
+
+            var innerDrawSize = drawSize with { Height = verticalOverdraw };
             
+            Console.WriteLine($"Third draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
                 textureCoords,
                 layerCoords,
-                new Dimensions(horizontalOverdraw, drawSize.Height),
+                innerDrawSize,
                 transparencyColor));
         }
 
@@ -210,13 +228,16 @@ public class Layer
             var textureCoords = new Point(
                 topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
                 topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
+
+            var innerDrawSize = new Dimensions(horizontalOverdraw, verticalOverdraw);
             
+            Console.WriteLine($"Fourth draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
                 textureCoords,
                 layerCoords,
-                new Dimensions(horizontalOverdraw, verticalOverdraw),
+                innerDrawSize,
                 transparencyColor));
         }
     }

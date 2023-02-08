@@ -61,20 +61,15 @@ public class LayerRenderTestScreen : Screen, IDisposable
     
     private static Layer CreateTestLayer()
     {
-        var renderer = GameService.Instance.GameInstance.Renderer;
         var textureManager = GameService.Instance.GameInstance.TextureManager;
 
         var texture = textureManager.GetTexture("layertest.bmp");
 
         var layer = Layer.Create(new Dimensions(texture.Width, texture.Height));
-        layer.BackgroundColor = Color.Black;
-        layer.TransparentColor = Color.Black;
+        layer.BackgroundColor = Color.Purple;
+        layer.TransparentColor = Color.Purple;
         layer.Clear();
 
-        layer.CameraOffset = new Point(
-            -((texture.Width - renderer.Width) / 2),
-            -((texture.Height - renderer.Height) / 2));
-        
         DrawTestImage(layer);
         
         GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
