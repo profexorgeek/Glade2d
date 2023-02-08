@@ -151,24 +151,74 @@ public class Layer
             drawSize = new Dimensions(drawSize.Width, drawSize.Height - moveCount);
         }
         
-        // BUG: This will be wrong if drawing occurs after a shift happens. We need
-        // to account for the internal origin of the layer. This is more complicated
-        // because we need to figure out if the pixels should be wrapped around to
-        // the other side of the layer (due to a shifted origin) or if it should be
-        // considered off the layer and not rendered.
         var transparencyColor = ignoreTransparency
             ? (Color?)null
             : TransparentColor;
         
-        var operation = new Drawing.Operation(
+        // Layer shifting means we can't just apply the texture as is, but we need to 
+        // adjust it based on the internal offset. This may mean we need up to 4
+        // draw calls due to pixel wrapping.
+        topLeftOnLayer += new Point((int)_internalOrigin.X, (int)_internalOrigin.Y);
+
+        var horizontalOverdraw = topLeftOnLayer.X + drawSize.Width - _layerBuffer.Width;
+        var verticalOverdraw = topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height;
+        
+        // We can immediately draw the full texture from the adjusted point as overdraw will be culled
+        Drawing.ExecuteOperation(new Drawing.Operation(
             texture,
             _layerBuffer,
             topLeftOnTexture,
             topLeftOnLayer,
             drawSize,
-            transparencyColor);
-    
-        Drawing.ExecuteOperation(operation);
+            transparencyColor));
+
+        if (horizontalOverdraw > 0)
+        {
+            var layerCoords = new Point(0, topLeftOnLayer.Y);
+            var textureCoords = new Point(
+                topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
+                topLeftOnTexture.Y);
+            
+            Drawing.ExecuteOperation(new Drawing.Operation(
+                texture,
+                _layerBuffer,
+                textureCoords,
+                layerCoords,
+                new Dimensions(horizontalOverdraw, drawSize.Height),
+                transparencyColor));
+        }
+
+        if (verticalOverdraw > 0)
+        {
+            var layerCoords = new Point(topLeftOnLayer.X, 0);
+            var textureCoords = new Point(
+                topLeftOnTexture.X,
+                topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
+            
+            Drawing.ExecuteOperation(new Drawing.Operation(
+                texture,
+                _layerBuffer,
+                textureCoords,
+                layerCoords,
+                new Dimensions(horizontalOverdraw, drawSize.Height),
+                transparencyColor));
+        }
+
+        if (verticalOverdraw > 0 && horizontalOverdraw > 0)
+        {
+            var layerCoords = new Point(0, 0);
+            var textureCoords = new Point(
+                topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
+                topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
+            
+            Drawing.ExecuteOperation(new Drawing.Operation(
+                texture,
+                _layerBuffer,
+                textureCoords,
+                layerCoords,
+                new Dimensions(horizontalOverdraw, verticalOverdraw),
+                transparencyColor));
+        }
     }
 
     /// <summary>

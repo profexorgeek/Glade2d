@@ -24,13 +24,12 @@ public class LayerRenderTestScreen : Screen, IDisposable
         var frameDelta = (float)GameService.Instance.Time.FrameDelta;
         var inputManager = GameService.Instance.GameInstance.InputManager;
         var shiftAmount = new Vector2();
+        
+        // Pressing the up, left, or right buttons shifts the layer in those respective 
+        // directions. Used to validate layer shifting works properly
         if (inputManager.GetButtonState(InputConstants.Up) == ButtonState.Down)
         {
             shiftAmount.Y += ShiftSpeed * frameDelta;
-        }
-        if (inputManager.GetButtonState(InputConstants.Down) == ButtonState.Down)
-        {
-            shiftAmount.Y -= ShiftSpeed * frameDelta;
         }
         if (inputManager.GetButtonState(InputConstants.Right) == ButtonState.Down)
         {
@@ -39,6 +38,17 @@ public class LayerRenderTestScreen : Screen, IDisposable
         if (inputManager.GetButtonState(InputConstants.Left) == ButtonState.Down)
         {
             shiftAmount.X -= ShiftSpeed * frameDelta;
+        }
+        
+        // Pressing the down button re-draws the texture on the layer. This is used to
+        // validate that drawing textures on a shifted layer works properly. If it works
+        // properly then the texture should be re-drawn from the current shift position
+        // as the origin. This should make the texture appear starting from 0,0 despite
+        // the layer being shifted.
+        if (inputManager.GetButtonState(InputConstants.Down) == ButtonState.Pressed)
+        {
+            Console.WriteLine("Redrawing texture");
+            DrawTestImage(_testLayer);
         }
         
         _testLayer.Shift(shiftAmount);
@@ -65,13 +75,21 @@ public class LayerRenderTestScreen : Screen, IDisposable
             -((texture.Width - renderer.Width) / 2),
             -((texture.Height - renderer.Height) / 2));
         
-        layer.DrawTexture(texture, 
-            new Point(), 
-            new Point(), 
-            new Dimensions(texture.Width, texture.Height));
+        DrawTestImage(layer);
         
         GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
 
         return layer;
+    }
+
+    private static void DrawTestImage(Layer layer)
+    {
+        var textureManager = GameService.Instance.GameInstance.TextureManager;
+        var texture = textureManager.GetTexture("layertest.bmp");
+        
+        layer.DrawTexture(texture, 
+            new Point(), 
+            new Point(), 
+            new Dimensions(texture.Width, texture.Height));
     }
 }
