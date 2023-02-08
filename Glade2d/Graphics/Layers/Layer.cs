@@ -152,93 +152,94 @@ public class Layer
             drawSize = new Dimensions(drawSize.Width, drawSize.Height - moveCount);
         }
         
-        var transparencyColor = ignoreTransparency
+        // Layer shifting means we can't just apply the texture as is, but we need to 
+        // adjust it based on the internal offset. Split the drawable portions into 
+        // quadrants and render each individually.
+        var adjustedTopLeftOnLayer = topLeftOnLayer + new Point((int)_internalOrigin.X, (int)_internalOrigin.Y);
+        var bottomRight = new DrawableRectangle(
+            adjustedTopLeftOnLayer,
+            new Dimensions(
+                Math.Max(adjustedTopLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0),
+                Math.Max(adjustedTopLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0)));
+        
+        var bottomLeft = new DrawableRectangle(
+            adjustedTopLeftOnLayer with {X = 0},
+            new Dimensions(
+                drawSize.Width - bottomRight.Dimensions.Width,
+                Math.Max(adjustedTopLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0)));
+
+        var topRight = new DrawableRectangle(
+            adjustedTopLeftOnLayer with { Y = 0 },
+            new Dimensions(
+                Math.Max(adjustedTopLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0),
+                drawSize.Height - bottomRight.Dimensions.Height));
+
+        var topLeft = new DrawableRectangle(
+            new Point(0, 0),
+            new Dimensions(
+                drawSize.Width - bottomRight.Dimensions.Width,
+                drawSize.Height - bottomRight.Dimensions.Height));
+
+        var transparency = ignoreTransparency
             ? (Color?)null
             : TransparentColor;
-        
-        // Layer shifting means we can't just apply the texture as is, but we need to 
-        // adjust it based on the internal offset. This may mean we need up to 4
-        // draw calls due to pixel wrapping.
-        topLeftOnLayer += new Point((int)_internalOrigin.X, (int)_internalOrigin.Y);
-
-        var horizontalOverdraw = Math.Max(topLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0);
-        var verticalOverdraw = Math.Max(topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0);
        
-        Console.WriteLine($"Layer width: {_layerBuffer.Width}");
-        Console.WriteLine($"Texture drawing: {drawSize}, {horizontalOverdraw}, {verticalOverdraw}, ({topLeftOnLayer})");
-
-        if (drawSize.Width > horizontalOverdraw && drawSize.Height > verticalOverdraw)
+        Console.WriteLine($"Internal origin: {_internalOrigin}");
+        Console.WriteLine($"Top left on layer: ({topLeftOnLayer}) ({adjustedTopLeftOnLayer})");
+        Console.WriteLine($"BR: {bottomRight}");
+        Console.WriteLine($"BL: {bottomLeft}");
+        Console.WriteLine($"TR: {topRight}");
+        Console.WriteLine($"TL: {topLeft}");
+        
+        // We probably should be able to re-use the calculate operation method below, but I'm not sure
+        // that will work as it's designed around camera offsets, which isn't relevant to texture
+        // drawing. So for now just have custom code to calculate the drawing operations. This makes
+        // me feel like the render code can be simplified to match this version, but I just want
+        // to get this working before trying to consolidate.
+        if (bottomRight.Dimensions.Width > 0 && bottomRight.Dimensions.Height > 0)
         {
-            var innerDrawSize = new Dimensions(
-                drawSize.Width - horizontalOverdraw, 
-                drawSize.Height - verticalOverdraw);
-            
-            Console.WriteLine($"First draw: ({topLeftOnLayer}), ({topLeftOnTexture}), {innerDrawSize}");
-
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
                 topLeftOnTexture,
-                topLeftOnLayer,
-                innerDrawSize,
-                transparencyColor));
+                bottomRight.Start,
+                bottomRight.Dimensions,
+                transparency));
         }
 
-        if (horizontalOverdraw > 0)
+        if (bottomLeft.Dimensions.Width > 0 && bottomLeft.Dimensions.Height > 0)
         {
-            var layerCoords = new Point(0, topLeftOnLayer.Y);
-            var textureCoords = new Point(
-                topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
-                topLeftOnTexture.Y);
-
-            var innerDrawSize = new Dimensions(horizontalOverdraw, drawSize.Height - verticalOverdraw);
-            
-            Console.WriteLine($"Second draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                textureCoords,
-                layerCoords,
-                innerDrawSize,
-                transparencyColor));
+                topLeftOnTexture with { X = topLeftOnTexture.X + bottomRight.Dimensions.Width },
+                bottomLeft.Start,
+                bottomLeft.Dimensions,
+                transparency));
         }
 
-        if (verticalOverdraw > 0)
+        if (topRight.Dimensions.Width > 0 && topRight.Dimensions.Height > 0)
         {
-            var layerCoords = new Point(topLeftOnLayer.X, 0);
-            var textureCoords = new Point(
-                topLeftOnTexture.X,
-                topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
-
-            var innerDrawSize = drawSize with { Height = verticalOverdraw };
-            
-            Console.WriteLine($"Third draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                textureCoords,
-                layerCoords,
-                innerDrawSize,
-                transparencyColor));
+                 topLeftOnTexture with { Y = topLeftOnTexture.Y + bottomRight.Dimensions.Height },
+                topRight.Start,
+                topRight.Dimensions,
+                transparency));
         }
 
-        if (verticalOverdraw > 0 && horizontalOverdraw > 0)
+        if (topLeft.Dimensions.Width > 0 && topLeft.Dimensions.Height > 0)
         {
-            var layerCoords = new Point(0, 0);
-            var textureCoords = new Point(
-                topLeftOnTexture.X + (drawSize.Width - horizontalOverdraw),
-                topLeftOnTexture.Y + (drawSize.Height - verticalOverdraw));
-
-            var innerDrawSize = new Dimensions(horizontalOverdraw, verticalOverdraw);
-            
-            Console.WriteLine($"Fourth draw: ({layerCoords}), ({textureCoords}), {innerDrawSize}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                textureCoords,
-                layerCoords,
-                innerDrawSize,
-                transparencyColor));
+                new Point(
+                    topLeftOnTexture.X + bottomRight.Dimensions.Width, 
+                    topLeftOnTexture.Y + bottomRight.Dimensions.Height),
+                topLeft.Start,
+                topLeft.Dimensions,
+                transparency));
         }
     }
 
@@ -250,7 +251,7 @@ public class Layer
     public void Shift(Vector2 shiftAmount)
     {
         // The naive approach to shifting the layer around would be to rotate the actual bytes
-        // in the buffer around. This requires 3 array copy calls per row (1 for the pixels that
+        // in the buffer around. This requires 3 array copy calls per row (1 for the pixels that''
         // will move off layer into a temporary buffer, one to move the remaining pixels over,
         // then a third to move the pixels from the temporary buffer to their wrapped around
         // area. This is particularly costly when most layers will only shift one pixel at a
