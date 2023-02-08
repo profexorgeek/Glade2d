@@ -12,14 +12,20 @@ namespace GladePlatformer.Shared;
 public class LevelHandler : IDisposable
 {
     private const byte MaxGroundStack = 3;
+    private const float TreeSpeedMultiplier = 0.5f;
+    private const float MountainSpeedMultiplier = 0.2f;
+    
     public record LevelData(IReadOnlyList<byte> SectionHeights);
     private readonly record struct GroundSection(int Index, int LayerStartX);
 
-    private readonly Layer _layer;
+    private readonly Layer _groundLayer;
     private readonly LevelData _levelData;
     private readonly GroundChunk _ground;
     private readonly BufferRgb565 _sectionClearTexture;
     private readonly int _screenHeight;
+    private readonly Layer _skyLayer;
+    private readonly Layer _treeLayer;
+    private readonly Layer _mountainLayer;
     private float _lastPlayerPositionX;
     private float _movementSinceLastDraw;
 
@@ -29,17 +35,20 @@ public class LevelHandler : IDisposable
         
         _levelData = levelData;
         _ground = new GroundChunk();
-        _layer = CreateLevelLayer(_ground);
+        _groundLayer = CreateGroundLayer(_ground);
+        _skyLayer = CreateSkyLayer();
+        _treeLayer = CreateTreeLayer();
+        _mountainLayer = CreateMountainLayer();
         _sectionClearTexture = CreateSectionClearTexture();
         
-        Console.WriteLine($"Layer: {_layer.Width}x{_layer.Height}");
+        Console.WriteLine($"Layer: {_groundLayer.Width}x{_groundLayer.Height}");
         
         // Draw the initial level sections that are "visible" on the layer
-        var (left, right) = GetSectionUnderPlayer(0);
+        var (left, _) = GetSectionUnderPlayer(0);
         
         // Draw right sections
         var section = left;
-        while (section.LayerStartX <= _layer.Width)
+        while (section.LayerStartX <= _groundLayer.Width)
         {
             DrawGround(section);
             section = new GroundSection(
@@ -114,7 +123,9 @@ public class LevelHandler : IDisposable
         }
 
         var movedBy = playerPositionX - _lastPlayerPositionX;
-        _layer.Shift(new Vector2(-movedBy, 0));
+        _groundLayer.Shift(new Vector2(-movedBy, 0));
+        _treeLayer.Shift(new Vector2(-movedBy * TreeSpeedMultiplier, 0));
+        _mountainLayer.Shift(new Vector2(-movedBy * MountainSpeedMultiplier, 0));
         _lastPlayerPositionX = playerPositionX;
 
         _movementSinceLastDraw += movedBy;
@@ -122,7 +133,7 @@ public class LevelHandler : IDisposable
         {
             // We've moved at least a full tile width, so redraw tile at edge
             var (leftTile, _) = GetSectionUnderPlayer(playerPositionX);
-            var totalTilesOnLayer = _layer.Width / GroundChunk.ChunkWidth;
+            var totalTilesOnLayer = _groundLayer.Width / GroundChunk.ChunkWidth;
 
             GroundSection sectionToDraw;
             if (_movementSinceLastDraw < 0)
@@ -157,10 +168,13 @@ public class LevelHandler : IDisposable
 
     public void Dispose()
     {
-        GameService.Instance.GameInstance.LayerManager.RemoveLayer(_layer);
+        GameService.Instance.GameInstance.LayerManager.RemoveLayer(_groundLayer);
+        GameService.Instance.GameInstance.LayerManager.RemoveLayer(_treeLayer);
+        GameService.Instance.GameInstance.LayerManager.RemoveLayer(_mountainLayer);
+        GameService.Instance.GameInstance.LayerManager.RemoveLayer(_skyLayer);
     }
 
-    private static Layer CreateLevelLayer(GroundChunk ground)
+    private static Layer CreateGroundLayer(GroundChunk ground)
     {
         var renderer = GameService.Instance.GameInstance.Renderer;
         
@@ -185,12 +199,92 @@ public class LevelHandler : IDisposable
         return layer;
     }
 
+    private static Layer CreateSkyLayer()
+    {
+        var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        var skyChunk = new SkyChunk();
+        
+        // Sky doesn't move, so it can be the same width of the screen
+        var layer = Layer.Create(new Dimensions(screenWidth, skyChunk.CurrentFrame.Height));
+        layer.CameraOffset = new Point(0);
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
+        for (var x = 0; x < screenWidth; x += skyChunk.CurrentFrame.Width)
+        {
+            layer.DrawTexture(skyChunk.CurrentFrame, new Point(x));
+        }
+
+        return layer;
+    }
+
+    private static Layer CreateTreeLayer()
+    {
+        var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        var screenHeight = GameService.Instance.GameInstance.Renderer.Height;
+        var tree = new Tree();
+        var ground = new GroundChunk();
+        
+        // We want to make sure the layer is at least as wide as the screen, 
+        // but also wide enough that it can tile with itself, so no seams show
+        // when it scrolls. The trees will be staggered in two "depths", with
+        // every other in front of the two surrounding to it.
+        var layerWidth = screenWidth +
+                         (screenWidth % (tree.CurrentFrame.Width / 2));
+        
+        var layer = Layer.Create(new Dimensions(layerWidth, tree.CurrentFrame.Height));
+        layer.CameraOffset = new Point( 0, screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
+        layer.BackgroundColor = new Color(79, 84, 107); // Mountain color
+        layer.Clear();
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
+        
+        // Draw background trees first
+        for (var x = 0; x < layerWidth; x += tree.CurrentFrame.Width)
+        {
+            layer.DrawTexture(tree.CurrentFrame, new Point(x));
+        }
+        
+        // Now draw the foreground trees
+        for (var x = tree.CurrentFrame.Width / 2; x < layerWidth; x += tree.CurrentFrame.Width)
+        {
+            layer.DrawTexture(tree.CurrentFrame, new Point(x));
+        }
+
+        return layer;
+    }
+
+    private static Layer CreateMountainLayer()
+    {
+        var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        var screenHeight = GameService.Instance.GameInstance.Renderer.Height;
+        var mountain = new MountainChunk();
+        
+        // We want to make sure the layer is at least as wide as the screen, 
+        // but also wide enough that it can tile with itself, so no seams show
+        // when it scrolls. 
+        var layerWidth = screenWidth + (screenWidth % (mountain.CurrentFrame.Width));
+        
+        var layer = Layer.Create(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
+        layer.BackgroundColor = new Color(57, 120, 168);
+        layer.CameraOffset = new Point( 0, screenHeight - 16 - mountain.CurrentFrame.Height);
+        layer.Clear();
+        
+        GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -3);
+
+        for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
+        {
+            layer.DrawTexture(mountain.CurrentFrame, new Point(x));
+        }
+
+        return layer;
+    }
+
     private BufferRgb565 CreateSectionClearTexture()
     {
         var width = _ground.CurrentFrame.Width;
         var height = _ground.CurrentFrame.Height * MaxGroundStack;
         var buffer = new BufferRgb565(width, height);
-        buffer.Fill(_layer.TransparentColor);
+        buffer.Fill(_groundLayer.TransparentColor);
         
         return buffer;
     }
@@ -201,7 +295,7 @@ public class LevelHandler : IDisposable
         var tileOffset = horizontalOffset / groundWidth;
         var leftTileIndex = (int)tileOffset;
         var pixelsFromLeftTileStart = (int)(horizontalOffset % groundWidth);
-        var leftTileStart = _layer.Width / 2 - pixelsFromLeftTileStart;
+        var leftTileStart = _groundLayer.Width / 2 - pixelsFromLeftTileStart;
         var leftTile = new GroundSection(leftTileIndex, leftTileStart);
         
         // Is the player overlapping a different tile on its right? We are assuming
@@ -217,10 +311,10 @@ public class LevelHandler : IDisposable
     private void DrawGround(GroundSection sectionToDraw)
     {
         // Clear this ground section
-        var heightToClear = _layer.Height - _ground.CurrentFrame.Height * MaxGroundStack;
-        _layer.DrawTexture(
+        var heightToClear = _groundLayer.Height - _ground.CurrentFrame.Height * MaxGroundStack;
+        _groundLayer.DrawTexture(
             _sectionClearTexture,
-            new Point(0, 0),
+            new Point(0),
             new Point(sectionToDraw.LayerStartX, heightToClear),
             new Dimensions(_sectionClearTexture.Width, _sectionClearTexture.Height),
             true); // ignore transparency for this draw call
@@ -230,8 +324,8 @@ public class LevelHandler : IDisposable
         for (var x = 0; x < height; x++)
         {
             var startX = sectionToDraw.LayerStartX;
-            var startY = _layer.Height - _ground.CurrentFrame.Height * (x + 1);
-            _layer.DrawTexture(_ground.CurrentFrame, new Point(startX, startY));
+            var startY = _groundLayer.Height - _ground.CurrentFrame.Height * (x + 1);
+            _groundLayer.DrawTexture(_ground.CurrentFrame, new Point(startX, startY));
         }
     }
 
