@@ -131,16 +131,20 @@ public class LevelHandler : IDisposable
         _movementSinceLastDraw += movedBy;
         if (Math.Abs(_movementSinceLastDraw) >= GroundChunk.ChunkWidth)
         {
-            // We've moved at least a full tile width, so redraw tile at edge
+            // We've moved at least a full tile width, so redraw the 2nd to last tile at edge.
+            // We want to draw the 2nd to last tile instead of the last, because the last one
+            // is most likely obscured by the edge of the layer. This guarantees we draw a 
+            // complete ground tile.
             var (leftTile, _) = GetSectionUnderPlayer(playerPositionX);
             var totalTilesOnLayer = _groundLayer.Width / GroundChunk.ChunkWidth;
+            Console.WriteLine($"Tile counts: {totalTilesOnLayer}");
 
             GroundSection sectionToDraw;
             if (_movementSinceLastDraw < 0)
             {
                 var layerStartX = leftTile.LayerStartX;
                 var tileIndex = leftTile.Index;
-                for (var x = 0; x < totalTilesOnLayer / 2; x++)
+                for (var x = 0; x < (totalTilesOnLayer / 2) - 1; x++)
                 {
                     layerStartX -= GroundChunk.ChunkWidth;
                     tileIndex--;
@@ -152,7 +156,7 @@ public class LevelHandler : IDisposable
             {
                 var layerStartX = leftTile.LayerStartX;
                 var tileIndex = leftTile.Index;
-                for (var x = 0; x < totalTilesOnLayer / 2; x++)
+                for (var x = 0; x < (totalTilesOnLayer / 2) - 1; x++)
                 {
                     layerStartX += GroundChunk.ChunkWidth;
                     tileIndex++;

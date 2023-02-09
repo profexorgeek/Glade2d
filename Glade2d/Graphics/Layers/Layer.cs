@@ -151,53 +151,57 @@ public class Layer
             var moveCount = topLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height;
             drawSize = new Dimensions(drawSize.Width, drawSize.Height - moveCount);
         }
+
+        if (drawSize.Width <= 0 || drawSize.Height <= 0)
+        {
+            // nothing to draw
+            return;
+        }
+        
+        var transparency = ignoreTransparency
+            ? (Color?)null
+            : TransparentColor;
         
         // Layer shifting means we can't just apply the texture as is, but we need to 
         // adjust it based on the internal offset. Split the drawable portions into 
         // quadrants and render each individually.
         var adjustedTopLeftOnLayer = topLeftOnLayer + new Point((int)_internalOrigin.X, (int)_internalOrigin.Y);
-        var bottomRight = new DrawableRectangle(
-            adjustedTopLeftOnLayer,
-            new Dimensions(
-                Math.Max(adjustedTopLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0),
-                Math.Max(adjustedTopLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0)));
         
-        var bottomLeft = new DrawableRectangle(
-            adjustedTopLeftOnLayer with {X = 0},
-            new Dimensions(
-                drawSize.Width - bottomRight.Dimensions.Width,
-                Math.Max(adjustedTopLeftOnLayer.Y + drawSize.Height - _layerBuffer.Height, 0)));
-
-        var topRight = new DrawableRectangle(
-            adjustedTopLeftOnLayer with { Y = 0 },
-            new Dimensions(
-                Math.Max(adjustedTopLeftOnLayer.X + drawSize.Width - _layerBuffer.Width, 0),
-                drawSize.Height - bottomRight.Dimensions.Height));
-
-        var topLeft = new DrawableRectangle(
-            new Point(0, 0),
-            new Dimensions(
-                drawSize.Width - bottomRight.Dimensions.Width,
-                drawSize.Height - bottomRight.Dimensions.Height));
-
-        var transparency = ignoreTransparency
-            ? (Color?)null
-            : TransparentColor;
-       
-        Console.WriteLine($"Internal origin: {_internalOrigin}");
-        Console.WriteLine($"Top left on layer: ({topLeftOnLayer}) ({adjustedTopLeftOnLayer})");
-        Console.WriteLine($"BR: {bottomRight}");
-        Console.WriteLine($"BL: {bottomLeft}");
-        Console.WriteLine($"TR: {topRight}");
-        Console.WriteLine($"TL: {topLeft}");
+        // How far off the layer does this texture end up starting. E.g. if the internal origin is
+        // in the center of the layer, and the texture is being drawn on the (unadjusted) right side
+        // of the layer, then the adjusted position will cause the texture's starting points to be 
+        // wrapped around and not painted on the actual right side of the layer. 
+        //
+        // If the adjusted start position does not go off the layer boundaries, then it has an
+        // under-draw of 0.
+        var horizontalUnderDraw = Math.Max(adjustedTopLeftOnLayer.X - _layerBuffer.Width, 0);
+        var verticalUnderDraw = Math.Max(adjustedTopLeftOnLayer.Y - _layerBuffer.Height, 0);
         
-        // We probably should be able to re-use the calculate operation method below, but I'm not sure
-        // that will work as it's designed around camera offsets, which isn't relevant to texture
-        // drawing. So for now just have custom code to calculate the drawing operations. This makes
-        // me feel like the render code can be simplified to match this version, but I just want
-        // to get this working before trying to consolidate.
-        if (bottomRight.Dimensions.Width > 0 && bottomRight.Dimensions.Height > 0)
+        // How far would this texture be drawn past the bounds of the layer after being adjusted
+        // by the internal origin.
+        var horizontalOverdraw = Math.Max(adjustedTopLeftOnLayer.X + drawSize.Width - _layerBuffer.Width - horizontalUnderDraw, 0);
+        var verticalOverdraw = Math.Max(adjustedTopLeftOnLayer.Y + drawSize.Height - +_layerBuffer.Height - verticalUnderDraw, 0);
+        
+        // Where on the texture we start pulling pixels from
+        var horizontalOverdrawTextureX = topLeftOnTexture.X + drawSize.Width - horizontalOverdraw;
+        var verticalOverdrawTextureY = topLeftOnTexture.Y + drawSize.Height - verticalOverdraw;
+
+        // Console.WriteLine($"Internal origin: {_internalOrigin}");
+        // Console.WriteLine($"Top left on layer: ({topLeftOnLayer}) ({adjustedTopLeftOnLayer})");
+        // Console.WriteLine($"Draw size: {drawSize}");
+        // Console.WriteLine($"Horizontal: {horizontalOverdraw} {horizontalUnderDraw} {horizontalOverdrawTextureX}");
+        // Console.WriteLine($"Vertical: {verticalOverdraw} {verticalUnderDraw} {verticalOverdrawTextureY}");
+     
+        // Paint part of the texture to the bottom right of the internal origin
+        if (adjustedTopLeftOnLayer.X < _layerBuffer.Width && adjustedTopLeftOnLayer.Y < _layerBuffer.Height)
         {
+            var bottomRight = new DrawableRectangle(
+                adjustedTopLeftOnLayer,
+                new Dimensions(
+                    drawSize.Width - horizontalOverdraw,
+                    drawSize.Height - verticalOverdraw));
+            
+            // Console.WriteLine($"BR: {bottomRight}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
@@ -206,37 +210,58 @@ public class Layer
                 bottomRight.Dimensions,
                 transparency));
         }
-
-        if (bottomLeft.Dimensions.Width > 0 && bottomLeft.Dimensions.Height > 0)
+       
+        // Draw part of the texture to the bottom left of the internal origin
+        if (horizontalOverdraw > 0 && adjustedTopLeftOnLayer.Y < _layerBuffer.Height)
         {
+            var bottomLeft = new DrawableRectangle(
+                adjustedTopLeftOnLayer with { X = horizontalUnderDraw },
+                new Dimensions(
+                    horizontalOverdraw,
+                    drawSize.Height - verticalOverdraw));
+            
+            // Console.WriteLine($"BL: {bottomLeft}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                topLeftOnTexture with { X = topLeftOnTexture.X + bottomRight.Dimensions.Width },
+                topLeftOnTexture with { X = horizontalOverdrawTextureX },
                 bottomLeft.Start,
                 bottomLeft.Dimensions,
-                transparency));
+                transparency
+            ));
         }
-
-        if (topRight.Dimensions.Width > 0 && topRight.Dimensions.Height > 0)
+        
+        // Draw part of the texture to the top right of the internal origin
+        if (verticalOverdraw > 0)
         {
+            var topRight = new DrawableRectangle(
+                adjustedTopLeftOnLayer with { Y = verticalUnderDraw },
+                new Dimensions(
+                    drawSize.Width - horizontalOverdraw,
+                    verticalOverdraw));
+            
+            // Console.WriteLine($"TR: {topRight}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                 topLeftOnTexture with { Y = topLeftOnTexture.Y + bottomRight.Dimensions.Height },
+                topLeftOnTexture with { Y = verticalOverdrawTextureY },
                 topRight.Start,
                 topRight.Dimensions,
                 transparency));
         }
-
-        if (topLeft.Dimensions.Width > 0 && topLeft.Dimensions.Height > 0)
+        
+        // Draw part of the texture to the top left of the internal origin
+        if (horizontalOverdraw > 0 && verticalOverdraw > 0)
         {
+            var topLeft = new DrawableRectangle(
+                new Point(horizontalUnderDraw, verticalUnderDraw),
+                new Dimensions(horizontalOverdraw, verticalOverdraw));
+            
+            // Console.WriteLine($"TL: {topLeft}");
             Drawing.ExecuteOperation(new Drawing.Operation(
                 texture,
                 _layerBuffer,
-                new Point(
-                    topLeftOnTexture.X + bottomRight.Dimensions.Width, 
-                    topLeftOnTexture.Y + bottomRight.Dimensions.Height),
+                new Point(horizontalOverdrawTextureX, verticalOverdrawTextureY),
                 topLeft.Start,
                 topLeft.Dimensions,
                 transparency));
