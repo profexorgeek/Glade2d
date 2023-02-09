@@ -137,7 +137,6 @@ public class LevelHandler : IDisposable
             // complete ground tile.
             var (leftTile, _) = GetSectionUnderPlayer(playerPositionX);
             var totalTilesOnLayer = _groundLayer.Width / GroundChunk.ChunkWidth;
-            Console.WriteLine($"Tile counts: {totalTilesOnLayer}");
 
             GroundSection sectionToDraw;
             if (_movementSinceLastDraw < 0)
@@ -324,7 +323,6 @@ public class LevelHandler : IDisposable
             true); // ignore transparency for this draw call
 
         var height = GetSectionHeight(sectionToDraw.Index);
-        Console.WriteLine($"Drawing section {sectionToDraw.Index} height = {height}");
         for (var x = 0; x < height; x++)
         {
             var startX = sectionToDraw.LayerStartX;
