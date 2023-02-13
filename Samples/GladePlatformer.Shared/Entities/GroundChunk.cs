@@ -1,6 +1,6 @@
 ﻿using Glade2d.Graphics;
 
-namespace GladeSampleShared.Entities
+namespace GladePlatformer.Shared.Entities
 {
     public class GroundChunk : Sprite
     {

@@ -93,10 +93,10 @@ namespace SampleInput
                 dataCommandPort: dcPort,
                 resetPort: resetPort,
                 width: 240, height: 240,
-                colorMode: ColorType.Format16bppRgb565
+                colorMode: ColorMode.Format16bppRgb565
                 );
             
-            st7789.SetRotation(TftSpiBase.Rotation.Rotate_90);
+            st7789.SetRotation(RotationType._90Degrees);
             display = st7789;
         }
 

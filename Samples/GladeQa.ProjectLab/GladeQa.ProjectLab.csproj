@@ -1,5 +1,4 @@
 <Project Sdk="Meadow.Sdk/1.1.0">
-
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -20,13 +19,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="meadow.config.yaml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <None Update="meadow.config.yaml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
-      <ProjectReference Include="..\GladeInvade.Shared\GladeInvade.Shared.csproj" />
+        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+        <ProjectReference Include="..\GladeQa.Shared\GladeQa.Shared.csproj" />
     </ItemGroup>
 </Project>

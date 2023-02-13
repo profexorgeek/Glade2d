@@ -4,6 +4,7 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using Meadow.Foundation.Graphics;
 using System.Threading;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Profiling;
 
@@ -37,6 +38,10 @@ namespace Glade2d
         /// The profiler instance to track performance metrics
         /// </summary>
         public Profiler Profiler { get; } = new();
+        
+        public LayerManager LayerManager { get; private set; }
+
+        public TextureManager TextureManager { get; } = new();
 
         public Game() { }
 
@@ -47,11 +52,17 @@ namespace Glade2d
         {
             LogService.Log.Trace("Initializing Renderer...");
 
+            LayerManager = new LayerManager();
+            
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
 
             // init renderer
-            Renderer = new Renderer(display, displayScale);
+            Renderer = new Renderer(display,
+                TextureManager, 
+                LayerManager,
+                Profiler,
+                displayScale);
 
             Mode = mode;
 
@@ -60,6 +71,11 @@ namespace Glade2d
 
         public void Start(Screen startupScreen = null)
         {
+            if (GameService.Instance.CurrentScreen is IDisposable oldScreen)
+            {
+                oldScreen.Dispose();
+            }
+            
             Profiler.Reset();
             var screen = startupScreen ?? new Screen();
 
@@ -116,24 +132,9 @@ namespace Glade2d
         public void Draw()
         {
             Renderer.Reset();
-            var screen = GameService.Instance.CurrentScreen;
-            if (screen != null)
-            {
-                // TODO: this is a hack, figure out how to protect list
-                // while also making it available to the renderer
-                
-                Profiler.StartTiming("Renderer.DrawSprites");
-                var sprites = screen.AccessSpritesForRenderingOnly();
-                for (var i = 0; i < sprites.Count; i++)
-                {
-                    Renderer.DrawSprite(sprites[i]);
-                }
-                Profiler.StopTiming("Renderer.DrawSprites");
-            }
-           
-            Profiler.StartTiming("Renderer.RenderToDisplay");
-            Renderer.RenderToDisplay();
-            Profiler.StopTiming("Renderer.RenderToDisplay");
+
+            var sprites = GameService.Instance.CurrentScreen?.AccessSpritesForRenderingOnly();
+            Renderer.Render(sprites);
         }
     }
 }
