@@ -14,6 +14,12 @@ namespace Glade2d.Graphics;
 public class TextureManager
 {
     private readonly Dictionary<string, BufferRgb565> _textures = new();
+    private readonly string _contentRoot;
+
+    public TextureManager(string contentRoot)
+    {
+        _contentRoot = contentRoot;
+    }
     
     /// <summary>
     /// Loads a new texture
@@ -57,10 +63,10 @@ public class TextureManager
     /// </summary>
     /// <param name="name">The bitmap file path</param>
     /// <returns>An IDisplayBuffer containing bitmap data</returns>
-    private static BufferRgb565 LoadBitmapFile(string name)
+    private BufferRgb565 LoadBitmapFile(string name)
     {
         LogService.Log.Trace($"Attempting to LoadBitmapFile: {name}");
-        var filePath = Path.Combine(MeadowOS.FileSystem.UserFileSystemRoot, name);
+        var filePath = Path.Combine(_contentRoot, name);
 
         try
         {

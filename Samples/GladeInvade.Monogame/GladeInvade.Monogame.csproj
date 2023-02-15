@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+      <ProjectReference Include="..\GladeInvade.Shared\GladeInvade.Shared.csproj" />
+      <PackageReference Include="Meadow.Foundation" Version="0.94.2" />
+      <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
+      <PackageReference Include="MeadowMgTestEnvironment" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>
