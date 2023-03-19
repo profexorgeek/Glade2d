@@ -64,32 +64,47 @@ internal static class Drawing
         
         var layerBuffer = operation.Source.Buffer;
         var layerWidth = operation.Source.Width;
-        var targetBuffer = operation.Target.Buffer;
         var targetWidth = operation.Target.Width;
         var totalHeight = operation.Dimensions.Height;
         var totalWidth = operation.Dimensions.Width;
-        
-        for (var row = 0; row < totalHeight; row++)
+
+        unsafe
         {
-            var layerRow = row + operation.SourceStart.Y;
-            var targetRow = row + operation.TargetStart.Y;
-            var layerStartIndex = GetBufferIndex(operation.SourceStart.X, layerRow, layerWidth);
-            var targetStartIndex = GetBufferIndex(operation.TargetStart.X, targetRow, targetWidth);
-
-            for (var col = 0; col < totalWidth; col++)
+            fixed (byte* sourceBufferPtr = operation.Source.Buffer)
+            fixed (byte* targetBufferPtr = operation.Target.Buffer)
             {
-                var layerIndex = layerStartIndex + (col * BytesPerPixel);
-                var targetIndex = targetStartIndex + (col * BytesPerPixel);
+                var sourceStartIndex = GetBufferIndex(operation.SourceStart.X, 
+                    operation.SourceStart.Y,
+                    operation.Source.Width);
 
-                if (layerBuffer[layerIndex] == transparencyColorByte1 &&
-                    layerBuffer[layerIndex + 1] == transparencyColorByte2)
+                var targetStartIndex = GetBufferIndex(operation.TargetStart.X,
+                    operation.TargetStart.Y,
+                    operation.Target.Width);
+
+                var sourceBytesPerRow = operation.Source.Width * BytesPerPixel;
+                var targetBytesPerRow = operation.Target.Width * BytesPerPixel;
+                
+                for (var row = 0; row < totalHeight; row++)
                 {
-                    // Byte is transparent so ignore it
-                    continue;
-                }
+                    var sourceByte1 = sourceBufferPtr + sourceStartIndex + (row * sourceBytesPerRow);
+                    var sourceByte2 = sourceByte1 + 1;
+                    var targetByte1 = targetBufferPtr + targetStartIndex + (row * targetBytesPerRow);
+                    var targetByte2 = targetByte1 + 1;
 
-                targetBuffer[targetIndex] = layerBuffer[layerIndex];
-                targetBuffer[targetIndex + 1] = layerBuffer[layerIndex + 1];
+                    for (var col = 0; col < totalWidth; col++)
+                    {
+                        if (*sourceByte1 != transparencyColorByte1 || *sourceByte2 != transparencyColorByte2)
+                        {
+                            *targetByte1 = *sourceByte1;
+                            *targetByte2 = *sourceByte2;
+                        }
+
+                        sourceByte1 += BytesPerPixel;
+                        sourceByte2 += BytesPerPixel;
+                        targetByte1 += BytesPerPixel;
+                        targetByte2 += BytesPerPixel;
+                    }
+                }
             }
         }
     }
