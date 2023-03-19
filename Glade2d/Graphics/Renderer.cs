@@ -120,14 +120,15 @@ namespace Glade2d.Graphics
             if (Scale > 1)
             {
                 GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Scale");
-                if (RenderInSafeMode)
-                {
-                    ShowSafeMode();
-                }
-                else
-                {
-                    ShowFastMode();
-                }
+                CopyToDisplay();
+                // if (RenderInSafeMode)
+                // {
+                //     ShowSafeMode();
+                // }
+                // else
+                // {
+                //     ShowFastMode();
+                // }
                 GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Scale");
             }
             // if we're not doing a scaled draw, our buffers should match
@@ -196,6 +197,49 @@ namespace Glade2d.Graphics
                         {
                             display.DrawPixel(tX + x1, tY + y1, color);
                         }
+                    }
+                }
+            }
+        }
+
+        private void CopyToDisplay()
+        {
+            unsafe
+            {
+                fixed (byte* displayBufferPtr = display.PixelBuffer.Buffer)
+                fixed (byte* pixelBufferPtr = pixelBuffer.Buffer)
+                {
+                    var sourceByte1 = pixelBufferPtr;
+                    var sourceByte2 = sourceByte1 + 1;
+                    var sourceWidth = pixelBuffer.Width;
+                    var targetByte1 = displayBufferPtr;
+                    var targetByte2 = targetByte1 + 1;
+                    var targetWidth = display.Width;
+
+                    var rowStart = sourceByte1;
+                    for (var sourceRow = 0; sourceRow < pixelBuffer.Height; sourceRow++)
+                    {
+                        for (var rowScale = 0; rowScale < Scale; rowScale++)
+                        {
+                            sourceByte1 = rowStart;
+                            sourceByte2 = sourceByte1 + 1;
+                            for (var col = 0; col < sourceWidth; col++)
+                            {
+                                for (var scale = 0; scale < Scale; scale++)
+                                {
+                                    *targetByte1 = *sourceByte1;
+                                    *targetByte2 = *sourceByte2;
+
+                                    targetByte1 += BytesPerPixel;
+                                    targetByte2 += BytesPerPixel;
+                                }
+                                
+                                sourceByte1 += BytesPerPixel;
+                                sourceByte2 += BytesPerPixel;
+                            }
+                        }
+
+                        rowStart += sourceWidth * BytesPerPixel;
                     }
                 }
             }
