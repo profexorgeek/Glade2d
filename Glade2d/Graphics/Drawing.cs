@@ -62,9 +62,6 @@ internal static class Drawing
         var transparencyColorByte1 = (byte)(transparencyShort >> 8);
         var transparencyColorByte2 = (byte)transparencyShort;
         
-        var layerBuffer = operation.Source.Buffer;
-        var layerWidth = operation.Source.Width;
-        var targetWidth = operation.Target.Width;
         var totalHeight = operation.Dimensions.Height;
         var totalWidth = operation.Dimensions.Width;
 
