@@ -120,16 +120,10 @@ namespace Glade2d.Graphics
             if (Scale > 1)
             {
                 GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Scale");
-                if (RenderInSafeMode)
-                {
-                    ShowSafeMode();
-                }
-                else
-                {
-                    ShowFastMode();
-                }
+                ScaleIntoDisplayBuffer();
                 GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Scale");
             }
+            
             // if we're not doing a scaled draw, our buffers should match
             // draw the pixel buffer to the display
             else if (pixelBuffer != display.PixelBuffer)
@@ -177,71 +171,54 @@ namespace Glade2d.Graphics
             }
         }
 
-        private void ShowSafeMode()
+        private void ScaleIntoDisplayBuffer()
         {
-            // loop through X & Y, drawing pixels from buffer to device
-            for (int x = 0; x < pixelBuffer.Width; x++)
+            // Copy the pixel buffer to the display buffer. Since the pixel buffer is scaled
+            // down, we need to scale it up to the display buffer's resolution.
+            unsafe
             {
-                for (int y = 0; y < pixelBuffer.Height; y++)
+                fixed (byte* displayBufferPtr = display.PixelBuffer.Buffer)
+                fixed (byte* pixelBufferPtr = pixelBuffer.Buffer)
                 {
-                    // the target X and Y are based on the Scale
-                    var tX = x * Scale;
-                    var tY = y * Scale;
-                    var color = pixelBuffer.GetPixel(x, y);
+                    var sourceWidth = pixelBuffer.Width;
+                    var targetWidth = display.Width;
 
-                    // draw the pixel multiple times to scale
-                    for (var x1 = 0; x1 < Scale; x1++)
+                    for (var sourceRow = 0; sourceRow < pixelBuffer.Height; sourceRow++)
                     {
-                        for (var y1 = 0; y1 < Scale; y1++)
+                        // First copy the source row scaled horizontally
+                        var sourceByte1 = pixelBufferPtr + (sourceRow * sourceWidth * BytesPerPixel);
+                        var targetByte1 = displayBufferPtr + (sourceRow * targetWidth * Scale * BytesPerPixel);
+
+                        for (var sourceCol = 0; sourceCol < pixelBuffer.Width; sourceCol++)
                         {
-                            display.DrawPixel(tX + x1, tY + y1, color);
+                            for (var scale = 0; scale < Scale; scale++)
+                            {
+                                *targetByte1 = *sourceByte1;
+                                *(targetByte1 + 1) = *(sourceByte1 + 1);
+
+                                targetByte1 += BytesPerPixel;
+                            }
+
+                            sourceByte1 += BytesPerPixel;
+                        }
+
+                    
+                        // Next copy the previous pre-scaled target row for all scaled rows
+                        var copyFromStartIndex = targetWidth * sourceRow * Scale * BytesPerPixel;
+                        
+                        for (var scale = 1; scale < Scale; scale++)
+                        {
+                            var copyToStartIndex = copyFromStartIndex + targetWidth * scale * BytesPerPixel;
+                            Array.Copy(
+                                display.PixelBuffer.Buffer, 
+                                copyFromStartIndex, 
+                                display.PixelBuffer.Buffer, 
+                                copyToStartIndex,
+                                targetWidth * BytesPerPixel);
                         }
                     }
                 }
             }
-        }
-
-        private void ShowFastMode()
-        {
-            var displayBuffer = display.PixelBuffer.Buffer;
-            var displayBufferWidth = display.PixelBuffer.Width;
-            var sourceBuffer = pixelBuffer.Buffer;
-            var sourceBufferWidth = pixelBuffer.Width;
-            var sourceBufferHeight = pixelBuffer.Height;
-            var displayBytesPerRow = display.PixelBuffer.Width * BytesPerPixel;
-
-            for (var y = 0; y < sourceBufferHeight; y++)
-            {
-                var yScaled = y * Scale;
-
-                // First draw all of the pixels in a row into the
-                // destination buffer
-                for (var x = 0; x < sourceBufferWidth; x++)
-                {
-                    var frameIndex = (y * sourceBufferWidth + x) * BytesPerPixel;
-                    var colorByte1 = sourceBuffer[frameIndex];
-                    var colorByte2 = sourceBuffer[frameIndex + 1];
-                    var xScaled = x * Scale;
-                    for (var i = 0; i < Scale; i++)
-                    {
-                        var index = (yScaled * displayBufferWidth + xScaled + i) * BytesPerPixel;
-                        displayBuffer[index] = colorByte1;
-                        displayBuffer[index + 1] = colorByte2;
-                    }
-                }
-
-                // now that we have drawn a row, blit the entire row
-                // this is 1-indexed because we've already drawn the first row
-                // [Scale] more times on the Y axis - this is faster than
-                // drawing pixel-by-pixel!
-                for (var i = 1; i < Scale; i++)
-                {
-                    var copyFromStartIndex = yScaled * displayBufferWidth * BytesPerPixel;
-                    var copyToStartIndex = (yScaled + i) * displayBufferWidth * BytesPerPixel;
-                    
-                    Array.Copy(displayBuffer, copyFromStartIndex, displayBuffer, copyToStartIndex, displayBytesPerRow);
-                }
-            } 
         }
     }
 }

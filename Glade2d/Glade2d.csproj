@@ -15,6 +15,12 @@
 		<NoWarn>1591</NoWarn>
 		<LangVersion>10.0</LangVersion>
 	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
   <ItemGroup>
     <Compile Remove="Content\**" />
     <EmbeddedResource Remove="Content\**" />
