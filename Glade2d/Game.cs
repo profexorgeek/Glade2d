@@ -7,6 +7,7 @@ using System.Threading;
 using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Profiling;
+using Meadow;
 
 namespace Glade2d
 {
@@ -38,21 +39,22 @@ namespace Glade2d
         /// The profiler instance to track performance metrics
         /// </summary>
         public Profiler Profiler { get; } = new();
-        
-        public LayerManager LayerManager { get; private set; }
 
-        public TextureManager TextureManager { get; } = new();
+        public LayerManager LayerManager { get; } = new();
+
+        public TextureManager TextureManager { get; private set; }
 
         public Game() { }
 
         public virtual void Initialize(
             IGraphicsDisplay display, 
             int displayScale = 1, 
-            EngineMode mode = EngineMode.GameLoop)
+            EngineMode mode = EngineMode.GameLoop,
+            string contentRoot = null)
         {
             LogService.Log.Trace("Initializing Renderer...");
 
-            LayerManager = new LayerManager();
+            TextureManager = new TextureManager(contentRoot ?? MeadowOS.FileSystem.UserFileSystemRoot);
             
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
