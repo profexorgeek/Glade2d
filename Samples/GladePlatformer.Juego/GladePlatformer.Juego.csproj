@@ -19,13 +19,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="meadow.config.yaml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
+        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+        <ProjectReference Include="..\GladePlatformer.Shared\GladePlatformer.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
-        <ProjectReference Include="..\GladePlatformer.Shared\GladePlatformer.Shared.csproj" />
+      <None Update="meadow.config.yaml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>
