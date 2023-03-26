@@ -71,7 +71,7 @@ public class LevelScreen : Screen, IDisposable
         }
         
         _player.VelocityY += Gravity;
-        if (inputManager.GetButtonState(GameConstants.InputNames.Up) == ButtonState.Pressed)
+        if (inputManager.GetButtonState(GameConstants.InputNames.Jump) == ButtonState.Pressed)
         {
             _player.VelocityY += JumpAcceleration;
         }

@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
-      <ProjectReference Include="..\GladePlatformer.Shared\GladePlatformer.Shared.csproj" />
+        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+        <ProjectReference Include="..\GladePlatformer.Shared\GladePlatformer.Shared.csproj" />
     </ItemGroup>
 </Project>
