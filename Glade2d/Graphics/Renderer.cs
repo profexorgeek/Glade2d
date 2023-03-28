@@ -4,6 +4,7 @@ using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
+using Glade2d.Graphics.BufferTransferring;
 using Glade2d.Graphics.Layers;
 using Glade2d.Profiling;
 
@@ -11,11 +12,12 @@ namespace Glade2d.Graphics
 {
     public class Renderer : MicroGraphics
     {
-        private const int BytesPerPixel = 2;
+        internal const int BytesPerPixel = 2;
         private readonly TextureManager _textureManager;
         private readonly LayerManager _layerManager;
         private readonly Layer _spriteLayer;
         private readonly Profiler _profiler;
+        private readonly IBufferTransferrer _bufferTransferrer;
         
         public Color BackgroundColor
         {
@@ -73,6 +75,7 @@ namespace Glade2d.Graphics
             CurrentFont = new Font4x6();
             
             _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer);
+            _bufferTransferrer = new NoRotationBufferTransferrer();
         }
 
         public void Reset()
@@ -120,7 +123,10 @@ namespace Glade2d.Graphics
             if (Scale > 1)
             {
                 GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Scale");
-                ScaleIntoDisplayBuffer();
+                var sourceBuffer = (BufferRgb565)pixelBuffer;
+                var targetBuffer = (BufferRgb565)display.PixelBuffer;
+                _bufferTransferrer.Transfer(sourceBuffer, targetBuffer, Scale);
+                // ScaleIntoDisplayBuffer();
                 GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Scale");
             }
             
