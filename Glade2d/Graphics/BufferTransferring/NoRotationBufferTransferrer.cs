@@ -47,20 +47,21 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
                     }
 
                     // Now copy the previously pre-scale row
-                    // for (var scaleY = 1; scaleY < scale; scaleY++)
-                    // {
-                    //     Array.Copy(
-                    //         target.Buffer,
-                    //         targetRowStartIndex,
-                    //         target.Buffer,
-                    //         targetRowStartIndex + targetWidth,
-                    //         targetWidth);
-                    //
-                    //     targetRowStartIndex += targetWidth;
-                    //     targetByte1 += targetWidth;
-                    // }
+                    for (var scaleY = 1; scaleY < scale; scaleY++)
+                    {
+                        var rowLength = targetWidth * Renderer.BytesPerPixel;
+                        Array.Copy(
+                            target.Buffer,
+                            targetRowStartIndex,
+                            target.Buffer,
+                            targetRowStartIndex + rowLength,
+                            rowLength);
 
-                    targetRowStartIndex += targetWidth;
+                        targetRowStartIndex += rowLength;
+                        targetByte1 += rowLength;
+                    }
+                    
+                    targetRowStartIndex += targetWidth * Renderer.BytesPerPixel;
                 }
             }
         }
