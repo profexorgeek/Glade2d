@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 var environment = new TestEnvironment(240, 240);
 var engine = new Game();
-engine.Initialize(environment.Display, 1, contentRoot: Environment.CurrentDirectory);
+engine.Initialize(environment.Display, 2, contentRoot: Environment.CurrentDirectory);
 
 var inputManager = engine.InputManager;
 environment.BindKey(Keys.Right, 
