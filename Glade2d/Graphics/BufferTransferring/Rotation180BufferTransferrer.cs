@@ -3,7 +3,7 @@ using Meadow.Foundation.Graphics.Buffers;
 
 namespace Glade2d.Graphics.BufferTransferring;
 
-public class Rotation180BufferTransferrer : IBufferTransferrer
+internal class Rotation180BufferTransferrer : IBufferTransferrer
 {
     public void Transfer(BufferRgb565 source, BufferRgb565 target, int scale)
     {

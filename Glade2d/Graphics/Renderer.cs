@@ -39,7 +39,8 @@ namespace Glade2d.Graphics
             TextureManager textureManager,
             LayerManager layerManager,
             Profiler profiler,
-            int scale = 1) : base(display)
+            int scale = 1,
+            DisplayRotation rotation = DisplayRotation.UnRotated) : base(display)
         {
             if (display.PixelBuffer.ColorMode != ColorMode.Format16bppRgb565)
             {
@@ -57,10 +58,16 @@ namespace Glade2d.Graphics
             // If we are rendering at a different resolution than our
             // device, we need to create a new buffer as our primary drawing buffer
             // so we draw at the scaled resolution
-            if (scale > 1)
+            if (scale > 1 || rotation is DisplayRotation.Rotated90Degrees or DisplayRotation.Rotated270Degrees)
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
+                
+                // If we are rotated 90 or 270 degrees, we need to swap width and height
+                if (rotation is DisplayRotation.Rotated90Degrees or DisplayRotation.Rotated270Degrees)
+                {
+                    (scaledWidth, scaledHeight) = (scaledHeight, scaledWidth);
+                }
                 
                 pixelBuffer = new BufferRgb565(scaledWidth, scaledHeight);
                 LogService.Log.Trace($"Initialized renderer with custom buffer: {scaledWidth}x{scaledHeight}");
@@ -75,7 +82,14 @@ namespace Glade2d.Graphics
             CurrentFont = new Font4x6();
             
             _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer);
-            _bufferTransferrer = new NoRotationBufferTransferrer();
+
+            _bufferTransferrer = rotation switch
+            {
+                DisplayRotation.UnRotated => new NoRotationBufferTransferrer(),
+                DisplayRotation.Rotated180Degrees => new Rotation180BufferTransferrer(),
+                DisplayRotation.Rotated270Degrees => new Rotation270BufferTransferrer(),
+                _ => throw new NotImplementedException($"Rotation type of {rotation} not implemented"),
+            };
         }
 
         public void Reset()
