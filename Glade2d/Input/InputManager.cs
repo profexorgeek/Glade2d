@@ -49,7 +49,6 @@ namespace Glade2d.Input
 
                 else
                 {
-                    Console.WriteLine($"Button state {pendingState.Key}: {pendingState.Value}");
                     _buttons[pendingState.Key] = pendingState.Value;
                 }
             }
