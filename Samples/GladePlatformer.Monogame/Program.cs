@@ -10,7 +10,7 @@ engine.Initialize(
     environment.Display, 
     2, 
     contentRoot: Environment.CurrentDirectory,
-    displayRotation: DisplayRotation.Rotated270Degrees);
+    displayRotation: DisplayRotation.UnRotated);
 
 var inputManager = engine.InputManager;
 environment.BindKey(Keys.Right, 

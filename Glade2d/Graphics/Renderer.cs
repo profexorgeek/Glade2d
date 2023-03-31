@@ -86,6 +86,7 @@ namespace Glade2d.Graphics
             _bufferTransferrer = rotation switch
             {
                 DisplayRotation.UnRotated => new NoRotationBufferTransferrer(),
+                DisplayRotation.Rotated90Degrees => new Rotation90BufferTransferrer(),
                 DisplayRotation.Rotated180Degrees => new Rotation180BufferTransferrer(),
                 DisplayRotation.Rotated270Degrees => new Rotation270BufferTransferrer(),
                 _ => throw new NotImplementedException($"Rotation type of {rotation} not implemented"),
