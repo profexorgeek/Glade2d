@@ -1,4 +1,5 @@
 ﻿using Glade2d;
+using Glade2d.Graphics;
 using Glade2d.Input;
 using Glade2d.Services;
 using GladePlatformer.Shared;
@@ -29,7 +30,7 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
     {
         LogService.Log.Trace("Initializing Glade game engine...");
         var glade = new Game();
-        glade.Initialize(_display, 2);
+        glade.Initialize(_display, 2, displayRotation: DisplayRotation.Rotated270Degrees);
         SetupInputs(glade.InputManager);
 
         GladePlatformerGame.Run(glade);
