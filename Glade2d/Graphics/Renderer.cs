@@ -19,6 +19,12 @@ namespace Glade2d.Graphics
         private readonly Profiler _profiler;
         private readonly IBufferTransferrer _bufferTransferrer;
         
+        // We can't use the MicroGraphics `Rotation` property, as MicroGraphics
+        // does a naive rotation that doesn't swap width and height. So we 
+        // need to store the rotation in a custom property that MicroGraphics
+        // won't read.
+        private readonly RotationType _customRotation;
+        
         public Color BackgroundColor
         {
             get => _spriteLayer.BackgroundColor;
@@ -40,7 +46,7 @@ namespace Glade2d.Graphics
             LayerManager layerManager,
             Profiler profiler,
             int scale = 1,
-            DisplayRotation rotation = DisplayRotation.UnRotated) : base(display)
+            RotationType rotation = RotationType.Default) : base(display)
         {
             if (display.PixelBuffer.ColorMode != ColorMode.Format16bppRgb565)
             {
@@ -54,17 +60,20 @@ namespace Glade2d.Graphics
             _textureManager = textureManager;
             _profiler = profiler;
             Scale = scale;
-
+            _customRotation = rotation;
+            
             // If we are rendering at a different resolution than our
-            // device, we need to create a new buffer as our primary drawing buffer
-            // so we draw at the scaled resolution
-            if (scale > 1 || rotation is DisplayRotation.Rotated90Degrees or DisplayRotation.Rotated270Degrees)
+            // device, or we are rotating our display, we need to create
+            // a new buffer as our primary drawing buffer so we draw at the
+            // scaled resolution and rotate the final render
+            if (scale > 1 || _customRotation != RotationType.Default) 
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
                 
                 // If we are rotated 90 or 270 degrees, we need to swap width and height
-                if (rotation is DisplayRotation.Rotated90Degrees or DisplayRotation.Rotated270Degrees)
+                var swapHeightAndWidth = _customRotation is RotationType._90Degrees or RotationType._270Degrees;
+                if (swapHeightAndWidth)
                 {
                     (scaledWidth, scaledHeight) = (scaledHeight, scaledWidth);
                 }
@@ -85,10 +94,10 @@ namespace Glade2d.Graphics
 
             _bufferTransferrer = rotation switch
             {
-                DisplayRotation.UnRotated => new NoRotationBufferTransferrer(),
-                DisplayRotation.Rotated90Degrees => new Rotation90BufferTransferrer(),
-                DisplayRotation.Rotated180Degrees => new Rotation180BufferTransferrer(),
-                DisplayRotation.Rotated270Degrees => new Rotation270BufferTransferrer(),
+                RotationType.Default => new NoRotationBufferTransferrer(),
+                RotationType._90Degrees => new Rotation90BufferTransferrer(),
+                RotationType._180Degrees => new Rotation180BufferTransferrer(),
+                RotationType._270Degrees => new Rotation270BufferTransferrer(),
                 _ => throw new NotImplementedException($"Rotation type of {rotation} not implemented"),
             };
         }
@@ -134,22 +143,13 @@ namespace Glade2d.Graphics
         public override void Show()
         {
             GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Show");
-            // If we are doing a scaled draw, we must perform special copy logic
-            if (Scale > 1)
+            if (pixelBuffer != display.PixelBuffer || Rotation != RotationType.Default)
             {
-                GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Scale");
+                GameService.Instance.GameInstance.Profiler.StartTiming("");
                 var sourceBuffer = (BufferRgb565)pixelBuffer;
                 var targetBuffer = (BufferRgb565)display.PixelBuffer;
                 _bufferTransferrer.Transfer(sourceBuffer, targetBuffer, Scale);
-                // ScaleIntoDisplayBuffer();
-                GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Scale");
-            }
-            
-            // if we're not doing a scaled draw, our buffers should match
-            // draw the pixel buffer to the display
-            else if (pixelBuffer != display.PixelBuffer)
-            {
-                display.PixelBuffer.WriteBuffer(0, 0, pixelBuffer);
+                GameService.Instance.GameInstance.Profiler.StopTiming("BufferTransferrer.Transfer");
             }
 
             GameService.Instance.GameInstance.Profiler.StartTiming("Micrographics.Show");
