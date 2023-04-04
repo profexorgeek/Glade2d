@@ -50,7 +50,8 @@ namespace Glade2d
             IGraphicsDisplay display, 
             int displayScale = 1, 
             EngineMode mode = EngineMode.GameLoop,
-            string contentRoot = null)
+            string contentRoot = null,
+            RotationType displayRotation = RotationType.Default)
         {
             LogService.Log.Trace("Initializing Renderer...");
 
@@ -64,7 +65,8 @@ namespace Glade2d
                 TextureManager, 
                 LayerManager,
                 Profiler,
-                displayScale);
+                displayScale,
+                displayRotation);
 
             Mode = mode;
 

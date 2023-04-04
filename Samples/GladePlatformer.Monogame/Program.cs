@@ -1,11 +1,16 @@
 ﻿using Glade2d;
 using GladePlatformer.Shared;
+using Meadow.Foundation.Graphics;
 using MeadowMgTestEnvironment;
 using Microsoft.Xna.Framework.Input;
 
-var environment = new TestEnvironment(240, 240);
+var environment = new TestEnvironment(240, 320);
 var engine = new Game();
-engine.Initialize(environment.Display, 2, contentRoot: Environment.CurrentDirectory);
+engine.Initialize(
+    environment.Display, 
+    2, 
+    contentRoot: Environment.CurrentDirectory,
+    displayRotation: RotationType.Default);
 
 var inputManager = engine.InputManager;
 environment.BindKey(Keys.Right, 
