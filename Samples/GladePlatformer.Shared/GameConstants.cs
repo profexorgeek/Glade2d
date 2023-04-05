@@ -12,7 +12,7 @@ public class GameConstants
         /// <summary>
         /// Name of the input to perform an action, such as shooting
         /// </summary>
-        public const string Up = "action";
+        public const string Jump = "action";
         
         /// <summary>
         /// Name of the button to move left

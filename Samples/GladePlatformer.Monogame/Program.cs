@@ -22,7 +22,7 @@ environment.BindKey(Keys.Left,
     () => inputManager.ButtonReleased(GameConstants.InputNames.Left));
 
 environment.BindKey(Keys.Up,
-    () => inputManager.ButtonPushed(GameConstants.InputNames.Up),
-    () => inputManager.ButtonReleased(GameConstants.InputNames.Up));
+    () => inputManager.ButtonPushed(GameConstants.InputNames.Jump),
+    () => inputManager.ButtonReleased(GameConstants.InputNames.Jump));
 
 GladePlatformerGame.Run(engine);

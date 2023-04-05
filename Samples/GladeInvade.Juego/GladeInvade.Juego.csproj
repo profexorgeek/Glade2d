@@ -14,18 +14,17 @@
         <PackageReference Include="Meadow.Foundation" Version="0.95.0" />
         <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.95.0" />
         <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.95.0" />
-        <PackageReference Include="Meadow.ProjectLab" Version="0.95.0" />
         <PackageReference Include="Meadow.Foundation.Graphics.MicroGraphics" Version="0.95.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
+        <ProjectReference Include="..\GladeInvade.Shared\GladeInvade.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <None Update="meadow.config.yaml">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
-      <ProjectReference Include="..\GladePlatformer.Shared\GladePlatformer.Shared.csproj" />
     </ItemGroup>
 </Project>
