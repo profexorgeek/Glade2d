@@ -92,9 +92,8 @@ internal static class Drawing
                     {
                         if (*sourceByte1 != transparencyColorByte1 || *sourceByte2 != transparencyColorByte2)
                         {
-                            var source = (ushort*)targetByte1;
-                            var target = (ushort*)targetByte2;
-                            *target = *source;
+                            *targetByte1 = *sourceByte1;
+                            *targetByte2 = *sourceByte2;
                         }
 
                         sourceByte1 += BytesPerPixel;
