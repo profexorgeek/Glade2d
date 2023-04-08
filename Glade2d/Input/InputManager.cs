@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Meadow.Foundation.Sensors.Buttons;
+using Meadow.Hardware;
 
 namespace Glade2d.Input
 {
@@ -13,6 +14,7 @@ namespace Glade2d.Input
         private readonly Queue<KeyValuePair<string, ButtonState>> _pendingButtonStates = new();
         private readonly List<string> _pressedButtons = new();
         private readonly Dictionary<PushButton, string> _registeredButtons = new();
+        private readonly Dictionary<IDigitalInputPort, string> _registeredInputPorts = new();
 
         /// <summary>
         /// Applies any pending state changes for inputs. This is done for uncertainty of if button press events can
@@ -105,6 +107,22 @@ namespace Glade2d.Input
             button.PressEnded -= ButtonPressStopped;
         }
 
+        /// <summary>
+        /// Binds a digital input port to a Glade key
+        /// </summary>
+        public void RegisterInputPort(IDigitalInputPort port, string inputName)
+        {
+            UnregisterInputPort(port);
+            port.Changed += HandlePortChanged;
+            _registeredInputPorts.Add(port, inputName);
+        }
+
+        private void UnregisterInputPort(IDigitalInputPort port)
+        {
+            port.Changed -= HandlePortChanged;
+            _registeredInputPorts.Remove(port);
+        }
+
         private void ButtonPressStarted(object sender, EventArgs args)
         {
             if (sender is PushButton button)
@@ -124,6 +142,16 @@ namespace Glade2d.Input
                 {
                     ButtonReleased(inputName);
                 }
+            }
+        }
+
+        private void HandlePortChanged(object sender, DigitalPortResult result)
+        {
+            var port = (IDigitalInputPort)sender;
+            if (_registeredInputPorts.TryGetValue(port, out var input))
+            {
+                var state = result.New.State ? ButtonState.Down : ButtonState.Up;
+                _pendingButtonStates.Enqueue(new KeyValuePair<string, ButtonState>(input, state));
             }
         }
     }
