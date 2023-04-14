@@ -84,11 +84,11 @@ public class GameScreen : Screen
 
     private void ProcessPlayerMovement()
     {
-        if (_engine.InputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
+        if (_engine.InputManager.GetButtonState(nameof(GameInputs.Left)) == ButtonState.Down)
         {
             _player.MoveLeft();
         }
-        else if (_engine.InputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down)
+        else if (_engine.InputManager.GetButtonState(nameof(GameInputs.Right)) == ButtonState.Down)
         {
             _player.MoveRight();
         }
@@ -151,7 +151,7 @@ public class GameScreen : Screen
 
     private void ProcessPlayerShots()
     {
-        if (_engine.InputManager.GetButtonState(GameConstants.InputNames.Action) == ButtonState.Pressed)
+        if (_engine.InputManager.GetButtonState(nameof(GameInputs.Action)) == ButtonState.Pressed)
         {
             var shot = new PlayerShot
             {

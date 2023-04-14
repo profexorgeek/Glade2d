@@ -30,8 +30,8 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
     {
         LogService.Log.Trace("Initializing Glade game engine...");
         var glade = new Game();
-        glade.Initialize(_display, 2, displayRotation: RotationType._270Degrees);
-        SetupInputs(glade.InputManager);
+        var inputs = SetupInputs();
+        glade.Initialize(_display, inputs, 2, displayRotation: RotationType._270Degrees);
 
         GladePlatformerGame.Run(glade);
 
@@ -81,14 +81,17 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
         _display = ili9341;
     }
 
-    private void SetupInputs(InputManager inputManager)
+    private GameInputs SetupInputs()
     {
         var dPadLeftPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP4, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
         var dPadRightPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP2, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
         var btnDownPort = _mcp2.CreateDigitalInputPort(_mcp2.Pins.GP3, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
-        
-        inputManager.RegisterPushButton(new PushButton(dPadLeftPort), GameConstants.InputNames.Left);
-        inputManager.RegisterPushButton(new PushButton(dPadRightPort), GameConstants.InputNames.Right);
-        inputManager.RegisterPushButton(new PushButton(btnDownPort), GameConstants.InputNames.Jump);
+
+        return new GameInputs
+        {
+            Left = dPadLeftPort,
+            Right = dPadRightPort,
+            Jump = btnDownPort,
+        };
     }
 }
