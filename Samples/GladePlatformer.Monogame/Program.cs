@@ -6,23 +6,19 @@ using Microsoft.Xna.Framework.Input;
 
 var environment = new TestEnvironment(240, 320);
 var engine = new Game();
+
+var input = new GameInputs
+{
+    Left = environment.CreatePortForKey(Keys.Left),
+    Right = environment.CreatePortForKey(Keys.Right),
+    Jump = environment.CreatePortForKey(Keys.Up),
+};
+
 engine.Initialize(
     environment.Display, 
+    input,
     2, 
     contentRoot: Environment.CurrentDirectory,
     displayRotation: RotationType.Default);
-
-var inputManager = engine.InputManager;
-environment.BindKey(Keys.Right, 
-    () => inputManager.ButtonPushed(GameConstants.InputNames.Right),
-    () => inputManager.ButtonReleased(GameConstants.InputNames.Right));
-
-environment.BindKey(Keys.Left,
-    () => inputManager.ButtonPushed(GameConstants.InputNames.Left),
-    () => inputManager.ButtonReleased(GameConstants.InputNames.Left));
-
-environment.BindKey(Keys.Up,
-    () => inputManager.ButtonPushed(GameConstants.InputNames.Jump),
-    () => inputManager.ButtonReleased(GameConstants.InputNames.Jump));
 
 GladePlatformerGame.Run(engine);

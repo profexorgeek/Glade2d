@@ -17,7 +17,6 @@ public class MeadowApp : App<F7FeatherV2>
     public override Task Initialize()
     {
         _projectLab = Meadow.Devices.ProjectLab.Create();
-        // _projectLab.Display!.SetRotation(TftSpiBase.Rotation.Rotate_90);
         _display = _projectLab.Display!;
         
         return base.Initialize();
@@ -37,8 +36,9 @@ public class MeadowApp : App<F7FeatherV2>
 
     private void InitializeInput(InputManager inputManager)
     {
-        inputManager.RegisterPushButton(_projectLab.UpButton!, GameConstants.InputNames.Action);
-        inputManager.RegisterPushButton(_projectLab.LeftButton!, GameConstants.InputNames.Left);
-        inputManager.RegisterPushButton(_projectLab.RightButton!, GameConstants.InputNames.Right);
+        // can't use input ports directly with the PL abstraction
+        inputManager.RegisterPushButton(_projectLab.UpButton!, nameof(GameInputs.Action));
+        inputManager.RegisterPushButton(_projectLab.LeftButton!, nameof(GameInputs.Left));
+        inputManager.RegisterPushButton(_projectLab.RightButton!, nameof(GameInputs.Right));
     }
 }

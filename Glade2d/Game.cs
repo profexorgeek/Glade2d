@@ -73,6 +73,18 @@ namespace Glade2d
             LogService.Log.Trace("Renderer Initialized.");
         }
 
+        public virtual void Initialize<TInput>(
+            IGraphicsDisplay display,
+            TInput gameInput,
+            int displayScale = 1,
+            EngineMode mode = EngineMode.GameLoop,
+            string contentRoot = null,
+            RotationType displayRotation = RotationType.Default) where TInput : GameInputSetBase
+        {
+            Initialize(display, displayScale, mode, contentRoot, displayRotation);
+            gameInput.SetupInput(InputManager);
+        }
+
         public void Start(Screen startupScreen = null)
         {
             if (GameService.Instance.CurrentScreen is IDisposable oldScreen)

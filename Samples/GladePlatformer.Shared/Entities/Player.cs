@@ -33,8 +33,8 @@ public class Player : Sprite
     {
         var inputManager = GameService.Instance.GameInstance.InputManager;
         var wasWalking = _isWalking;
-        _isWalking = inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down ||
-                     inputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down;
+        _isWalking = inputManager.GetButtonState(nameof(GameInputs.Left)) == ButtonState.Down ||
+                     inputManager.GetButtonState(nameof(GameInputs.Right)) == ButtonState.Down;
 
         if (_isWalking)
         {

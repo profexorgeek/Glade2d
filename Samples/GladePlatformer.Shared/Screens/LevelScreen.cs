@@ -61,17 +61,17 @@ public class LevelScreen : Screen, IDisposable
         _player.VelocityY = playerVelocityY;
 
         var inputManager = GameService.Instance.GameInstance.InputManager;
-        if (inputManager.GetButtonState(GameConstants.InputNames.Right) == ButtonState.Down)
+        if (inputManager.GetButtonState(nameof(GameInputs.Right)) == ButtonState.Down)
         {
             _playerVelocityX = PlayerSpeed;
         }
-        else if (inputManager.GetButtonState(GameConstants.InputNames.Left) == ButtonState.Down)
+        else if (inputManager.GetButtonState(nameof(GameInputs.Left)) == ButtonState.Down)
         {
             _playerVelocityX = -PlayerSpeed;
         }
         
         _player.VelocityY += Gravity;
-        if (inputManager.GetButtonState(GameConstants.InputNames.Jump) == ButtonState.Pressed)
+        if (inputManager.GetButtonState(nameof(GameInputs.Jump)) == ButtonState.Pressed)
         {
             _player.VelocityY += JumpAcceleration;
         }
