@@ -13,8 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Meadow.Foundation" Version="0.95.0" />
-      <PackageReference Include="MeadowMgTestEnvironment" Version="1.0.0" />
+      <PackageReference Include="Meadow.Foundation" Version="0.96.0" />
+      <PackageReference Include="MeadowMgTestEnvironment" Version="1.0.1" />
       <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
     </ItemGroup>
 

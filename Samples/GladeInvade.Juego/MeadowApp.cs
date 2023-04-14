@@ -30,7 +30,7 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
     {
         LogService.Log.Trace("Initializing Glade game engine...");
         var engine = new Game();
-        engine.Initialize(_display, 2, displayRotation: DisplayRotation.Rotated270Degrees);
+        engine.Initialize(_display, 2, displayRotation: RotationType._270Degrees);
         SetupInputs(engine.InputManager);
 
         GladeInvadeGame.Run(engine);
