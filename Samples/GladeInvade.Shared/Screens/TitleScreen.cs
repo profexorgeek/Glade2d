@@ -2,6 +2,7 @@
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
+using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
 using Meadow.Foundation;
 
@@ -27,12 +28,18 @@ public class TitleScreen : Screen
         };
             
         AddSprite(_gameTitle);
+
+        LogService.Log.Info("Started title screen.");
     }
 
     public override void Activity()
     {
         if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
         {
+            // restart progression at level 1
+            ProgressionService.Instance.Restart();
+
+            // launch the game screen
             GameService.Instance.CurrentScreen = new GameScreen();
         }
 

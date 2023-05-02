@@ -2,6 +2,7 @@
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
+using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
 
 namespace GladeInvade.Shared.Screens;
@@ -24,7 +25,7 @@ public class GameScreen : Screen
     private readonly TimeSpan _timePerEnemyAnimationFrame = TimeSpan.FromSeconds(1);
     private readonly TimeSpan _explosionLifetime = TimeSpan.FromSeconds(0.5);
     private DateTime _lastEnemyAnimationAt;
-    private float _normalEnemyHorizontalVelocity = 10;
+    private float _normalEnemyHorizontalVelocity = 0;
     private bool _lastHitLeftBorder = true;
 
     public GameScreen()
@@ -32,6 +33,7 @@ public class GameScreen : Screen
         _engine = GameService.Instance.GameInstance;
         _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
         _screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        _normalEnemyHorizontalVelocity = ProgressionService.Instance.CurrentEnemySpeed;
         
         CreateLivesIndicator();
         CreatePlayer();
@@ -47,6 +49,7 @@ public class GameScreen : Screen
         ProcessEnemyMovement();
         ProcessPlayerShots();
         ProcessExplosions();
+        ProcessEndgameState();
     }
 
 
@@ -220,19 +223,23 @@ public class GameScreen : Screen
 
                 if (collisionOccurred)
                 {
+                    // remove shots and enemy
                     RemoveSprite(enemy);
                     RemoveSprite(_playerShots[shotIndex]);
                     _enemies.RemoveAt(enemyIndex);
                     _playerShots.RemoveAt(shotIndex);
 
+                    // create explosion effect
                     var explosion = new Explosion(enemy.IsBlue)
                     {
                         X = enemy.X,
                         Y = enemy.Y,
                     };
-                    
                     _explosions.Add(explosion);
                     AddSprite(explosion);
+
+                    // award points
+                    ProgressionService.Instance.AwardEnemyKill();
 
                     // we have destroyed the shot and enemy and removed
                     // them from the collection so we need to break out
@@ -256,6 +263,17 @@ public class GameScreen : Screen
                 RemoveSprite(_explosions[index]);
                 _explosions.RemoveAt(index);
             }
+        }
+    }
+
+    private void ProcessEndgameState()
+    {
+        // TODO: show congratulations message?
+
+        if(_enemies.Count == 0)
+        {
+            ProgressionService.Instance.IncreaseDifficultyLevel();
+            GameService.Instance.CurrentScreen = new GameScreen();
         }
     }
 }
