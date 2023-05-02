@@ -28,22 +28,5 @@ File an issue, write a doc, submit a PR, or reach out to [@profexorgeek](https:/
 
 ## Roadmap
 
-- [x] Get texture loading and rendering on a graphics device
-- [x] Get a simple renderer that can draw frames from a spritesheet
-- [x] Create the core game loop with update delta tracking
-- [x] Enable a smaller graphics buffer that can scale after compositing is complete
-- [x] Create the concept of a drawable object
-- [x] Create a scene graph that holds drawable objects
-- [x] Set up the renderer to render the scene graph
-- [x] Create a demo scene with example entities
-- [x] Add concept of velocity to sprites
-- [x] Sprites should be destroyable
-- [x] Demo scene should demo velocity and destroying
-- [x] Glade2d should be spun out from MeadowApp
-- [x] Glade2d should use Nuget packages instead of WL internal repos
-- [ ] Changing sprite Layer after adding to scene should trigger a re-sort
-- [ ] Create an input manager that allows buttons to be registered and button presses to be tracked each frame
-- [ ] CONSIDERATION: Enable parent child relationships and a tree-shaped scene graph
-- [ ] Create a camera object and manage camera translations in the renderer
-
+The roadmap/backlog has now moved to a [Trello board](https://trello.com/b/YuEifteL/glade2d)!
 
