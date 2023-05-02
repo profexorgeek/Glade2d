@@ -37,8 +37,8 @@ public class MeadowApp : App<F7FeatherV2>
     private void InitializeInput(InputManager inputManager)
     {
         // can't use input ports directly with the PL abstraction
-        inputManager.RegisterPushButton(_projectLab.UpButton!, nameof(GameInputs.Action));
-        inputManager.RegisterPushButton(_projectLab.LeftButton!, nameof(GameInputs.Left));
-        inputManager.RegisterPushButton(_projectLab.RightButton!, nameof(GameInputs.Right));
+        inputManager.RegisterPushButton(_projectLab.UpButton!, nameof(GameInputs.ActionButton));
+        inputManager.RegisterPushButton(_projectLab.LeftButton!, nameof(GameInputs.LeftButton));
+        inputManager.RegisterPushButton(_projectLab.RightButton!, nameof(GameInputs.RightButton));
     }
 }

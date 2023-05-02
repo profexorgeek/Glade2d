@@ -5,7 +5,7 @@ namespace GladeInvade.Shared;
 
 public class GameInputs : GameInputSetBase
 {
-    public IDigitalInputPort Left { get; set; }
-    public IDigitalInputPort Right { get; set; }
-    public IDigitalInputPort Action { get; set; }
+    public IDigitalInputPort LeftButton { get; set; }
+    public IDigitalInputPort RightButton { get; set; }
+    public IDigitalInputPort ActionButton { get; set; }
 }

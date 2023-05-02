@@ -31,7 +31,7 @@ public class TitleScreen : Screen
 
     public override void Activity()
     {
-        if (_engine.InputManager.GetButtonState(nameof(GameInputs.Action)) == ButtonState.Pressed)
+        if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
         {
             GameService.Instance.CurrentScreen = new GameScreen();
         }
