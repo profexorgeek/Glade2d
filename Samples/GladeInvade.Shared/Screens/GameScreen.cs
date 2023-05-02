@@ -38,6 +38,21 @@ public class GameScreen : Screen
         CreateEnemies();
     }
 
+    /// <summary>
+    /// Performs all frame-based activity
+    /// </summary>
+    public override void Activity()
+    {
+        ProcessPlayerMovement();
+        ProcessEnemyMovement();
+        ProcessPlayerShots();
+        ProcessExplosions();
+    }
+
+
+    /// <summary>
+    /// Sets up the display of hearts that shows how many lives players have
+    /// </summary>
     private void CreateLivesIndicator()
     {
         for (var x = 0; x < StartingLives; x++)
@@ -51,6 +66,9 @@ public class GameScreen : Screen
         }
     }
 
+    /// <summary>
+    /// Creates the player object
+    /// </summary>
     private void CreatePlayer()
     {
         _player.X = _screenWidth / 2f;
@@ -58,6 +76,9 @@ public class GameScreen : Screen
         AddSprite(_player);
     }
 
+    /// <summary>
+    /// Creates the rows of enemies at the beginning of the game.
+    /// </summary>
     private void CreateEnemies()
     {
         _lastEnemyAnimationAt = new DateTime();
@@ -74,14 +95,10 @@ public class GameScreen : Screen
         }
     }
 
-    public override void Activity()
-    {
-        ProcessPlayerMovement();
-        ProcessEnemyMovement();
-        ProcessPlayerShots();
-        ProcessExplosions();
-    }
-
+    
+    /// <summary>
+    /// Frame Time: Performs all player movement logic in reaction to player input
+    /// </summary>
     private void ProcessPlayerMovement()
     {
         if (_engine.InputManager.GetButtonState(nameof(GameInputs.LeftButton)) == ButtonState.Down)
@@ -109,6 +126,9 @@ public class GameScreen : Screen
 
     }
 
+    /// <summary>
+    /// Frame Time: Processes enemy movement from side to side and advancing down the screen
+    /// </summary>
     private void ProcessEnemyMovement()
     {
         if (DateTime.Now - _lastEnemyAnimationAt >= _timePerEnemyAnimationFrame)
@@ -149,6 +169,9 @@ public class GameScreen : Screen
         }
     }
 
+    /// <summary>
+    /// Frame time: checks shots versus enemies and does enemy destruction logic
+    /// </summary>
     private void ProcessPlayerShots()
     {
         if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
@@ -210,11 +233,20 @@ public class GameScreen : Screen
                     
                     _explosions.Add(explosion);
                     AddSprite(explosion);
+
+                    // we have destroyed the shot and enemy and removed
+                    // them from the collection so we need to break out
+                    // of this loop
+                    break;
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Processes any active explosions and removes them when their
+    /// lifespan has expired
+    /// </summary>
     private void ProcessExplosions()
     {
         for (var index = _explosions.Count - 1; index >= 0; index--)
