@@ -2,9 +2,11 @@
 
 # Glade2d
 
-Glade2d is a 2D rendering/game engine intended to run on a [Wilderness Labs Meadow Board](https://www.wildernesslabs.co/). Clearly this is silly because a microcontroller is not well-suited for game development and the board is intended for IoT applications. But it can draw to a screen and therefore a game engine should exist for it.
+Glade2d is a 2D rendering/game engine intended to run on a [Wilderness Labs Meadow Board](https://www.wildernesslabs.co/). Glade attempts to provide an API for composing complex screens made up of multiple sprites. It provides a game loop and can update and render as fast as possible, as is common in game-like applications, or it can render on demand. Rendering on demand allows the developer to redraw the scene in reaction to some input (sensor value, button press, etc) for much lower power consumption.
 
-A "glade" is an open space in the forest, aka a meadow, which is what Glade2d was designed to run on.
+Glade can run on the Meadow with a custom display device, on the Project Lab board, or on the Juego board. It also has an implementation that uses MonoGame for rendering, allowing developers to rapidly prototype with full debugging capabilities before deploying and testing on actual hardware,
+
+A "glade" is an open space in the forest, aka a Meadow, which is what Glade2d was designed to run on!
 
 ![image](https://user-images.githubusercontent.com/711100/167543124-df31e10e-ee33-4441-bcf5-95a89e12e3fd.png)
 
@@ -13,10 +15,11 @@ A "glade" is an open space in the forest, aka a meadow, which is what Glade2d wa
 Currently, Glade2d early in development and does not have official releases or packages. To experiment with Glade2d:
 
 1. Clone the repository and open the Glade2d.sln in Visual Studio
-1. If you have a Meadow installed on a ProjectLab board v2.e or better, deploy the `SampleProjectLab` application
-1. If you do not have a Meadow device or just want to test on your dev machine, run the `SampleGtk` application
+1. If you have a Meadow installed on a ProjectLab board v2.e or better, run one of the test projects that targets the Project Lab.
+1. If you have a custom configuration, initialize your display and inputs and run one of the shared sample projects.
+1. If you have no hardware, test out the MonoGame sample, which can run on your desktop
 
-The sample application loads a spritesheet, defines multiple entities based on sprites from the spritesheet, and composes the entities into a tiny scene while displaying the FPS. This is a basic example of how to load sprites and composite them into a single buffer. We hope to add more demos as we add features to the engine!
+The sample game, Glade Invade, is a simple Space Invaders like game that demonstrates many of the capabilities and best practices for using Glade!
 
 ## Documentation
 
