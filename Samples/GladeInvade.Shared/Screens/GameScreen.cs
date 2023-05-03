@@ -9,7 +9,6 @@ namespace GladeInvade.Shared.Screens;
 
 public class GameScreen : Screen
 {
-    private const int StartingLives = 3;
     private const int GapBetweenHearts = 5;
     private const int EnemyColumns = 6;
     private const int EnemyRows = 3;
@@ -60,7 +59,7 @@ public class GameScreen : Screen
     /// </summary>
     private void CreateLivesIndicator()
     {
-        for (var x = 0; x < StartingLives; x++)
+        for (var x = 0; x < ProgressionService.Instance.Lives; x++)
         {
             var heart = new Heart();
             heart.X = _screenWidth - (heart.CurrentFrame.Width + GapBetweenHearts) * (x + 1);
@@ -94,12 +93,18 @@ public class GameScreen : Screen
             var offset = col % 2 == 0 ? true : false;
             var enemy = new NormalEnemy(color, offset);
 
-            enemy.X = col * (2 + enemy.CurrentFrame.Width) + 5;
-            enemy.Y = row * (5 + enemy.CurrentFrame.Height);
+            enemy.SetToStartingPosition(row, col);
             enemy.VelocityX = _normalEnemyHorizontalVelocity;
             
             AddSprite(enemy);
             _enemies.Add(enemy);
+        }
+    }
+    private void ResetEnemies()
+    {
+        for(var i = 0; i < _enemies.Count; i++)
+        {
+            _enemies[i].SetToStartingPosition();
         }
     }
 
@@ -242,7 +247,8 @@ public class GameScreen : Screen
 
             if(CollideEnemyVsPlayer(enemy))
             {
-                continue;
+                ResetEnemies();
+                break;
             }
 
             if(CheckEnemyEscaped(enemy))
@@ -274,9 +280,11 @@ public class GameScreen : Screen
         bool didCollide = false;
         if (_player.IsOverlapping(enemy))
         {
+            // remove heart sprite and life counter
             var heart = _lives[0];
             _lives.RemoveAt(0);
             RemoveSprite(heart);
+            ProgressionService.Instance.RemoveLife();
 
             // create an explosion to draw attention to the life loss
             CreateExplosionAtPoint(heart.X, heart.Y, EntityColor.Red);
@@ -341,16 +349,16 @@ public class GameScreen : Screen
     {
         // TODO: go to the correct screen when endgame screen is created
 
-        if (_lives.Count == 0)
+        if (ProgressionService.Instance.Lives == 0)
         {
             LogService.Log.Info("Player lost because they ran out of lives");
-            GameService.Instance.CurrentScreen = new TitleScreen();
+            GameService.Instance.GameInstance.TransitionToScreen(() => new TitleScreen());
         }
 
         if(_enemyEscaped)
         {
             LogService.Log.Info("Player lost because an enemy escaped.");
-            GameService.Instance.CurrentScreen = new TitleScreen();
+            GameService.Instance.GameInstance.TransitionToScreen(() => new TitleScreen());
         }
 
         if (_enemies.Count == 0)
