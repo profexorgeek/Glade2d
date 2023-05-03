@@ -1,9 +1,11 @@
 ﻿using Glade2d;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
+using Meadow.Foundation.Graphics;
 
 namespace GladeInvade.Shared.Screens;
 
@@ -27,6 +29,7 @@ public class GameScreen : Screen
     private float _normalEnemyHorizontalVelocity = 0;
     private bool _lastHitLeftBorder = true;
     private bool _enemyEscaped = false;
+    private Layer _textLayer;
 
     public GameScreen()
     {
@@ -34,7 +37,8 @@ public class GameScreen : Screen
         _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
         _screenWidth = GameService.Instance.GameInstance.Renderer.Width;
         _normalEnemyHorizontalVelocity = ProgressionService.Instance.CurrentEnemySpeed;
-        
+
+        CreateTextLayer();
         CreateLivesIndicator();
         CreatePlayer();
         CreateEnemies();
@@ -53,7 +57,14 @@ public class GameScreen : Screen
         CheckEndgame();
     }
 
-
+    private void CreateTextLayer()
+    {
+        _textLayer = Layer.Create(new Dimensions(_screenHeight, _screenWidth));
+        _textLayer.BackgroundColor = new Meadow.Foundation.Color(48,44,46);
+        _textLayer.DrawLayerWithTransparency = false;
+        UpdateText();
+        GameService.Instance.GameInstance.LayerManager.AddLayer(_textLayer, -1);
+    }
     /// <summary>
     /// Sets up the display of hearts that shows how many lives players have
     /// </summary>
@@ -69,7 +80,6 @@ public class GameScreen : Screen
             AddSprite(heart);
         }
     }
-
     /// <summary>
     /// Creates the player object
     /// </summary>
@@ -79,7 +89,6 @@ public class GameScreen : Screen
         _player.Y = _screenHeight - _player.CurrentFrame.Height;
         AddSprite(_player);
     }
-
     /// <summary>
     /// Creates the rows of enemies at the beginning of the game.
     /// </summary>
@@ -100,6 +109,9 @@ public class GameScreen : Screen
             _enemies.Add(enemy);
         }
     }
+    /// <summary>
+    /// Resets any remaining enemies to their starting position
+    /// </summary>
     private void ResetEnemies()
     {
         for(var i = 0; i < _enemies.Count; i++)
@@ -170,7 +182,6 @@ public class GameScreen : Screen
         }
 
     }
-
     /// <summary>
     /// Frame Time: Processes enemy movement from side to side and advancing down the screen
     /// </summary>
@@ -213,7 +224,6 @@ public class GameScreen : Screen
             }
         }
     }
-
     /// <summary>
     /// Processes any active explosions and removes them when their
     /// lifespan has expired
@@ -269,6 +279,7 @@ public class GameScreen : Screen
                 DestroyShot(shot);
                 DestroyEnemy(enemy);
                 ProgressionService.Instance.AwardEnemyKill();
+                UpdateText();
                 didCollide = true;
                 break;
             }
@@ -303,6 +314,12 @@ public class GameScreen : Screen
             didEscape = true;
         }
         return didEscape;
+    }
+    void UpdateText()
+    {
+        _textLayer.Clear();
+        _textLayer.DrawText(new Point(4, 4), ProgressionService.Instance.Score.ToString("N0"));
+        _textLayer.DrawText(new Point(_screenWidth / 2, 4), ProgressionService.Instance.CurrentLevel.ToString());
     }
     private void DestroyShot(PlayerShot shot)
     {
