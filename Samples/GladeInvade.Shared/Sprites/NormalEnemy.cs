@@ -1,42 +1,79 @@
 ﻿using Glade2d.Graphics;
+using Meadow.Foundation;
 
 namespace GladeInvade.Shared.Sprites;
 
 public class NormalEnemy : Sprite
 {
+    /// <summary>
+    /// Multi-dimensional collection of frames for each entity color
+    /// </summary>
+    private static readonly Dictionary<EntityColor, List<Frame>> frames = new Dictionary<EntityColor, List<Frame>>
+    {
+        {EntityColor.Blue, new List<Frame>
+            {
+                new Frame(GameConstants.SpriteSheetName, 32, 0, 16, 16),
+                new Frame(GameConstants.SpriteSheetName, 48, 0, 16, 16)
+            }
+        },
+        {EntityColor.Pink, new List<Frame>
+            {
+                new Frame(GameConstants.SpriteSheetName, 32, 16, 16, 16),
+                new Frame(GameConstants.SpriteSheetName, 48, 16, 16, 16)
+            }
+        },
+    };
+
     private readonly Frame[] _frames = new Frame[2];
     private int _frameIndex;
-    
-    public bool IsBlue { get; }
+    EntityColor _color = EntityColor.Blue;
 
-    public NormalEnemy(bool isBlue, bool startOutward)
+    /// <summary>
+    /// Sets the entity color, updating the sprite's CurrentFrame
+    /// </summary>
+    public EntityColor Color
     {
-        const int width = 12;
-        const int height = 11;
-        var startX = new[]
+        get
         {
-            isBlue ? 32 : 34,
-            50
-        };
-
-        var startY = isBlue ? 2 : 19;
-
-        _frames[0] = new Frame(GameConstants.SpriteSheetName, startX[0], startY, width, height);
-        _frames[1] = new Frame(GameConstants.SpriteSheetName, startX[1], startY, width, height);
-
-        _frameIndex = startOutward ? 0 : 1;
-        CurrentFrame = _frames[_frameIndex];
-        IsBlue = isBlue;
+            return _color;
+        }
+        set
+        {
+            _color = value;
+            CurrentFrame = frames[Color][_frameIndex];
+        }
     }
 
-    public void NextFrame()
+    /// <summary>
+    /// Sets the frame index, updating the sprite's CurrentFrame
+    /// Automatically wraps index to be within frame count range
+    /// </summary>
+    public int FrameIndex
     {
-        _frameIndex++;
-        if (_frameIndex >= _frames.Length)
+        get
         {
-            _frameIndex = 0;
+            return _frameIndex;
         }
+        set
+        {
+            _frameIndex = value;
+            if(value >= frames[Color].Count)
+            {
+                _frameIndex = 0;
+            }
+            if(_frameIndex < 0)
+            {
+                _frameIndex = frames[Color].Count - 1;
+            }
 
-        CurrentFrame = _frames[_frameIndex];
+            CurrentFrame = frames[Color][_frameIndex];
+        }
+    }
+
+    public NormalEnemy(EntityColor color = EntityColor.Blue, bool startOutward = false)
+    {
+        _frameIndex = startOutward ? 0 : 1;
+        Color = color;
+        FrameIndex = startOutward ? 0 : 1;
     }
 }

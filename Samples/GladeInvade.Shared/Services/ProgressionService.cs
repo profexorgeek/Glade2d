@@ -17,10 +17,13 @@ namespace GladeInvade.Shared.Services
         const int baseEnemySpeed = 5;
         const float levelSpeedMultiplier = 1.5f;
         const uint pointsPerEnemy = 1;
+        public const int EnemyVerticalMovementAmount = 8;
+
 
         private uint enemyKills = 0;
         private uint currentLevel = 1;
         private uint score = 0;
+
 
 
         public uint CurrentLevel => currentLevel;

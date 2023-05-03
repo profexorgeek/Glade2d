@@ -1,4 +1,5 @@
 ﻿using Glade2d.Services;
+using System;
 
 namespace Glade2d.Graphics
 {
@@ -13,6 +14,36 @@ namespace Glade2d.Graphics
         /// The Y position of this object
         /// </summary>
         public float Y { get; set; }
+
+        /// <summary>
+        /// The width of this sprite's current frame or 0 if there is no current frame.
+        /// </summary>
+        public float Width => this.CurrentFrame != null ? this.CurrentFrame.Width : 0;
+
+        /// <summary>
+        /// The height of this sprite's current frame or 0 if there is no current frame.
+        /// </summary>
+        public float Height => this.CurrentFrame != null ? this.CurrentFrame.Height : 0;
+
+        /// <summary>
+        /// The top edge of this sprite in world coordinates
+        /// </summary>
+        public float Top => this.Y;
+
+        /// <summary>
+        /// The right edge of this sprite in world coordinates
+        /// </summary>
+        public float Right => this.X + Width;
+
+        /// <summary>
+        /// The bottom edge of this sprite in world coordinates
+        /// </summary>
+        public float Bottom => this.Y + Height;
+
+        /// <summary>
+        /// The left edge of this sprite in world coordinates
+        /// </summary>
+        public float Left => this.X;
 
         /// <summary>
         /// The X velocity of this object in pixels per second
@@ -82,6 +113,27 @@ namespace Glade2d.Graphics
         public void Destroy()
         {
             Destroyed = true;
+        }
+
+        /// <summary>
+        /// Checks if this sprite is overlapping another sprite by checking
+        /// if the distance apart is greater than the sum of half of the
+        /// widths on each axis
+        /// </summary>
+        /// <param name="sprite">The sprite to check</param>
+        /// <returns>True if overlapping</returns>
+        public bool IsOverlapping(Sprite sprite)
+        {
+            var xDist = sprite.X - this.X;
+            var yDist = sprite.Y - this.Y;
+            var xCollisionDistance = (this.Width / 2f) + (sprite.Width / 2f);
+            var yCollisionDistance = (this.Height / 2f) + (sprite.Height / 2f);
+
+            var xOverlap = xCollisionDistance - Math.Abs(xDist);
+            var yOverlap = yCollisionDistance - Math.Abs(yDist);
+
+            return xOverlap > 0 && yOverlap > 0;
+
         }
     }
 }

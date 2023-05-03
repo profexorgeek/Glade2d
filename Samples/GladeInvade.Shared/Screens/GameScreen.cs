@@ -45,11 +45,12 @@ public class GameScreen : Screen
     /// </summary>
     public override void Activity()
     {
-        ProcessPlayerMovement();
-        ProcessEnemyMovement();
-        ProcessPlayerShots();
-        ProcessExplosions();
-        ProcessEndgameState();
+        DoPlayerInput();
+        DoEnemyMovement();
+        DoExplosions();
+        DoEnemyCollisions();
+
+        CheckLevelComplete();
     }
 
 
@@ -88,7 +89,10 @@ public class GameScreen : Screen
         for (var col = 0; col < EnemyColumns; col++)
         for (var row = 0; row < EnemyRows; row++)
         {
-            var enemy = new NormalEnemy(row % 2 == 0, col % 2 == 0);
+            var color = row % 2 == 0 ? EntityColor.Blue : EntityColor.Pink;
+            var offset = col % 2 == 0 ? true : false;
+            var enemy = new NormalEnemy(color, offset);
+
             enemy.X = col * (2 + enemy.CurrentFrame.Width) + 5;
             enemy.Y = row * (5 + enemy.CurrentFrame.Height);
             enemy.VelocityX = _normalEnemyHorizontalVelocity;
@@ -99,11 +103,14 @@ public class GameScreen : Screen
     }
 
     
+
     /// <summary>
-    /// Frame Time: Performs all player movement logic in reaction to player input
+    /// Frame Time: Performs all player movement logic in reaction to player input,
+    /// additionally it ensures all shots that have left the screen are destroyed
     /// </summary>
-    private void ProcessPlayerMovement()
+    private void DoPlayerInput()
     {
+        // do movement input
         if (_engine.InputManager.GetButtonState(nameof(GameInputs.LeftButton)) == ButtonState.Down)
         {
             _player.MoveLeft();
@@ -127,18 +134,47 @@ public class GameScreen : Screen
             _player.X = _screenWidth - _player.CurrentFrame.Width;
         }
 
+        // do shot input
+        if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
+        {
+            var shot = new PlayerShot
+            {
+                X = _player.X + _player.CurrentFrame.Width / 2f,
+                Y = _screenHeight - _player.CurrentFrame.Height,
+                VelocityY = -PlayerShotVelocity,
+            };
+
+            _playerShots.Add(shot);
+            AddSprite(shot);
+        }
+
+        // Destroy shots that are out of screen
+        for (var shotIndex = _playerShots.Count - 1; shotIndex >= 0; shotIndex--)
+        {
+            var shot = _playerShots[shotIndex];
+            if (shot.Bottom <= 0)
+            {
+                // Shot is now off screen
+                RemoveSprite(_playerShots[shotIndex]);
+                _playerShots.RemoveAt(shotIndex);
+
+                continue;
+            }
+
+        }
+
     }
 
     /// <summary>
     /// Frame Time: Processes enemy movement from side to side and advancing down the screen
     /// </summary>
-    private void ProcessEnemyMovement()
+    private void DoEnemyMovement()
     {
         if (DateTime.Now - _lastEnemyAnimationAt >= _timePerEnemyAnimationFrame)
         {
             foreach (var enemy in _enemies)
             {
-                enemy.NextFrame();
+                enemy.FrameIndex++;
             }
 
             _lastEnemyAnimationAt = DateTime.Now;
@@ -167,85 +203,7 @@ public class GameScreen : Screen
             foreach (var enemy in _enemies)
             {
                 enemy.VelocityX = _normalEnemyHorizontalVelocity;
-                enemy.Y += enemy.CurrentFrame.Height;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Frame time: checks shots versus enemies and does enemy destruction logic
-    /// </summary>
-    private void ProcessPlayerShots()
-    {
-        if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
-        {
-            var shot = new PlayerShot
-            {
-                X = _player.X + _player.CurrentFrame.Width / 2f,
-                Y = _screenHeight - _player.CurrentFrame.Height,
-                VelocityY = -PlayerShotVelocity,
-            };
-
-            _playerShots.Add(shot);
-            AddSprite(shot);
-        }
-
-        // Check if any shot has either left the screen, or collided with an enemy
-        for (var shotIndex = _playerShots.Count - 1; shotIndex >= 0; shotIndex--)
-        {
-            var shotLeft = _playerShots[shotIndex].X;
-            var shotRight = _playerShots[shotIndex].X + _playerShots[shotIndex].CurrentFrame.Width;
-            var shotTop = _playerShots[shotIndex].Y;
-            var shotBottom = _playerShots[shotIndex].Y + _playerShots[shotIndex].CurrentFrame.Height;
-            
-            if (shotBottom <= 0)
-            {
-                // Shot is now off screen
-                RemoveSprite(_playerShots[shotIndex]);
-                _playerShots.RemoveAt(shotIndex);
-                
-                continue;
-            }
-
-            // Shot is on screen. Has it hit any enemies?
-            for (var enemyIndex = _enemies.Count - 1; enemyIndex >= 0; enemyIndex--)
-            {
-                var enemy = _enemies[enemyIndex];
-                var enemyLeft = enemy.X;
-                var enemyRight = enemy.X + enemy.CurrentFrame.Width;
-                var enemyTop = enemy.Y;
-                var enemyBottom = enemy.Y + enemy.CurrentFrame.Height;
-
-                var collisionOccurred = shotRight >= enemyLeft &&
-                                        shotLeft <= enemyRight &&
-                                        shotTop <= enemyBottom &&
-                                        shotBottom >= enemyTop;
-
-                if (collisionOccurred)
-                {
-                    // remove shots and enemy
-                    RemoveSprite(enemy);
-                    RemoveSprite(_playerShots[shotIndex]);
-                    _enemies.RemoveAt(enemyIndex);
-                    _playerShots.RemoveAt(shotIndex);
-
-                    // create explosion effect
-                    var explosion = new Explosion(enemy.IsBlue)
-                    {
-                        X = enemy.X,
-                        Y = enemy.Y,
-                    };
-                    _explosions.Add(explosion);
-                    AddSprite(explosion);
-
-                    // award points
-                    ProgressionService.Instance.AwardEnemyKill();
-
-                    // we have destroyed the shot and enemy and removed
-                    // them from the collection so we need to break out
-                    // of this loop
-                    break;
-                }
+                enemy.Y += ProgressionService.EnemyVerticalMovementAmount;
             }
         }
     }
@@ -254,7 +212,7 @@ public class GameScreen : Screen
     /// Processes any active explosions and removes them when their
     /// lifespan has expired
     /// </summary>
-    private void ProcessExplosions()
+    private void DoExplosions()
     {
         for (var index = _explosions.Count - 1; index >= 0; index--)
         {
@@ -265,8 +223,120 @@ public class GameScreen : Screen
             }
         }
     }
+    /// <summary>
+    /// Collides enemies with shots, the player, and checks if they have escaped the screen,
+    /// causing a game-over event
+    /// </summary>
+    private void DoEnemyCollisions()
+    {
+        bool didPlayerLoseThisFrame = false;
 
-    private void ProcessEndgameState()
+        for (var i = _enemies.Count - 1; i >= 0; i--)
+        {
+            var enemy = _enemies[i];
+
+            // did enemy collide with shot?
+            bool enemyWasDestroyedByShot = false;
+            for (var j = _playerShots.Count - 1; j >= 0; j--)
+            {
+                var shot = _playerShots[j];
+                if(shot.IsOverlapping(enemy))
+                {
+                    DestroyShot(shot);
+                    DestroyEnemy(enemy);
+                    ProgressionService.Instance.AwardEnemyKill();
+                    enemyWasDestroyedByShot = true;
+                    break;
+                }
+            }
+            if(enemyWasDestroyedByShot)
+            {
+                continue;
+            }
+
+            // did enemy collide with player?
+            if (_player.IsOverlapping(enemy))
+            {
+                var heart = _lives[0];
+                _lives.RemoveAt(0);
+                RemoveSprite(heart);
+
+                // create an explosion to draw attention to the life loss
+                CreateExplosionAtPoint(heart.X, heart.Y, EntityColor.Red);
+
+                DestroyEnemy(enemy);
+
+                if(_lives.Count == 0)
+                {
+                    LogService.Log.Info("Player lost because they ran out of lives");
+                    didPlayerLoseThisFrame = true;
+                    break;
+                }
+            }
+
+            // did enemy leave screen
+            if (enemy.Bottom >= _screenHeight)
+            {
+                LogService.Log.Info("Player lost because an enemy escaped.");
+                didPlayerLoseThisFrame = true;
+                break;
+            }
+        }
+
+        if(didPlayerLoseThisFrame)
+        {
+            // TODO: this should go to the endgame screen when that
+            // exists!
+            GameService.Instance.CurrentScreen = new TitleScreen();
+        }
+    }
+
+
+
+    private void DestroyShot(PlayerShot shot)
+    {
+        var index = _playerShots.IndexOf(shot);
+
+        if (index < 0)
+        {
+            LogService.Log.Error("Tried to remove shot that did not exist in collection!");
+        }
+        else
+        {
+            _enemies.RemoveAt(index);
+            RemoveSprite(shot);
+        }
+    }
+    private void DestroyEnemy(NormalEnemy enemy, bool createExplosion = true)
+    {
+        var index = _enemies.IndexOf(enemy);
+
+        if(index < 0)
+        {
+            LogService.Log.Error("Tried to remove enemy that did not exist in collection!");
+        }
+        else
+        {
+            _enemies.RemoveAt(index);
+            RemoveSprite(enemy);
+
+            if(createExplosion)
+            {
+                CreateExplosionAtPoint(enemy.X, enemy.Y, enemy.Color);
+            }
+        }
+    }
+    private void CreateExplosionAtPoint(float x, float y, EntityColor color = EntityColor.Blue)
+    {
+        var explosion = new Explosion(color)
+        {
+            X = x,
+            Y = y,
+        };
+        _explosions.Add(explosion);
+        AddSprite(explosion);
+    }
+    private void CheckLevelComplete()
     {
         // TODO: show congratulations message?
 
