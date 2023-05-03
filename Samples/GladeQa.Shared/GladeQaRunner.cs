@@ -10,6 +10,6 @@ public static class GladeQaRunner
     {
         LogService.Log.Trace("Running game...");
         engine.Profiler.IsActive = false;
-        engine.Start(new LayerRenderTestScreen());
+        engine.Start(() => new LayerRenderTestScreen());
     }
 }

@@ -5,7 +5,6 @@ using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
-using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 
 namespace GladeInvade.Shared.Screens;
@@ -50,7 +49,7 @@ public class TitleScreen : Screen
             ProgressionService.Instance.Restart();
 
             // launch the game screen
-            GameService.Instance.CurrentScreen = new GameScreen();
+            GameService.Instance.GameInstance.TransitionToScreen(() => new GameScreen());
         }
 
         if (_gameTitle.X < 5 || _gameTitle.X + _gameTitle.CurrentFrame.Width > _screenWidth - 5)

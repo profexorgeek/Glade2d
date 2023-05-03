@@ -357,7 +357,7 @@ public class GameScreen : Screen
         {
             LogService.Log.Info($"Player completed level {ProgressionService.Instance.CurrentLevel}.");
             ProgressionService.Instance.IncreaseDifficultyLevel();
-            GameService.Instance.CurrentScreen = new GameScreen();
+            GameService.Instance.GameInstance.TransitionToScreen(() => new GameScreen());
         }
     }
 }

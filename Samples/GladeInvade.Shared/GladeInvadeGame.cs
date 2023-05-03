@@ -14,6 +14,6 @@ public static class GladeInvadeGame
 
         LogService.Log.Trace("Running game...");
         engine.Profiler.IsActive = true;
-        engine.Start(new TitleScreen());
+        engine.Start(() => new TitleScreen());
     }
 }
