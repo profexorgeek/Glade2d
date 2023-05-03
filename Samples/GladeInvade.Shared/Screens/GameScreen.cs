@@ -59,7 +59,7 @@ public class GameScreen : Screen
 
     private void CreateTextLayer()
     {
-        _textLayer = Layer.Create(new Dimensions(_screenHeight, _screenWidth));
+        _textLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
         _textLayer.BackgroundColor = new Meadow.Foundation.Color(48,44,46);
         _textLayer.DrawLayerWithTransparency = false;
         UpdateText();
