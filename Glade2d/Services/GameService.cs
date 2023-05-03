@@ -22,7 +22,7 @@ namespace Glade2d.Services
 
         public GameTime Time { get; private set; }
 
-        public Screen CurrentScreen { get; set; } = new Screen();
+        public Screen CurrentScreen { get; internal set; } = new Screen();
 
         public Random Random { get; set; } = new Random();
 

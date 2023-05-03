@@ -55,6 +55,13 @@ internal class TrackedLayers
         _knownLayerZIndexes.Remove(layer);
     }
 
+    public void RemoveAllLayers()
+    {
+        _backgroundLayers.Clear();
+        _foregroundLayers.Clear();
+        _knownLayerZIndexes.Clear();
+    }
+
     /// <summary>
     /// Returns all background layers in order by their z index
     /// </summary>

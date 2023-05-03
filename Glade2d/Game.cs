@@ -85,18 +85,10 @@ namespace Glade2d
             gameInput.SetupInput(InputManager);
         }
 
-        public void Start(Screen startupScreen = null)
+        public void Start(Func<Screen> firstScreenGenerator = null)
         {
-            if (GameService.Instance.CurrentScreen is IDisposable oldScreen)
-            {
-                oldScreen.Dispose();
-            }
-            
-            Profiler.Reset();
-            var screen = startupScreen ?? new Screen();
-
             GameService.Instance.Initialize();
-            GameService.Instance.CurrentScreen = screen;
+            TransitionToScreen(firstScreenGenerator);
 
             LogService.Log.Trace("Starting Glade2d Game loop.");
 
@@ -108,7 +100,23 @@ namespace Glade2d
                     Thread.Sleep(SleepMilliseconds);
                 }
             }
+        }
 
+        public void TransitionToScreen(Func<Screen> nextScreenGenerator)
+        {
+            if (GameService.Instance.CurrentScreen is IDisposable oldScreen)
+            {
+                oldScreen.Dispose();
+            }
+            
+            GameService.Instance.GameInstance.LayerManager.RemoveAllLayers();
+            Profiler.Reset();
+            
+            // We want to make sure we instantiate the screen *after* we've cleared
+            // everything from the prior screen first.
+            var screen = nextScreenGenerator?.Invoke() ?? new Screen();
+            
+            GameService.Instance.CurrentScreen = screen;
         }
 
         /// <summary>

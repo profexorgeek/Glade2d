@@ -44,6 +44,14 @@ public class LayerManager
     }
 
     /// <summary>
+    /// Removes all layers from the layer manager
+    /// </summary>
+    public void RemoveAllLayers()
+    {
+        _trackedLayers.RemoveAllLayers();
+    }
+
+    /// <summary>
     /// Renders all background layers to the specified buffer
     /// </summary>
     internal void RenderBackgroundLayers(BufferRgb565 buffer)
