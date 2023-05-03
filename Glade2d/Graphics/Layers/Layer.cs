@@ -298,6 +298,20 @@ public class Layer
         while (_internalOrigin.Y >= _layerBuffer.Height) _internalOrigin.Y -= _layerBuffer.Height;
     }
 
+   
+    /// <summary>
+    /// Draws text to the layer.
+    /// </summary>
+    public void DrawText(Point position, string text)
+    {
+        var graphics = new MicroGraphics(_layerBuffer, false)
+        {
+            CurrentFont = new Font4x6()
+        };
+
+        graphics.DrawText(position.X, position.Y, text, Color.White);
+    }
+
     /// <summary>
     /// Renders the layer from its own buffer to the specified buffer.
     /// The passed in buffer is assumed to be the "camera" and thus the
