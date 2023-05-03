@@ -1,10 +1,12 @@
 ﻿using Glade2d;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
 using Meadow.Foundation;
+using Meadow.Foundation.Graphics;
 
 namespace GladeInvade.Shared.Screens;
 
@@ -28,6 +30,14 @@ public class TitleScreen : Screen
         };
             
         AddSprite(_gameTitle);
+
+        var layer = Layer.Create(new Dimensions(70, 20));
+        layer.BackgroundColor = layer.TransparentColor;
+        layer.DrawLayerWithTransparency = true;
+        layer.Clear();
+        layer.DrawText(new Point(0, 0), "Glade Invade");
+        layer.CameraOffset = new Point(20, 40);
+        _engine.LayerManager.AddLayer(layer, 1);
 
         LogService.Log.Info("Started title screen.");
     }
