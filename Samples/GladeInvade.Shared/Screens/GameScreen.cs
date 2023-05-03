@@ -27,6 +27,7 @@ public class GameScreen : Screen
     private DateTime _lastEnemyAnimationAt;
     private float _normalEnemyHorizontalVelocity = 0;
     private bool _lastHitLeftBorder = true;
+    private bool _enemyEscaped = false;
 
     public GameScreen()
     {
@@ -50,7 +51,7 @@ public class GameScreen : Screen
         DoExplosions();
         DoEnemyCollisions();
 
-        CheckLevelComplete();
+        CheckEndgame();
     }
 
 
@@ -229,70 +230,72 @@ public class GameScreen : Screen
     /// </summary>
     private void DoEnemyCollisions()
     {
-        bool didPlayerLoseThisFrame = false;
-
         for (var i = _enemies.Count - 1; i >= 0; i--)
         {
             var enemy = _enemies[i];
 
-            // did enemy collide with shot?
-            bool enemyWasDestroyedByShot = false;
-            for (var j = _playerShots.Count - 1; j >= 0; j--)
+            if(CollideEnemyVsShots(enemy))
             {
-                var shot = _playerShots[j];
-                if(shot.IsOverlapping(enemy))
-                {
-                    DestroyShot(shot);
-                    DestroyEnemy(enemy);
-                    ProgressionService.Instance.AwardEnemyKill();
-                    enemyWasDestroyedByShot = true;
-                    break;
-                }
+                // enemy hit shot, no more checks for this enemy
+                continue;
             }
-            if(enemyWasDestroyedByShot)
+
+            if(CollideEnemyVsPlayer(enemy))
             {
                 continue;
             }
 
-            // did enemy collide with player?
-            if (_player.IsOverlapping(enemy))
+            if(CheckEnemyEscaped(enemy))
             {
-                var heart = _lives[0];
-                _lives.RemoveAt(0);
-                RemoveSprite(heart);
-
-                // create an explosion to draw attention to the life loss
-                CreateExplosionAtPoint(heart.X, heart.Y, EntityColor.Red);
-
-                DestroyEnemy(enemy);
-
-                if(_lives.Count == 0)
-                {
-                    LogService.Log.Info("Player lost because they ran out of lives");
-                    didPlayerLoseThisFrame = true;
-                    break;
-                }
+                _enemyEscaped = true;
             }
-
-            // did enemy leave screen
-            if (enemy.Bottom >= _screenHeight)
-            {
-                LogService.Log.Info("Player lost because an enemy escaped.");
-                didPlayerLoseThisFrame = true;
-                break;
-            }
-        }
-
-        if(didPlayerLoseThisFrame)
-        {
-            // TODO: this should go to the endgame screen when that
-            // exists!
-            GameService.Instance.CurrentScreen = new TitleScreen();
         }
     }
 
+    bool CollideEnemyVsShots(NormalEnemy enemy)
+    {
+        bool didCollide = false;
+        for (var j = _playerShots.Count - 1; j >= 0; j--)
+        {
+            var shot = _playerShots[j];
+            if (shot.IsOverlapping(enemy))
+            {
+                DestroyShot(shot);
+                DestroyEnemy(enemy);
+                ProgressionService.Instance.AwardEnemyKill();
+                didCollide = true;
+                break;
+            }
+        }
+        return didCollide;
+    }
+    bool CollideEnemyVsPlayer(NormalEnemy enemy)
+    {
+        bool didCollide = false;
+        if (_player.IsOverlapping(enemy))
+        {
+            var heart = _lives[0];
+            _lives.RemoveAt(0);
+            RemoveSprite(heart);
 
+            // create an explosion to draw attention to the life loss
+            CreateExplosionAtPoint(heart.X, heart.Y, EntityColor.Red);
 
+            DestroyEnemy(enemy);
+
+            didCollide = true;
+        }
+        return didCollide;
+    }
+    bool CheckEnemyEscaped(NormalEnemy enemy)
+    {
+        bool didEscape = false;
+        if (enemy.Bottom >= _screenHeight)
+        {
+            didEscape = true;
+        }
+        return didEscape;
+    }
     private void DestroyShot(PlayerShot shot)
     {
         var index = _playerShots.IndexOf(shot);
@@ -303,14 +306,13 @@ public class GameScreen : Screen
         }
         else
         {
-            _enemies.RemoveAt(index);
+            _playerShots.RemoveAt(index);
             RemoveSprite(shot);
         }
     }
     private void DestroyEnemy(NormalEnemy enemy, bool createExplosion = true)
     {
         var index = _enemies.IndexOf(enemy);
-
         if(index < 0)
         {
             LogService.Log.Error("Tried to remove enemy that did not exist in collection!");
@@ -319,7 +321,6 @@ public class GameScreen : Screen
         {
             _enemies.RemoveAt(index);
             RemoveSprite(enemy);
-
             if(createExplosion)
             {
                 CreateExplosionAtPoint(enemy.X, enemy.Y, enemy.Color);
@@ -336,12 +337,25 @@ public class GameScreen : Screen
         _explosions.Add(explosion);
         AddSprite(explosion);
     }
-    private void CheckLevelComplete()
+    private void CheckEndgame()
     {
-        // TODO: show congratulations message?
+        // TODO: go to the correct screen when endgame screen is created
 
-        if(_enemies.Count == 0)
+        if (_lives.Count == 0)
         {
+            LogService.Log.Info("Player lost because they ran out of lives");
+            GameService.Instance.CurrentScreen = new TitleScreen();
+        }
+
+        if(_enemyEscaped)
+        {
+            LogService.Log.Info("Player lost because an enemy escaped.");
+            GameService.Instance.CurrentScreen = new TitleScreen();
+        }
+
+        if (_enemies.Count == 0)
+        {
+            LogService.Log.Info($"Player completed level {ProgressionService.Instance.CurrentLevel}.");
             ProgressionService.Instance.IncreaseDifficultyLevel();
             GameService.Instance.CurrentScreen = new GameScreen();
         }
