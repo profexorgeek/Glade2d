@@ -8,7 +8,7 @@ Glade can run on the Meadow with a custom display device, on the Project Lab boa
 
 A "glade" is an open space in the forest, aka a Meadow, which is what Glade2d was designed to run on!
 
-![image](https://user-images.githubusercontent.com/711100/167543124-df31e10e-ee33-4441-bcf5-95a89e12e3fd.png)
+![Glade2d demo running on a Project Lab board](media/glade-demo.png)
 
 ## Getting Started
 
@@ -20,6 +20,8 @@ Currently, Glade2d early in development and does not have official releases or p
 1. If you have no hardware, test out the MonoGame sample, which can run on your desktop
 
 The sample game, Glade Invade, is a simple Space Invaders like game that demonstrates many of the capabilities and best practices for using Glade!
+
+![Glade2d runs on a variety of hardware](media/glade-hardware-variety.png)
 
 ## Documentation
 
