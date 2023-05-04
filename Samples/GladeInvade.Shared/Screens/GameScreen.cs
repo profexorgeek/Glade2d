@@ -17,7 +17,7 @@ public class GameScreen : Screen
     private const int PlayerShotVelocity = 35;
     
     private readonly int _screenHeight, _screenWidth;
-    private readonly Game _engine;
+    private readonly Game _game;
     private readonly List<Heart> _lives = new();
     private readonly Player _player = new();
     private readonly List<NormalEnemy> _enemies = new();
@@ -33,9 +33,9 @@ public class GameScreen : Screen
 
     public GameScreen()
     {
-        _engine = GameService.Instance.GameInstance;
-        _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
-        _screenWidth = GameService.Instance.GameInstance.Renderer.Width;
+        _game = GameService.Instance.GameInstance;
+        _screenHeight = _game.Renderer.Height;
+        _screenWidth = _game.Renderer.Width;
         _normalEnemyHorizontalVelocity = ProgressionService.Instance.CurrentEnemySpeed;
 
         CreateTextLayer();
@@ -60,10 +60,10 @@ public class GameScreen : Screen
     private void CreateTextLayer()
     {
         _textLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
-        _textLayer.BackgroundColor = new Meadow.Foundation.Color(48,44,46);
+        _textLayer.BackgroundColor = GameConstants.BackgroundColor;
         _textLayer.DrawLayerWithTransparency = false;
         UpdateText();
-        GameService.Instance.GameInstance.LayerManager.AddLayer(_textLayer, -1);
+        _game.LayerManager.AddLayer(_textLayer, -1);
     }
     /// <summary>
     /// Sets up the display of hearts that shows how many lives players have
@@ -129,11 +129,11 @@ public class GameScreen : Screen
     private void DoPlayerInput()
     {
         // do movement input
-        if (_engine.InputManager.GetButtonState(nameof(GameInputs.LeftButton)) == ButtonState.Down)
+        if (_game.InputManager.GetButtonState(nameof(GameInputs.LeftButton)) == ButtonState.Down)
         {
             _player.MoveLeft();
         }
-        else if (_engine.InputManager.GetButtonState(nameof(GameInputs.RightButton)) == ButtonState.Down)
+        else if (_game.InputManager.GetButtonState(nameof(GameInputs.RightButton)) == ButtonState.Down)
         {
             _player.MoveRight();
         }
@@ -153,7 +153,7 @@ public class GameScreen : Screen
         }
 
         // do shot input
-        if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
+        if (_game.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
         {
             var shot = new PlayerShot
             {
@@ -318,8 +318,15 @@ public class GameScreen : Screen
     void UpdateText()
     {
         _textLayer.Clear();
-        _textLayer.DrawText(new Point(4, 4), ProgressionService.Instance.Score.ToString("N0"));
-        _textLayer.DrawText(new Point(_screenWidth / 2, 4), ProgressionService.Instance.CurrentLevel.ToString());
+        _textLayer.DrawText(
+            position: new Point(4, 4),
+            text: ProgressionService.Instance.Score.ToString("N0"),
+            color: GameConstants.WhiteTextColor);
+
+        _textLayer.DrawText(
+            position: new Point(_screenWidth / 2, 4),
+            text: ProgressionService.Instance.CurrentLevel.ToString(),
+            color: GameConstants.WhiteTextColor);
     }
     private void DestroyShot(PlayerShot shot)
     {
@@ -369,20 +376,20 @@ public class GameScreen : Screen
         if (ProgressionService.Instance.Lives == 0)
         {
             LogService.Log.Info("Player lost because they ran out of lives");
-            GameService.Instance.GameInstance.TransitionToScreen(() => new TitleScreen());
+            _game.TransitionToScreen(() => new EndgameScreen());
         }
 
         if(_enemyEscaped)
         {
             LogService.Log.Info("Player lost because an enemy escaped.");
-            GameService.Instance.GameInstance.TransitionToScreen(() => new TitleScreen());
+            _game.TransitionToScreen(() => new EndgameScreen());
         }
 
         if (_enemies.Count == 0)
         {
             LogService.Log.Info($"Player completed level {ProgressionService.Instance.CurrentLevel}.");
             ProgressionService.Instance.IncreaseDifficultyLevel();
-            GameService.Instance.GameInstance.TransitionToScreen(() => new GameScreen());
+            _game.TransitionToScreen(() => new GameScreen());
         }
     }
 }
