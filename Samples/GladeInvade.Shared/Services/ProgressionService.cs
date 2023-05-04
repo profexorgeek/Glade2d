@@ -30,6 +30,8 @@ namespace GladeInvade.Shared.Services
         public uint CurrentLevel => _currentLevel;
         public uint Score => _score;
         public uint Lives => _lives;
+        public uint Kills => _enemyKills;
+
 
         public int CurrentEnemySpeed => (int)Math.Round(baseEnemySpeed * (levelSpeedMultiplier * _currentLevel));
 

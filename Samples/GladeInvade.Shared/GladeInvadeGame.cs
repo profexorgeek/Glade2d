@@ -9,7 +9,7 @@ public static class GladeInvadeGame
 {
     public static void Run(Game engine)
     {
-        engine.Renderer.BackgroundColor = new Meadow.Foundation.Color(48, 44, 46);
+        engine.Renderer.BackgroundColor = GameConstants.BackgroundColor;
 
         LogService.Log.Trace("Running game...");
         engine.Profiler.IsActive = true;
