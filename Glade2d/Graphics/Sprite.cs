@@ -72,6 +72,11 @@ namespace Glade2d.Graphics
         /// </summary>
         public Frame CurrentFrame { get; set; }
 
+        /// <summary>
+        /// Whether or not this sprite should react to pausing
+        /// </summary>
+        public bool ReactsToScreenPause { get; set; } = true;
+
 
 
         /// <summary>
@@ -94,8 +99,14 @@ namespace Glade2d.Graphics
         /// <summary>
         /// Called by the engine to update this object
         /// </summary>
-        public void Update()
+        public void Update(bool paused = false)
         {
+            // EARLY OUT: we're paused
+            if(paused && ReactsToScreenPause)
+            {
+                return;
+            }
+
             var delta = GameService.Instance.Time.FrameDelta;
             this.X += (float)(VelocityX * delta);
             this.Y += (float)(VelocityY * delta);
