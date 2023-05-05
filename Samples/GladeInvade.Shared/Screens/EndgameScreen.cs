@@ -1,5 +1,6 @@
 ﻿using Glade2d;
 using Glade2d.Graphics.Layers;
+using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Services;
@@ -14,13 +15,12 @@ namespace GladeInvade.Shared.Screens
     public class EndgameScreen : Screen
     {
         const float SecondsToIgnoreInput = 4f;
+        const int ScreenEdgePadding = 4;
 
         readonly int _screenHeight, _screenWidth;
-        Layer _mainTextLayer, _inputPromptText;
-        float _secondsUntilInputEnabled;
+        Layer _mainTextLayer, _inputPromptLayer;
+        double _secondsUntilInputEnabled = SecondsToIgnoreInput;
         readonly Game _game;
-
-
 
         public EndgameScreen()
         {
@@ -33,10 +33,36 @@ namespace GladeInvade.Shared.Screens
 
         public override void Activity()
         {
+            // countdown until it's time to show the input prompt. Then
+            // show the input prompt and start listening for input
+            _secondsUntilInputEnabled -= GameService.Instance.Time.FrameDelta;
+            if (_secondsUntilInputEnabled <= 0)
+            {
+                if(_game.LayerManager.ContainsLayer(_inputPromptLayer) == false)
+                {
+                    _game.LayerManager.AddLayer(_inputPromptLayer, 1);
+                }
+
+                DoPlayerInput();
+            }
+
             base.Activity();
         }
 
+        /// <summary>
+        /// Listen and react to player input
+        /// </summary>
+        void DoPlayerInput()
+        {
+            if(_game.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
+            {
+                _game.TransitionToScreen(() => new TitleScreen());
+            }
+        }
 
+        /// <summary>
+        /// Create all of the text layers and draw text to them
+        /// </summary>
         void CreateTextLayers()
         {
             _mainTextLayer = Layer.Create(new Glade2d.Dimensions(_screenWidth, _screenHeight));
@@ -45,9 +71,8 @@ namespace GladeInvade.Shared.Screens
             _mainTextLayer.Clear();
             _game.LayerManager.AddLayer(_mainTextLayer, -1);
 
-
             // draw gameover text
-            DrawCenteredText(_mainTextLayer, 8, "Game Over", GameConstants.RedTextColor, new Font6x8());
+            DrawCenteredText(_mainTextLayer, ScreenEdgePadding, "Game Over", GameConstants.RedTextColor, new Font6x8());
 
             // draw score text
             var scoreTextString = $"Score: {ProgressionService.Instance.Score}";
@@ -60,8 +85,30 @@ namespace GladeInvade.Shared.Screens
             // draw kills text
             var killsTextString = $"Kills: {ProgressionService.Instance.Kills}";
             DrawCenteredText(_mainTextLayer, _screenHeight / 4 * 3, killsTextString, GameConstants.WhiteTextColor);
+
+
+
+            var inputPromptFont = new Font4x6();
+            var inputPromptString = "Press [Action] to continue!";
+            _inputPromptLayer = Layer.Create(new Glade2d.Dimensions(_screenWidth, inputPromptFont.Height));
+            _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
+            _inputPromptLayer.DrawLayerWithTransparency = false;
+            _inputPromptLayer.Clear();
+            _inputPromptLayer.CameraOffset = new Point(0, _screenHeight - _inputPromptLayer.Height - ScreenEdgePadding);
+            // NOTE: we don't add this layer to the layer manager yet because we don't want it to show!
+
+            DrawCenteredText(_inputPromptLayer, 0, inputPromptString, GameConstants.RedTextColor);
         }
 
+        /// <summary>
+        /// Draws centered text at the specified Y coordinate with the provided 
+        /// color and font, on the provided layer
+        /// </summary>
+        /// <param name="layer">The layer to draw to</param>
+        /// <param name="yPos">The Y position of the text</param>
+        /// <param name="text">The text to draw</param>
+        /// <param name="color">The color of the text</param>
+        /// <param name="font">The font to use</param>
         void DrawCenteredText(Layer layer, int yPos, string text, Color color, IFont font = null)
         {
             font = font ?? layer.DefaultFont;
