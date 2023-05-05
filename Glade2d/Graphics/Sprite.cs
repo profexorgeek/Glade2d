@@ -73,7 +73,18 @@ namespace Glade2d.Graphics
         public Frame CurrentFrame { get; set; }
 
 
+
+        /// <summary>
+        /// Construct a new sprite with no sprite frame or
+        /// other configuration
+        /// </summary>
         public Sprite() { }
+
+        /// <summary>
+        /// Construct a new sprite and set its current
+        /// frame
+        /// </summary>
+        /// <param name="frame">The frame this sprite should display</param>
         public Sprite(Frame frame)
         {
             this.CurrentFrame = frame;
