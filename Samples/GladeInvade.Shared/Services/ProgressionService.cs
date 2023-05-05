@@ -14,10 +14,10 @@ namespace GladeInvade.Shared.Services
     public class ProgressionService
     {
         private static ProgressionService instance;
-        const int baseEnemySpeed = 5;
+        const int baseEnemySpeed = 7;
         const float levelSpeedMultiplier = 1.5f;
         const uint pointsPerEnemy = 1;
-        public const int EnemyVerticalMovementAmount = 4;
+        public const int EnemyVerticalMovementAmount = 3;
 
         private uint _enemyKills = 0;
         private uint _currentLevel = 1;
