@@ -36,6 +36,17 @@ public class LayerManager
     }
 
     /// <summary>
+    /// Checks whether the provided layer is already
+    /// managed by this manager as part of the scene graph
+    /// </summary>
+    /// <param name="layer">The layer to check</param>
+    /// <returns>True if the LayerManager is already managing this layer</returns>
+    public bool ContainsLayer(Layer layer)
+    {
+        return _trackedLayers.ContainsLayer(layer);
+    }
+
+    /// <summary>
     /// Removes a layer from being actively rendered.
     /// </summary>
     public void RemoveLayer(Layer layer)

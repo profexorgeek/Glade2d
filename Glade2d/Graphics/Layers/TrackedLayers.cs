@@ -11,6 +11,14 @@ internal class TrackedLayers
     private readonly SortedSet<TrackedLayer> _backgroundLayers = new(new TrackedLayerComparer());
     private readonly SortedSet<TrackedLayer> _foregroundLayers = new(new TrackedLayerComparer());
     
+    /// <summary>
+    /// Adds a layer to the scene graph at the specified index
+    /// </summary>
+    /// <param name="layer">The layer to add</param>
+    /// <param name="zIndex">The Z index (which controls render order, higher is on top)</param>
+    /// <exception cref="ArgumentNullException">Thrown if a bad layer is passed</exception>
+    /// <exception cref="InvalidOperationException">Thrown if layers are added at Z 0, 
+    /// which is reserved for sprite drawing</exception>
     public void AddLayer(Layer layer, int zIndex)
     {
         if (layer == null) throw new ArgumentNullException(nameof(layer));
@@ -43,6 +51,11 @@ internal class TrackedLayers
         _knownLayerZIndexes[layer] = zIndex;
     }
 
+    /// <summary>
+    /// Removes a layer from the scene graph
+    /// </summary>
+    /// <param name="layer">The layer to remove</param>
+    /// <exception cref="ArgumentNullException">Thrown if a bad layer is passed</exception>
     public void RemoveLayer(Layer layer)
     {
         if (layer == null) throw new ArgumentNullException(nameof(layer));
@@ -55,11 +68,25 @@ internal class TrackedLayers
         _knownLayerZIndexes.Remove(layer);
     }
 
+    /// <summary>
+    /// Removes all layers from the scene graph
+    /// </summary>
     public void RemoveAllLayers()
     {
         _backgroundLayers.Clear();
         _foregroundLayers.Clear();
         _knownLayerZIndexes.Clear();
+    }
+
+    /// <summary>
+    /// Checks if the provided layer is already
+    /// in the scene graph
+    /// </summary>
+    /// <param name="layer">The layer to check</param>
+    /// <returns>True if this layer is already tracked in the scene graph</returns>
+    public bool ContainsLayer(Layer layer)
+    {
+        return _knownLayerZIndexes.ContainsKey(layer);
     }
 
     /// <summary>
