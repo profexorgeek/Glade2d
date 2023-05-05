@@ -62,7 +62,14 @@ internal class TrackedLayers
         
         if (_knownLayerZIndexes.TryGetValue(layer, out var oldIndex))
         {
-            _backgroundLayers.Remove(new TrackedLayer(layer, oldIndex));
+            if(oldIndex > 0)
+            {
+                _foregroundLayers.Remove(new TrackedLayer(layer, oldIndex));
+            }
+            else
+            {
+                _backgroundLayers.Remove(new TrackedLayer(layer, oldIndex));
+            }
         }
 
         _knownLayerZIndexes.Remove(layer);
