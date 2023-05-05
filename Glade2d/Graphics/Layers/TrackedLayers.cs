@@ -71,7 +71,6 @@ internal class TrackedLayers
                 _backgroundLayers.Remove(new TrackedLayer(layer, oldIndex));
             }
         }
-
         _knownLayerZIndexes.Remove(layer);
     }
 

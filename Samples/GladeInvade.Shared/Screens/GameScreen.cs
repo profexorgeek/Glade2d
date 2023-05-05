@@ -11,10 +11,27 @@ namespace GladeInvade.Shared.Screens;
 
 public class GameScreen : Screen
 {
+    enum GameScreenState
+    {
+        Intro,
+        Gameplay,
+        Outro,
+    };
+
+    enum EndgameResult
+    {
+        None,
+        LivesEmpty,
+        EnemyEscaped,
+        CompletedLevel,
+    }
+
+
     private const int GapBetweenHearts = 5;
     private const int EnemyColumns = 6;
     private const int EnemyRows = 3;
     private const int PlayerShotVelocity = 35;
+    private const float ToastDisplaySeconds = 3f;
     
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _game;
@@ -29,7 +46,10 @@ public class GameScreen : Screen
     private float _normalEnemyHorizontalVelocity = 0;
     private bool _lastHitLeftBorder = true;
     private bool _enemyEscaped = false;
-    private Layer _textLayer;
+    private Layer _textLayer, _toastLayer;
+    private GameScreenState _screenState;
+    private IFont _toastFont;
+    private double _timeToNextStateChange;
 
     public GameScreen()
     {
@@ -37,90 +57,135 @@ public class GameScreen : Screen
         _screenHeight = _game.Renderer.Height;
         _screenWidth = _game.Renderer.Width;
         _normalEnemyHorizontalVelocity = ProgressionService.Instance.CurrentEnemySpeed;
+        _toastFont = new Font8x12();
 
-        CreateTextLayer();
+        CreateTextLayers();
         CreateLivesIndicator();
         CreatePlayer();
         CreateEnemies();
+
+        StartIntro();
+
     }
 
     /// <summary>
-    /// Performs all frame-based activity
+    /// Performs all frame-based activity based on the
+    /// current game state
     /// </summary>
     public override void Activity()
+    {
+        switch(_screenState)
+        {
+            case GameScreenState.Intro:
+                DoIntroState();
+                break;
+            case GameScreenState.Gameplay:
+                DoGameplayState();
+                break;
+            case GameScreenState.Outro:
+                DoOutroState();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Starts the Intro state, update the toast text
+    /// and moving the screen into the Intro state
+    /// </summary>
+    void StartIntro()
+    {
+        _timeToNextStateChange = ToastDisplaySeconds;
+        UpdateToastText($"Level {ProgressionService.Instance.CurrentLevel}");
+        IsPaused = true;
+        _screenState = GameScreenState.Intro;
+    }
+    /// <summary>
+    /// Does intro state activities, counting down time to
+    /// game start
+    /// </summary>
+    void DoIntroState()
+    {
+        _timeToNextStateChange -= GameService.Instance.Time.FrameDelta;
+        if(_timeToNextStateChange <= 0)
+        {
+            StartGameplay();
+        }
+    }
+    /// <summary>
+    /// Starts the gameplay state, hiding toast text
+    /// and unpausing the game
+    /// </summary>
+    void StartGameplay()
+    {
+        HideToastText();
+        IsPaused = false;
+        _screenState = GameScreenState.Gameplay;
+    }
+    /// <summary>
+    /// Does the gameplay state activities, managing movement,
+    /// collision, and checking for an endgame condition
+    /// </summary>
+    void DoGameplayState()
     {
         DoPlayerInput();
         DoEnemyMovement();
         DoExplosions();
         DoEnemyCollisions();
-
-        CheckEndgame();
-    }
-
-    private void CreateTextLayer()
-    {
-        _textLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
-        _textLayer.BackgroundColor = GameConstants.BackgroundColor;
-        _textLayer.DrawLayerWithTransparency = false;
-        UpdateText();
-        _game.LayerManager.AddLayer(_textLayer, -1);
-    }
-    /// <summary>
-    /// Sets up the display of hearts that shows how many lives players have
-    /// </summary>
-    private void CreateLivesIndicator()
-    {
-        for (var x = 0; x < ProgressionService.Instance.Lives; x++)
+        
+        // react to endgame condition
+        switch (CheckEndgame())
         {
-            var heart = new Heart();
-            heart.X = _screenWidth - (heart.CurrentFrame.Width + GapBetweenHearts) * (x + 1);
-            heart.Y = 5;
-
-            _lives.Add(heart);
-            AddSprite(heart);
+            case EndgameResult.None:
+                // noop, game continues
+                break;
+            case EndgameResult.EnemyEscaped:
+                StartOutro("Enemy Escaped!");
+                break;
+            case EndgameResult.LivesEmpty:
+                StartOutro("No More Lives!");
+                break;
+            case EndgameResult.CompletedLevel:
+                StartOutro($"Cleared {ProgressionService.Instance.CurrentLevel}");
+                break;
         }
     }
     /// <summary>
-    /// Creates the player object
+    /// Starts the outro state, showing the provided
+    /// toast message and pausing the game
     /// </summary>
-    private void CreatePlayer()
+    /// <param name="message">The toast message to show, should explain
+    /// why the current screen is ending</param>
+    void StartOutro(string message)
     {
-        _player.X = _screenWidth / 2f;
-        _player.Y = _screenHeight - _player.CurrentFrame.Height;
-        AddSprite(_player);
+        _timeToNextStateChange = ToastDisplaySeconds;
+        UpdateToastText(message);
+        IsPaused = true;
+        _screenState = GameScreenState.Outro;
     }
     /// <summary>
-    /// Creates the rows of enemies at the beginning of the game.
+    /// Performs the outro activity, counting down time until
+    /// the screen should transition and figuring out where the
+    /// screen should transition to
     /// </summary>
-    private void CreateEnemies()
+    void DoOutroState()
     {
-        _lastEnemyAnimationAt = new DateTime();
-        for (var col = 0; col < EnemyColumns; col++)
-        for (var row = 0; row < EnemyRows; row++)
+        _timeToNextStateChange -= GameService.Instance.Time.FrameDelta;
+        if(_timeToNextStateChange <= 0)
         {
-            var color = row % 2 == 0 ? EntityColor.Blue : EntityColor.Pink;
-            var offset = col % 2 == 0 ? true : false;
-            var enemy = new NormalEnemy(color, offset);
+            var endgameType = CheckEndgame();
 
-            enemy.SetToStartingPosition(row, col);
-            enemy.VelocityX = _normalEnemyHorizontalVelocity;
-            
-            AddSprite(enemy);
-            _enemies.Add(enemy);
-        }
-    }
-    /// <summary>
-    /// Resets any remaining enemies to their starting position
-    /// </summary>
-    private void ResetEnemies()
-    {
-        for(var i = 0; i < _enemies.Count; i++)
-        {
-            _enemies[i].SetToStartingPosition();
+            if(endgameType == EndgameResult.CompletedLevel)
+            {
+                ProgressionService.Instance.IncreaseDifficultyLevel();
+                _game.TransitionToScreen(() => new GameScreen());
+            }
+            else
+            {
+                _game.TransitionToScreen(() => new EndgameScreen());
+            }
         }
     }
 
-    
 
     /// <summary>
     /// Frame Time: Performs all player movement logic in reaction to player input,
@@ -196,7 +261,7 @@ public class GameScreen : Screen
 
             _lastEnemyAnimationAt = DateTime.Now;
         }
-        
+
         // If any enemy has hit the border, move them all the opposite way. Only care about the border that's opposite
         // from what they last hit
         var borderHit = false;
@@ -206,7 +271,7 @@ public class GameScreen : Screen
                 borderHit = true;
                 _lastHitLeftBorder = false;
                 break;
-            
+
             case false when _enemies.Any(x => x.X <= 0):
                 borderHit = true;
                 _lastHitLeftBorder = true;
@@ -249,24 +314,100 @@ public class GameScreen : Screen
         {
             var enemy = _enemies[i];
 
-            if(CollideEnemyVsShots(enemy))
+            if (CollideEnemyVsShots(enemy))
             {
                 // enemy hit shot, no more checks for this enemy
                 continue;
             }
 
-            if(CollideEnemyVsPlayer(enemy))
+            if (CollideEnemyVsPlayer(enemy))
             {
                 ResetEnemies();
                 break;
             }
 
-            if(CheckEnemyEscaped(enemy))
+            if (CheckEnemyEscaped(enemy))
             {
                 _enemyEscaped = true;
             }
         }
     }
+
+
+    /// <summary>
+    /// Creates the text layers
+    /// </summary>
+    private void CreateTextLayers()
+    {
+        // main text layer with score and level
+        _textLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _textLayer.BackgroundColor = GameConstants.BackgroundColor;
+        _textLayer.DrawLayerWithTransparency = false;
+        UpdateScoreText();
+        _game.LayerManager.AddLayer(_textLayer, -1);
+
+        _toastLayer = Layer.Create(new Dimensions(_screenWidth, _toastFont.Height * 2));
+        _toastLayer.BackgroundColor = GameConstants.WhiteTextColor;
+        _toastLayer.CameraOffset = new Point(0, (_screenHeight / 2) - (_toastLayer.Height / 2));
+        _toastLayer.DrawLayerWithTransparency = false;
+        // NOTE: we don't add the layer to managers here because we may
+        // not want it to be shown yet
+    }
+    /// <summary>
+    /// Sets up the display of hearts that shows how many lives players have
+    /// </summary>
+    private void CreateLivesIndicator()
+    {
+        for (var x = 0; x < ProgressionService.Instance.Lives; x++)
+        {
+            var heart = new Heart();
+            heart.X = _screenWidth - (heart.CurrentFrame.Width + GapBetweenHearts) * (x + 1);
+            heart.Y = 5;
+
+            _lives.Add(heart);
+            AddSprite(heart);
+        }
+    }
+    /// <summary>
+    /// Creates the player object
+    /// </summary>
+    private void CreatePlayer()
+    {
+        _player.X = _screenWidth / 2f;
+        _player.Y = _screenHeight - _player.CurrentFrame.Height;
+        AddSprite(_player);
+    }
+    /// <summary>
+    /// Creates the rows of enemies at the beginning of the game.
+    /// </summary>
+    private void CreateEnemies()
+    {
+        _lastEnemyAnimationAt = new DateTime();
+        for (var col = 0; col < EnemyColumns; col++)
+        for (var row = 0; row < EnemyRows; row++)
+        {
+            var color = row % 2 == 0 ? EntityColor.Blue : EntityColor.Pink;
+            var offset = col % 2 == 0 ? true : false;
+            var enemy = new NormalEnemy(color, offset);
+
+            enemy.SetToStartingPosition(row, col);
+            enemy.VelocityX = _normalEnemyHorizontalVelocity;
+            
+            AddSprite(enemy);
+            _enemies.Add(enemy);
+        }
+    }
+    /// <summary>
+    /// Resets any remaining enemies to their starting position
+    /// </summary>
+    private void ResetEnemies()
+    {
+        for(var i = 0; i < _enemies.Count; i++)
+        {
+            _enemies[i].SetToStartingPosition();
+        }
+    }
+
 
     bool CollideEnemyVsShots(NormalEnemy enemy)
     {
@@ -279,7 +420,7 @@ public class GameScreen : Screen
                 DestroyShot(shot);
                 DestroyEnemy(enemy);
                 ProgressionService.Instance.AwardEnemyKill();
-                UpdateText();
+                UpdateScoreText();
                 didCollide = true;
                 break;
             }
@@ -315,7 +456,7 @@ public class GameScreen : Screen
         }
         return didEscape;
     }
-    void UpdateText()
+    void UpdateScoreText()
     {
         _textLayer.Clear();
         _textLayer.DrawText(
@@ -327,6 +468,32 @@ public class GameScreen : Screen
             position: new Point(_screenWidth / 2, 4),
             text: ProgressionService.Instance.CurrentLevel.ToString(),
             color: GameConstants.WhiteTextColor);
+    }
+    void UpdateToastText(string text)
+    {
+        _toastLayer.Clear();
+        var padding = _toastFont.Height / 2;
+        var position = new Point(
+            (_screenWidth / 2) - (text.Length * _toastFont.Width / 2),
+            padding);
+        _toastLayer.DrawText(
+            position: position,
+            text: text,
+            font: _toastFont,
+            color: GameConstants.BackgroundColor);
+
+        if(_game.LayerManager.ContainsLayer(_toastLayer) == false)
+        {
+            _game.LayerManager.AddLayer(_toastLayer, 5);
+        }
+        
+    }
+    void HideToastText()
+    {
+        if(_game.LayerManager.ContainsLayer(_toastLayer))
+        {
+            _game.LayerManager.RemoveLayer(_toastLayer);
+        }
     }
     private void DestroyShot(PlayerShot shot)
     {
@@ -369,27 +536,30 @@ public class GameScreen : Screen
         _explosions.Add(explosion);
         AddSprite(explosion);
     }
-    private void CheckEndgame()
+    private EndgameResult CheckEndgame()
     {
-        // TODO: go to the correct screen when endgame screen is created
-
         if (ProgressionService.Instance.Lives == 0)
         {
             LogService.Log.Info("Player lost because they ran out of lives");
-            _game.TransitionToScreen(() => new EndgameScreen());
+            return EndgameResult.LivesEmpty;
+            //_game.TransitionToScreen(() => new EndgameScreen());
         }
 
         if(_enemyEscaped)
         {
             LogService.Log.Info("Player lost because an enemy escaped.");
-            _game.TransitionToScreen(() => new EndgameScreen());
+            return EndgameResult.EnemyEscaped;
+            //_game.TransitionToScreen(() => new EndgameScreen());
         }
 
         if (_enemies.Count == 0)
         {
             LogService.Log.Info($"Player completed level {ProgressionService.Instance.CurrentLevel}.");
-            ProgressionService.Instance.IncreaseDifficultyLevel();
-            _game.TransitionToScreen(() => new GameScreen());
+            return EndgameResult.CompletedLevel;
+            //ProgressionService.Instance.IncreaseDifficultyLevel();
+            //_game.TransitionToScreen(() => new GameScreen());
         }
+
+        return EndgameResult.None;
     }
 }
