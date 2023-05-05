@@ -11,9 +11,12 @@ namespace GladeInvade.Shared.Screens;
 
 public class TitleScreen : Screen
 {
+    const int ScreenEdgePadding = 4;
+
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine = GameService.Instance.GameInstance;
     private readonly GameTitleDisplay _gameTitle;
+    private Layer _inputPromptLayer;
     
     public TitleScreen()
     {
@@ -30,13 +33,7 @@ public class TitleScreen : Screen
             
         AddSprite(_gameTitle);
 
-        var layer = Layer.Create(new Dimensions(70, 20));
-        layer.BackgroundColor = layer.TransparentColor;
-        layer.DrawLayerWithTransparency = true;
-        layer.Clear();
-        layer.DrawText(new Point(0, 0), "Glade Invade");
-        layer.CameraOffset = new Point(20, 40);
-        _engine.LayerManager.AddLayer(layer, 1);
+        CreateTextLayers();
 
         LogService.Log.Info("Started title screen.");
     }
@@ -63,5 +60,26 @@ public class TitleScreen : Screen
         }
         
         base.Activity();
+    }
+
+
+    void CreateTextLayers()
+    {
+        _inputPromptLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
+        _inputPromptLayer.DrawLayerWithTransparency = false;
+        _inputPromptLayer.Clear();
+
+        var font = _inputPromptLayer.DefaultFont;
+        var prompt = "Press [Action] to Play!";
+        var position = new Point(
+            (_screenWidth / 2) - (prompt.Length * font.Width / 2),
+            _screenHeight - font.Height - ScreenEdgePadding);
+        _inputPromptLayer.DrawText(
+            position: position,
+            text: prompt,
+            color: GameConstants.RedTextColor);
+
+        _engine.LayerManager.AddLayer(_inputPromptLayer, -1);
     }
 }
