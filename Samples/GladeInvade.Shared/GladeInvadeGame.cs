@@ -12,7 +12,6 @@ public static class GladeInvadeGame
         engine.Renderer.BackgroundColor = GameConstants.BackgroundColor;
 
         LogService.Log.Trace("Running game...");
-        engine.Profiler.IsActive = true;
         engine.Start(() => new TitleScreen());
     }
 }
