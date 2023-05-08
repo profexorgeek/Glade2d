@@ -11,6 +11,6 @@ public class GladePlatformerGame
         LogService.Log.Trace("Running game...");
         engine.Profiler.IsActive = true;
         engine.Renderer.ShowPerf = true;
-        engine.Start(new LevelScreen());
+        engine.Start(() => new LevelScreen());
     }
 }

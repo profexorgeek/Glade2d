@@ -1,17 +1,22 @@
 ﻿using Glade2d;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
+using GladeInvade.Shared.Services;
 using GladeInvade.Shared.Sprites;
-using Meadow.Foundation;
+using Meadow.Foundation.Graphics;
 
 namespace GladeInvade.Shared.Screens;
 
 public class TitleScreen : Screen
 {
+    const int ScreenEdgePadding = 4;
+
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine = GameService.Instance.GameInstance;
     private readonly GameTitleDisplay _gameTitle;
+    private Layer _inputPromptLayer;
     
     public TitleScreen()
     {
@@ -27,13 +32,21 @@ public class TitleScreen : Screen
         };
             
         AddSprite(_gameTitle);
+
+        CreateTextLayers();
+
+        LogService.Log.Info("Started title screen.");
     }
 
     public override void Activity()
     {
-        if (_engine.InputManager.GetButtonState(nameof(GameInputs.Action)) == ButtonState.Pressed)
+        if (_engine.InputManager.GetButtonState(nameof(GameInputs.ActionButton)) == ButtonState.Pressed)
         {
-            GameService.Instance.CurrentScreen = new GameScreen();
+            // restart progression at level 1
+            ProgressionService.Instance.Restart();
+
+            // launch the game screen
+            GameService.Instance.GameInstance.TransitionToScreen(() => new GameScreen());
         }
 
         if (_gameTitle.X < 5 || _gameTitle.X + _gameTitle.CurrentFrame.Width > _screenWidth - 5)
@@ -47,5 +60,26 @@ public class TitleScreen : Screen
         }
         
         base.Activity();
+    }
+
+
+    void CreateTextLayers()
+    {
+        _inputPromptLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
+        _inputPromptLayer.DrawLayerWithTransparency = false;
+        _inputPromptLayer.Clear();
+
+        var font = _inputPromptLayer.DefaultFont;
+        var prompt = "Press [Action] to Play!";
+        var position = new Point(
+            (_screenWidth / 2) - (prompt.Length * font.Width / 2),
+            _screenHeight - font.Height - ScreenEdgePadding);
+        _inputPromptLayer.DrawText(
+            position: position,
+            text: prompt,
+            color: GameConstants.RedTextColor);
+
+        _engine.LayerManager.AddLayer(_inputPromptLayer, -1);
     }
 }

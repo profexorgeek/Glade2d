@@ -11,6 +11,8 @@ namespace Glade2d.Screens
         List<Sprite> sprites = new List<Sprite>();
         bool listSortNeeded = false;
 
+        public bool IsPaused { get; set; }
+
         public Screen() { }
 
         /// <summary>
@@ -26,7 +28,8 @@ namespace Glade2d.Screens
                 listSortNeeded = false;
             }
 
-            for(var i = sprites.Count - 1; i > -1; i--)
+
+            for (var i = sprites.Count - 1; i > -1; i--)
             {
                 var currentSprite = sprites[i];
                 if (currentSprite.Destroyed)
@@ -35,7 +38,7 @@ namespace Glade2d.Screens
                 }
                 else
                 {
-                    sprites[i].Update();
+                    sprites[i].Update(IsPaused);
                 }
             }
 

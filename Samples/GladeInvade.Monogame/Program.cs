@@ -8,9 +8,9 @@ var engine = new Game();
 
 var inputs = new GameInputs
 {
-    Left = environment.CreatePortForKey(Keys.Left),
-    Right = environment.CreatePortForKey(Keys.Right),
-    Action = environment.CreatePortForKey(Keys.Up),
+    LeftButton = environment.CreatePortForKey(Keys.Left),
+    RightButton = environment.CreatePortForKey(Keys.Right),
+    ActionButton = environment.CreatePortForKey(Keys.Up),
 };
 
 engine.Initialize(environment.Display, inputs, 2, contentRoot: Environment.CurrentDirectory);

@@ -16,6 +16,7 @@ public class Layer
     
     private readonly BufferRgb565 _layerBuffer;
     private readonly TextureManager _textureManager;
+    private readonly Font4x6 _defaultFont = new Font4x6();
     private Vector2 _internalOrigin;
     
     /// <summary>
@@ -51,6 +52,8 @@ public class Layer
     /// The height of the layer's canvas
     /// </summary>
     public int Height => _layerBuffer.Height;
+
+    public IFont DefaultFont => _defaultFont;
 
     private Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
     {
@@ -296,6 +299,37 @@ public class Layer
         while (_internalOrigin.X >= _layerBuffer.Width) _internalOrigin.X -= _layerBuffer.Width;
         while (_internalOrigin.Y < 0) _internalOrigin.Y += _layerBuffer.Height;
         while (_internalOrigin.Y >= _layerBuffer.Height) _internalOrigin.Y -= _layerBuffer.Height;
+    }
+
+
+    /// <summary>
+    /// Draws white text to the layer using 4x6 font
+    /// </summary>
+    /// <param name="position">The position to draw text</param>
+    /// <param name="text">The text to draw</param>
+    public void DrawText(Point position, string text)
+    {
+        DrawText(position, text, null, null);
+    }
+
+    /// <summary>
+    /// Draws text to the layer using a custom font
+    /// </summary>
+    /// <param name="position">The position to draw the text</param>
+    /// <param name="text">The text to draw</param>
+    /// <param name="font">The font to use for the text</param>
+    /// <param name="color">The color to use</param>
+    public void DrawText(Point position, string text, IFont font = null, Color? color = null)
+    {
+        font = font ?? _defaultFont;
+        color = color ?? Color.White;
+
+        var graphics = new MicroGraphics(_layerBuffer, false)
+        {
+            CurrentFont = font,
+        };
+
+        graphics.DrawText(position.X, position.Y, text, color.Value);
     }
 
     /// <summary>

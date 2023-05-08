@@ -25,7 +25,7 @@ namespace SampleProjectLab
             glade.Profiler.IsActive = true;
 
             LogService.Log.Trace("Running game...");
-            glade.Start(new GladeDemoScreen());
+            glade.Start(() => new GladeDemoScreen());
 
             return base.Run();
         }
