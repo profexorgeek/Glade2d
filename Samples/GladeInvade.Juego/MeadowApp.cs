@@ -83,8 +83,6 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
 
     private void SetupInputs(InputManager inputManager)
     {
-        
-
         var dPadLeftPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP4, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
         var dPadRightPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP2, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
         var btnDownPort = _mcp2.CreateDigitalInputPort(_mcp2.Pins.GP3, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
