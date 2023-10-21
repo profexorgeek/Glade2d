@@ -18,10 +18,10 @@ namespace GladeSampleShared.Screens
 
         private readonly int _screenWidth;
         private readonly int _screenHeight;
-        private readonly Layer _skyLayer;
-        private readonly Layer _treeLayer;
-        private readonly Layer _mountainLayer;
-        private readonly Layer _groundLayer;
+        private readonly ILayer _skyLayer;
+        private readonly ILayer _treeLayer;
+        private readonly ILayer _mountainLayer;
+        private readonly ILayer _groundLayer;
         private readonly List<Cloud> _clouds = new List<Cloud>();
         private readonly Color _backgroundColor = new Color(57, 120, 168);
         private readonly Vector2 _treeVelocity = new Vector2(-5, 0);
@@ -33,7 +33,7 @@ namespace GladeSampleShared.Screens
             // set screen dimensions for easy reference
             _screenWidth = GameService.Instance.GameInstance.Renderer.Width;
             _screenHeight = GameService.Instance.GameInstance.Renderer.Height;
-            
+
             // Set background color
             GameService.Instance.GameInstance.Renderer.BackgroundColor = _backgroundColor;
 
@@ -41,7 +41,7 @@ namespace GladeSampleShared.Screens
             _treeLayer = CreateTreeLayer();
             _mountainLayer = CreateMountainLayer();
             _groundLayer = CreateGroundLayer();
-            
+
             CreateSun();
             CreateInitialClouds();
         }
@@ -49,7 +49,7 @@ namespace GladeSampleShared.Screens
         public override void Activity()
         {
             DoClouds();
-            
+
             // Shift layers by their velocity
             var timeSinceLastFrame = (float)GameService.Instance.Time.FrameDelta;
             _treeLayer.Shift(_treeVelocity * timeSinceLastFrame);
@@ -59,14 +59,16 @@ namespace GladeSampleShared.Screens
             base.Activity();
         }
 
-        private Layer CreateSkyLayer()
+        private ILayer CreateSkyLayer()
         {
             var skyChunk = new SkyChunk();
-            
+
             // Sky doesn't move, so it can be the same width of the screen
-            var layer = Layer.Create(new Dimensions(_screenWidth, skyChunk.CurrentFrame.Height));
-            layer.CameraOffset = new Point(0, 0);
+            var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(
+                new Dimensions(_screenWidth, skyChunk.CurrentFrame.Height));
             
+            layer.CameraOffset = new Point(0, 0);
+
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
             for (var x = 0; x < _screenWidth; x += skyChunk.CurrentFrame.Width)
             {
@@ -76,34 +78,34 @@ namespace GladeSampleShared.Screens
             return layer;
         }
 
-        private Layer CreateTreeLayer()
+        private ILayer CreateTreeLayer()
         {
             var tree = new Tree();
             var ground = new GroundChunk();
-            
+
             // We want to make sure the layer is at least as wide as the screen, 
             // but also wide enough that it can tile with itself, so no seams show
             // when it scrolls. The trees will be staggered in two "depths", with
             // every other in front of the two surrounding to it.
             var layerWidth = _screenWidth +
                              (_screenWidth % (tree.CurrentFrame.Width / 2));
-            
-            var layer = Layer.Create(new Dimensions(layerWidth, tree.CurrentFrame.Height));
-            layer.CameraOffset = new Point( 0, _screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
+
+            var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(layerWidth, tree.CurrentFrame.Height));
+            layer.CameraOffset = new Point(0, _screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
             layer.BackgroundColor = new Color(79, 84, 107);
             layer.Clear();
-            
+
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
-            
+
             // TODO: Clear layer to the main color of mountains, to pretend it has
             // transparency.
-            
+
             // Draw background trees first
             for (var x = 0; x < layerWidth; x += tree.CurrentFrame.Width)
             {
                 layer.DrawTexture(tree.CurrentFrame, new Point(x, 0));
             }
-            
+
             // Now draw the foreground trees
             for (var x = tree.CurrentFrame.Width / 2; x < layerWidth; x += tree.CurrentFrame.Width)
             {
@@ -113,20 +115,22 @@ namespace GladeSampleShared.Screens
             return layer;
         }
 
-        private Layer CreateMountainLayer()
+        private ILayer CreateMountainLayer()
         {
             var mountain = new MountainChunk();
-            
+
             // We want to make sure the layer is at least as wide as the screen, 
             // but also wide enough that it can tile with itself, so no seams show
             // when it scrolls. 
             var layerWidth = _screenWidth + (_screenWidth % (mountain.CurrentFrame.Width));
+
+            var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(
+                new Dimensions(layerWidth, mountain.CurrentFrame.Height));
             
-            var layer = Layer.Create(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
             layer.BackgroundColor = _backgroundColor;
             layer.Clear();
-            layer.CameraOffset = new Point( 0, _screenHeight - 16 - mountain.CurrentFrame.Height);
-            
+            layer.CameraOffset = new Point(0, _screenHeight - 16 - mountain.CurrentFrame.Height);
+
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -2);
 
             for (var x = 0; x < layerWidth; x += mountain.CurrentFrame.Width)
@@ -137,15 +141,17 @@ namespace GladeSampleShared.Screens
             return layer;
         }
 
-        private Layer CreateGroundLayer()
+        private ILayer CreateGroundLayer()
         {
             var ground = new GroundChunk();
 
-            var layer = Layer.Create(new Dimensions(_screenWidth, ground.CurrentFrame.Height));
+            var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(
+                new Dimensions(_screenWidth, ground.CurrentFrame.Height));
+            
             layer.CameraOffset = new Point(0, _screenHeight - ground.CurrentFrame.Height);
             layer.DrawLayerWithTransparency = true;
             layer.Clear();
-            
+
             GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
 
             for (var x = 0; x < _screenWidth; x += ground.CurrentFrame.Width)
@@ -199,7 +205,7 @@ namespace GladeSampleShared.Screens
                 var cloud = _clouds[i];
                 var cloudRightEdge = cloud.X + cloud.CurrentFrame.Width;
 
-                if(cloudRightEdge < 0)
+                if (cloudRightEdge < 0)
                 {
                     cloud.Die();
                     _clouds.Remove(cloud);
@@ -208,7 +214,7 @@ namespace GladeSampleShared.Screens
 
             // This is intentionally only done once per frame instead of
             // a while loop like the other methods
-            if(_clouds.Count < NumberOfClouds)
+            if (_clouds.Count < NumberOfClouds)
             {
                 var xPos = rand.Between(_screenWidth, _screenWidth + 8);
                 var yPos = rand.Next(0, yOffsetMin);

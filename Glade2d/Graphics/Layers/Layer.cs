@@ -10,7 +10,7 @@ namespace Glade2d.Graphics.Layers;
 /// <summary>
 /// A layer represents an isolated pixel buffer that can be drawn to, cached, and manipulated individually. 
 /// </summary>
-public class Layer
+public class Layer : ILayer
 {
     private readonly record struct DrawableRectangle(Point Start, Dimensions Dimensions);
     
@@ -55,19 +55,10 @@ public class Layer
 
     public IFont DefaultFont => _defaultFont;
 
-    private Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
+    internal Layer(BufferRgb565 layerBuffer, TextureManager textureManager)
     {
         _layerBuffer = layerBuffer;
         _textureManager = textureManager;
-    }
-
-    /// <summary>
-    /// Creates a new Layer with the specified dimensions
-    /// </summary>
-    public static Layer Create(Dimensions dimensions)
-    {
-        var pixelBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
-        return new Layer(pixelBuffer, GameService.Instance.GameInstance.TextureManager);
     }
    
     /// <summary>

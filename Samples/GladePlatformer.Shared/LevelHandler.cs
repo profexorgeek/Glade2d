@@ -18,14 +18,14 @@ public class LevelHandler : IDisposable
     public record LevelData(IReadOnlyList<byte> SectionHeights);
     private readonly record struct GroundSection(int Index, int LayerStartX);
 
-    private readonly Layer _groundLayer;
+    private readonly ILayer _groundLayer;
     private readonly LevelData _levelData;
     private readonly GroundChunk _ground;
     private readonly BufferRgb565 _sectionClearTexture;
     private readonly int _screenHeight;
-    private readonly Layer _skyLayer;
-    private readonly Layer _treeLayer;
-    private readonly Layer _mountainLayer;
+    private readonly ILayer _skyLayer;
+    private readonly ILayer _treeLayer;
+    private readonly ILayer _mountainLayer;
     private float _lastPlayerPositionX;
     private float _movementSinceLastDraw;
 
@@ -177,7 +177,7 @@ public class LevelHandler : IDisposable
         GameService.Instance.GameInstance.LayerManager.RemoveLayer(_skyLayer);
     }
 
-    private static Layer CreateGroundLayer(GroundChunk ground)
+    private static ILayer CreateGroundLayer(GroundChunk ground)
     {
         var renderer = GameService.Instance.GameInstance.Renderer;
         
@@ -185,7 +185,7 @@ public class LevelHandler : IDisposable
         // both sides for two and a half chunks as a buffer.
         var layerWidth = renderer.Width + (GroundChunk.ChunkWidth * 5);
         var layerHeight = ground.CurrentFrame.Height * MaxGroundStack;
-        var layer = Layer.Create(new Dimensions(layerWidth, layerHeight));
+        var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(layerWidth, layerHeight));
         layer.TransparentColor = Color.Magenta;
         layer.BackgroundColor = Color.Magenta;
         layer.DrawLayerWithTransparency = true; // We want trees visible on lower ground stacks
@@ -202,13 +202,13 @@ public class LevelHandler : IDisposable
         return layer;
     }
 
-    private static Layer CreateSkyLayer()
+    private static ILayer CreateSkyLayer()
     {
         var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
         var skyChunk = new SkyChunk();
         
         // Sky doesn't move, so it can be the same width of the screen
-        var layer = Layer.Create(new Dimensions(screenWidth, skyChunk.CurrentFrame.Height));
+        var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(screenWidth, skyChunk.CurrentFrame.Height));
         layer.CameraOffset = new Point(0);
         
         GameService.Instance.GameInstance.LayerManager.AddLayer(layer, -1);
@@ -220,7 +220,7 @@ public class LevelHandler : IDisposable
         return layer;
     }
 
-    private static Layer CreateTreeLayer()
+    private static ILayer CreateTreeLayer()
     {
         var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
         var screenHeight = GameService.Instance.GameInstance.Renderer.Height;
@@ -234,7 +234,7 @@ public class LevelHandler : IDisposable
         var layerWidth = screenWidth +
                          (screenWidth % (tree.CurrentFrame.Width / 2));
         
-        var layer = Layer.Create(new Dimensions(layerWidth, tree.CurrentFrame.Height));
+        var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(layerWidth, tree.CurrentFrame.Height));
         layer.CameraOffset = new Point( 0, screenHeight - tree.CurrentFrame.Height - ground.CurrentFrame.Height);
         layer.BackgroundColor = new Color(79, 84, 107); // Mountain color
         layer.Clear();
@@ -256,7 +256,7 @@ public class LevelHandler : IDisposable
         return layer;
     }
 
-    private static Layer CreateMountainLayer()
+    private static ILayer CreateMountainLayer()
     {
         var screenWidth = GameService.Instance.GameInstance.Renderer.Width;
         var screenHeight = GameService.Instance.GameInstance.Renderer.Height;
@@ -267,7 +267,7 @@ public class LevelHandler : IDisposable
         // when it scrolls. 
         var layerWidth = screenWidth + (screenWidth % (mountain.CurrentFrame.Width));
         
-        var layer = Layer.Create(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
+        var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(layerWidth, mountain.CurrentFrame.Height));
         layer.BackgroundColor = new Color(57, 120, 168);
         layer.CameraOffset = new Point( 0, screenHeight - 16 - mountain.CurrentFrame.Height);
         layer.Clear();

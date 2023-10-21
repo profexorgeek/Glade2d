@@ -117,7 +117,14 @@ namespace Glade2d.Graphics
         {
             _profiler.StartTiming("Renderer.Render");
             _profiler.StartTiming("LayerManager.RenderBackgroundLayers");
-            _layerManager.RenderBackgroundLayers((BufferRgb565)pixelBuffer);
+
+            var backgroundLayerEnumerator = _layerManager.BackgroundLayerEnumerator();
+            while (backgroundLayerEnumerator.MoveNext())
+            {
+                var layer = (Layer)backgroundLayerEnumerator.Current;
+                layer!.RenderToBuffer((BufferRgb565)pixelBuffer);
+            }
+            
             _profiler.StopTiming("LayerManager.RenderBackgroundLayers");
 
             _profiler.StartTiming("Renderer.DrawSprites");
@@ -131,7 +138,14 @@ namespace Glade2d.Graphics
             _profiler.StopTiming("Renderer.DrawSprites");
             
             _profiler.StartTiming("LayerManager.RenderForegroundLayers");
-            _layerManager.RenderForegroundLayers((BufferRgb565)pixelBuffer);
+
+            var foregroundLayerEnumerator = _layerManager.ForegroundLayerEnumerator();
+            while (foregroundLayerEnumerator.MoveNext())
+            {
+                var layer = (Layer)foregroundLayerEnumerator.Current;
+                layer!.RenderToBuffer((BufferRgb565)pixelBuffer);
+            }
+            
             _profiler.StopTiming("LayerManager.RenderForegroundLayers");
            
             _profiler.StartTiming("Renderer.RenderToDisplay");
@@ -156,6 +170,15 @@ namespace Glade2d.Graphics
             base.Show();
             GameService.Instance.GameInstance.Profiler.StopTiming("Micrographics.Show");
             GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Show");
+        }
+
+        /// <summary>
+        /// Creates a new Layer with the specified dimensions
+        /// </summary>
+        public ILayer CreateLayer(Dimensions dimensions)
+        {
+            var layerBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
+            return new Layer(layerBuffer, GameService.Instance.GameInstance.TextureManager);
         }
 
         /// <summary>

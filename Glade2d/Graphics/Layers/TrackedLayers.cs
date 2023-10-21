@@ -5,9 +5,9 @@ namespace Glade2d.Graphics.Layers;
 
 internal class TrackedLayers
 {
-    internal readonly record struct TrackedLayer(Layer Layer, int ZIndex);
+    internal readonly record struct TrackedLayer(ILayer Layer, int ZIndex);
 
-    private readonly Dictionary<Layer, int> _knownLayerZIndexes = new();
+    private readonly Dictionary<ILayer, int> _knownLayerZIndexes = new();
     private readonly SortedSet<TrackedLayer> _backgroundLayers = new(new TrackedLayerComparer());
     private readonly SortedSet<TrackedLayer> _foregroundLayers = new(new TrackedLayerComparer());
     
@@ -19,7 +19,7 @@ internal class TrackedLayers
     /// <exception cref="ArgumentNullException">Thrown if a bad layer is passed</exception>
     /// <exception cref="InvalidOperationException">Thrown if layers are added at Z 0, 
     /// which is reserved for sprite drawing</exception>
-    public void AddLayer(Layer layer, int zIndex)
+    public void AddLayer(ILayer layer, int zIndex)
     {
         if (layer == null) throw new ArgumentNullException(nameof(layer));
         
@@ -56,7 +56,7 @@ internal class TrackedLayers
     /// </summary>
     /// <param name="layer">The layer to remove</param>
     /// <exception cref="ArgumentNullException">Thrown if a bad layer is passed</exception>
-    public void RemoveLayer(Layer layer)
+    public void RemoveLayer(ILayer layer)
     {
         if (layer == null) throw new ArgumentNullException(nameof(layer));
         
@@ -90,7 +90,7 @@ internal class TrackedLayers
     /// </summary>
     /// <param name="layer">The layer to check</param>
     /// <returns>True if this layer is already tracked in the scene graph</returns>
-    public bool ContainsLayer(Layer layer)
+    public bool ContainsLayer(ILayer layer)
     {
         return _knownLayerZIndexes.ContainsKey(layer);
     }

@@ -46,7 +46,7 @@ public class GameScreen : Screen
     private float _normalEnemyHorizontalVelocity = 0;
     private bool _lastHitLeftBorder = true;
     private bool _enemyEscaped = false;
-    private Layer _textLayer, _toastLayer;
+    private ILayer _textLayer, _toastLayer;
     private GameScreenState _screenState;
     private IFont _toastFont;
     private double _timeToNextStateChange;
@@ -340,13 +340,13 @@ public class GameScreen : Screen
     private void CreateTextLayers()
     {
         // main text layer with score and level
-        _textLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _textLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, _screenHeight));
         _textLayer.BackgroundColor = GameConstants.BackgroundColor;
         _textLayer.DrawLayerWithTransparency = false;
         UpdateScoreText();
         _game.LayerManager.AddLayer(_textLayer, -1);
 
-        _toastLayer = Layer.Create(new Dimensions(_screenWidth, _toastFont.Height * 2));
+        _toastLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, _toastFont.Height * 2));
         _toastLayer.BackgroundColor = GameConstants.WhiteTextColor;
         _toastLayer.CameraOffset = new Point(0, (_screenHeight / 2) - (_toastLayer.Height / 2));
         _toastLayer.DrawLayerWithTransparency = false;

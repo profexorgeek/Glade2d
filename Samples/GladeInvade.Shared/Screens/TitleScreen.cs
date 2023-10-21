@@ -16,7 +16,7 @@ public class TitleScreen : Screen
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine = GameService.Instance.GameInstance;
     private readonly GameTitleDisplay _gameTitle;
-    private Layer _inputPromptLayer;
+    private ILayer _inputPromptLayer;
     
     public TitleScreen()
     {
@@ -65,7 +65,7 @@ public class TitleScreen : Screen
 
     void CreateTextLayers()
     {
-        _inputPromptLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _inputPromptLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, _screenHeight));
         _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
         _inputPromptLayer.DrawLayerWithTransparency = false;
         _inputPromptLayer.Clear();

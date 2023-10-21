@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Meadow.Foundation.Graphics.Buffers;
 
 namespace Glade2d.Graphics.Layers;
@@ -22,7 +24,7 @@ public class LayerManager
     /// zero will be rendered after sprites. Z index values of 0 are not allowed, as that is reserved
     /// for sprites.
     /// </param>
-    public void AddLayer(Layer layer, int zIndex)
+    public void AddLayer(ILayer layer, int zIndex)
     {
         if (zIndex == 0)
         {
@@ -41,7 +43,7 @@ public class LayerManager
     /// </summary>
     /// <param name="layer">The layer to check</param>
     /// <returns>True if the LayerManager is already managing this layer</returns>
-    public bool ContainsLayer(Layer layer)
+    public bool ContainsLayer(ILayer layer)
     {
         return _trackedLayers.ContainsLayer(layer);
     }
@@ -49,7 +51,7 @@ public class LayerManager
     /// <summary>
     /// Removes a layer from being actively rendered.
     /// </summary>
-    public void RemoveLayer(Layer layer)
+    public void RemoveLayer(ILayer layer)
     {
         _trackedLayers.RemoveLayer(layer);
     }
@@ -61,30 +63,50 @@ public class LayerManager
     {
         _trackedLayers.RemoveAllLayers();
     }
-
+   
     /// <summary>
-    /// Renders all background layers to the specified buffer
+    /// Retrieves the background layers in order
     /// </summary>
-    internal void RenderBackgroundLayers(BufferRgb565 buffer)
+    internal LayerEnumerator BackgroundLayerEnumerator()
     {
-        // Use the enumerator directly, to avoid garbage from IEnumerator
-        var enumerator = _trackedLayers.BackgroundLayerEnumerator();
-        while (enumerator.MoveNext())
-        {
-            enumerator.Current.Layer.RenderToBuffer(buffer);
-        }
+        return new LayerEnumerator(_trackedLayers.BackgroundLayerEnumerator());
+    }
+   
+    /// <summary>
+    /// Retrieves the foreground layers in order
+    /// </summary>
+    /// <returns></returns>
+    internal LayerEnumerator ForegroundLayerEnumerator()
+    {
+        return new LayerEnumerator(_trackedLayers.ForegroundLayerEnumerator());
     }
 
-    /// <summary>
-    /// Renders all foreground layers to the specified buffer
-    /// </summary>
-    internal void RenderForegroundLayers(BufferRgb565 buffer)
+    internal struct LayerEnumerator : IEnumerator<ILayer>
     {
-        // Use the enumerator directly, to avoid garbage from IEnumerator
-        var enumerator = _trackedLayers.ForegroundLayerEnumerator();
-        while (enumerator.MoveNext())
+        private SortedSet<TrackedLayers.TrackedLayer>.Enumerator _inner;
+        public ILayer Current => _inner.Current.Layer;
+        object IEnumerator.Current => Current;
+        
+        public LayerEnumerator(SortedSet<TrackedLayers.TrackedLayer>.Enumerator inner)
         {
-            enumerator.Current.Layer.RenderToBuffer(buffer);
+            _inner = inner;
         }
+
+        public bool MoveNext()
+        {
+            return _inner.MoveNext();
+        }
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
+            _inner.Dispose();
+        }
+
+
     }
 }
