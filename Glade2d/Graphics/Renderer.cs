@@ -90,7 +90,7 @@ namespace Glade2d.Graphics
 
             CurrentFont = new Font4x6();
             
-            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer);
+            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer, textureManager);
 
             _bufferTransferrer = rotation switch
             {

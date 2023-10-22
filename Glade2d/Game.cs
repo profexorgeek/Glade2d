@@ -56,8 +56,6 @@ namespace Glade2d
             Profiler = profiler;
             LayerManager = layerManager;
             
-            // TextureManager = new TextureManager(contentRoot ?? MeadowOS.FileSystem.UserFileSystemRoot);
-            
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
 

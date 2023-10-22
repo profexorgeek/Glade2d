@@ -1,5 +1,4 @@
 ﻿using Glade2d;
-using Glade2d.Graphics;
 using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Screens;
@@ -44,10 +43,10 @@ public class GameScreen : Screen
     private readonly TimeSpan _timePerEnemyAnimationFrame = TimeSpan.FromSeconds(1);
     private readonly TimeSpan _explosionLifetime = TimeSpan.FromSeconds(0.5);
     private DateTime _lastEnemyAnimationAt;
-    private float _normalEnemyHorizontalVelocity = 0;
+    private float _normalEnemyHorizontalVelocity;
     private bool _lastHitLeftBorder = true;
-    private bool _enemyEscaped = false;
-    private ILayer _textLayer, _toastLayer;
+    private bool _enemyEscaped;
+    private ILayer _textLayer = null!, _toastLayer = null!;
     private GameScreenState _screenState;
     private IFont _toastFont;
     private double _timeToNextStateChange;
@@ -241,13 +240,10 @@ public class GameScreen : Screen
                 // Shot is now off screen
                 RemoveSprite(_playerShots[shotIndex]);
                 _playerShots.RemoveAt(shotIndex);
-
-                continue;
             }
-
         }
-
     }
+    
     /// <summary>
     /// Frame Time: Processes enemy movement from side to side and advancing down the screen
     /// </summary>
@@ -388,7 +384,7 @@ public class GameScreen : Screen
         for (var row = 0; row < EnemyRows; row++)
         {
             var color = row % 2 == 0 ? EntityColor.Blue : EntityColor.Pink;
-            var offset = col % 2 == 0 ? true : false;
+            var offset = col % 2 == 0;
             var enemy = new NormalEnemy(color, offset);
 
             enemy.SetToStartingPosition(row, col);

@@ -35,9 +35,9 @@ public class Layer : ILayer
     /// we can immediately draw sprite textures to the MicroGraphics display buffer instead of adding the overhead of
     /// an intermediary buffer. Having sprites rendered via a layer allows consolidation of drawing code.
     /// </summary>
-    internal static Layer FromExistingBuffer(BufferRgb565 pixelBuffer)
+    internal static Layer FromExistingBuffer(BufferRgb565 pixelBuffer, TextureManager textureManager)
     {
-        return new Layer(pixelBuffer, GameService.Instance.GameInstance.TextureManager);
+        return new Layer(pixelBuffer, textureManager);
     }
 
     public void Clear()
@@ -231,15 +231,10 @@ public class Layer : ILayer
         while (_internalOrigin.Y >= _layerBuffer.Height) _internalOrigin.Y -= _layerBuffer.Height;
     }
 
-    public void DrawText(Point position, string text)
-    {
-        DrawText(position, text, null, null);
-    }
-
     public void DrawText(Point position, string text, IFont font = null, Color? color = null)
     {
-        font = font ?? _defaultFont;
-        color = color ?? Color.White;
+        font ??= _defaultFont;
+        color ??= Color.White;
 
         var graphics = new MicroGraphics(_layerBuffer, false)
         {

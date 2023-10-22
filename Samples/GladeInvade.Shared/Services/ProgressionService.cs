@@ -13,7 +13,7 @@ namespace GladeInvade.Shared.Services
     /// </summary>
     public class ProgressionService
     {
-        private static ProgressionService instance;
+        private static ProgressionService? instance;
         const int baseEnemySpeed = 7;
         const float levelSpeedMultiplier = 1.5f;
         const uint pointsPerEnemy = 1;
@@ -54,7 +54,7 @@ namespace GladeInvade.Shared.Services
         /// <summary>
         /// Singleton accessor
         /// </summary>
-        public static ProgressionService Instance => instance ?? (instance = new ProgressionService());
+        public static ProgressionService Instance => instance ??= new ProgressionService();
 
         private ProgressionService() { }
 

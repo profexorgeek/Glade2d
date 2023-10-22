@@ -1,5 +1,4 @@
 ﻿using Glade2d;
-using Glade2d.Graphics;
 using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Screens;
@@ -17,7 +16,7 @@ public class TitleScreen : Screen
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine = GameService.Instance.GameInstance;
     private readonly GameTitleDisplay _gameTitle;
-    private ILayer _inputPromptLayer;
+    private ILayer _inputPromptLayer = null!;
     
     public TitleScreen()
     {

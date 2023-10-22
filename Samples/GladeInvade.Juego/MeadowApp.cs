@@ -1,6 +1,8 @@
 ﻿using Glade2d;
 using Glade2d.Graphics;
+using Glade2d.Graphics.Layers;
 using Glade2d.Input;
+using Glade2d.Profiling;
 using Glade2d.Services;
 using GladeInvade.Shared;
 using Meadow;
@@ -29,9 +31,14 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
     public override Task Run()
     {
         LogService.Log.Trace("Initializing Glade game engine...");
+        var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
+        var layerManager = new LayerManager();
+        var profiler = new Profiler();
+        var renderer = new Renderer(_display, textureManager, layerManager, profiler, 2, RotationType._270Degrees);
+        
         var engine = new Game();
         SetupInputs(engine.InputManager);
-        engine.Initialize(_display, 2, displayRotation: RotationType._270Degrees);
+        engine.Initialize(renderer, textureManager, layerManager, profiler);
 
         GladeInvadeGame.Run(engine);
 

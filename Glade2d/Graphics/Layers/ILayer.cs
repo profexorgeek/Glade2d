@@ -89,13 +89,6 @@ public interface ILayer
     public void Shift(Vector2 shiftAmount);
 
     /// <summary>
-    /// Draws white text to the layer using 4x6 font
-    /// </summary>
-    /// <param name="position">The position to draw text</param>
-    /// <param name="text">The text to draw</param>
-    public void DrawText(Point position, string text);
-
-    /// <summary>
     /// Draws text to the layer using a custom font
     /// </summary>
     /// <param name="position">The position to draw the text</param>
