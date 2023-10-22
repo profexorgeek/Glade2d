@@ -1,6 +1,6 @@
 ﻿using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics.BufferTransferring;
+namespace Glade2d.Graphics.SelfRenderer.BufferTransferring;
 
 /// <summary>
 /// Transfers RGB565 data from one buffer to another

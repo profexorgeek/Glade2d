@@ -1,10 +1,9 @@
 ﻿using System;
-using Glade2d.Graphics.SelfRenderer;
 using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics.BufferTransferring;
+namespace Glade2d.Graphics.SelfRenderer.BufferTransferring;
 
-internal class NoRotationBufferTransferrer : IBufferTransferrer
+internal class Rotation180BufferTransferrer : IBufferTransferrer
 {
     public void Transfer(BufferRgb565 source, BufferRgb565 target, int scale)
     {
@@ -28,13 +27,14 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
             fixed (byte* sourceBufferPtr = source.Buffer)
             fixed (byte* targetBufferPtr = target.Buffer)
             {
-                var targetRowStartIndex = 0;
+                var targetRowStartIndex = (targetHeight - 1) * targetWidth * GladeSelfRenderer.BytesPerPixel;
                 var sourceByte1 = sourceBufferPtr;
-                var targetByte1 = targetBufferPtr;
+                var targetByte1 = targetBufferPtr +
+                                  targetWidth * targetHeight * GladeSelfRenderer.BytesPerPixel -
+                                  GladeSelfRenderer.BytesPerPixel;
 
                 for (var sourceRow = 0; sourceRow < sourceHeight; sourceRow++)
                 {
-                    // First copy the source row scaled horizontally
                     for (var sourceCol = 0; sourceCol < sourceWidth; sourceCol++)
                     {
                         for (var scaleX = 0; scaleX < scale; scaleX++)
@@ -42,27 +42,26 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
                             *targetByte1 = *sourceByte1;
                             *(targetByte1 + 1) = *(sourceByte1 + 1);
 
-                            targetByte1 += GladeSelfRenderer.BytesPerPixel;
+                            targetByte1 -= GladeSelfRenderer.BytesPerPixel;
                         }
 
                         sourceByte1 += GladeSelfRenderer.BytesPerPixel;
                     }
 
-                    // Now copy the previously pre-scale row
                     for (var scaleY = 1; scaleY < scale; scaleY++)
                     {
                         Array.Copy(
                             target.Buffer,
                             targetRowStartIndex,
                             target.Buffer,
-                            targetRowStartIndex + rowByteLength,
+                            targetRowStartIndex - rowByteLength,
                             rowByteLength);
-
-                        targetRowStartIndex += rowByteLength;
-                        targetByte1 += rowByteLength;
+                    
+                        targetRowStartIndex -= rowByteLength;
+                        targetByte1 -= rowByteLength;
                     }
 
-                    targetRowStartIndex += targetWidth * GladeSelfRenderer.BytesPerPixel;
+                    targetRowStartIndex -= rowByteLength;
                 }
             }
         }

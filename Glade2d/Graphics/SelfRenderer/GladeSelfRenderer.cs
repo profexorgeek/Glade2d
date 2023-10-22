@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Glade2d.Graphics.BufferTransferring;
+using Glade2d.Graphics.SelfRenderer.BufferTransferring;
 using Glade2d.Profiling;
 using Glade2d.Services;
 using Meadow.Foundation;
