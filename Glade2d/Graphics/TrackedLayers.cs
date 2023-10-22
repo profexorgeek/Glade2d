@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Glade2d.Graphics.Layers;
+namespace Glade2d.Graphics;
 
 internal class TrackedLayers
 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using Glade2d.Graphics.SelfRenderer;
 using Meadow.Foundation.Graphics.Buffers;
 
 namespace Glade2d.Graphics.BufferTransferring;
@@ -11,8 +12,8 @@ public class Rotation90BufferTransferrer : IBufferTransferrer
         var sourceHeight = source.Height;
         var targetWidth = target.Width;
         var targetHeight = target.Height;
-        var targetRowByteLength = targetWidth * Renderer.BytesPerPixel;
-        var sourceRowByteLength = sourceWidth * Renderer.BytesPerPixel;
+        var targetRowByteLength = targetWidth * GladeSelfRenderer.BytesPerPixel;
+        var sourceRowByteLength = sourceWidth * GladeSelfRenderer.BytesPerPixel;
 
         if (sourceWidth * scale != targetHeight || sourceHeight * scale != targetWidth)
         {
@@ -37,11 +38,11 @@ public class Rotation90BufferTransferrer : IBufferTransferrer
                 // column and write them to the target row by row, starting from
                 // the last pixel in the row to the first.
                 var targetRowStartIndex = 0;
-                var targetByte1 = targetBufferPtr + targetRowByteLength - Renderer.BytesPerPixel;
+                var targetByte1 = targetBufferPtr + targetRowByteLength - GladeSelfRenderer.BytesPerPixel;
 
                 for (var sourceCol = 0; sourceCol < sourceWidth; sourceCol++)
                 {
-                    var sourceByte1 = sourceBufferPtr + sourceCol * Renderer.BytesPerPixel;
+                    var sourceByte1 = sourceBufferPtr + sourceCol * GladeSelfRenderer.BytesPerPixel;
                     for (var sourceRow = 0; sourceRow < sourceHeight; sourceRow++)
                     {
                         for (var x = 0; x < scale; x++)
@@ -49,7 +50,7 @@ public class Rotation90BufferTransferrer : IBufferTransferrer
                             *targetByte1 = *sourceByte1;
                             *(targetByte1 + 1) = *(sourceByte1 + 1);
 
-                            targetByte1 -= Renderer.BytesPerPixel;
+                            targetByte1 -= GladeSelfRenderer.BytesPerPixel;
                         }
 
                         sourceByte1 += sourceRowByteLength;
@@ -70,7 +71,7 @@ public class Rotation90BufferTransferrer : IBufferTransferrer
                     targetRowStartIndex += targetRowByteLength;
 
                     // Go to the end of the row
-                    targetByte1 = targetBufferPtr + targetRowStartIndex + targetRowByteLength - Renderer.BytesPerPixel;
+                    targetByte1 = targetBufferPtr + targetRowStartIndex + targetRowByteLength - GladeSelfRenderer.BytesPerPixel;
                 }
             }
         }

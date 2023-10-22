@@ -1,17 +1,19 @@
-﻿using Glade2d.Services;
-using Meadow.Foundation;
-using Meadow.Foundation.Graphics;
-using Meadow.Foundation.Graphics.Buffers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Glade2d.Graphics.BufferTransferring;
-using Glade2d.Graphics.Layers;
 using Glade2d.Profiling;
+using Glade2d.Services;
+using Meadow.Foundation;
+using Meadow.Foundation.Graphics;
+using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics
+namespace Glade2d.Graphics.SelfRenderer
 {
-    public class Renderer : MicroGraphics, IRenderer
+    /// <summary>
+    /// Glade renderer which translates scene data into pixels on a frame buffer itself.
+    /// </summary>
+    public class GladeSelfRenderer : MicroGraphics, IRenderer
     {
         internal const int BytesPerPixel = 2;
         private readonly TextureManager _textureManager;
@@ -26,17 +28,11 @@ namespace Glade2d.Graphics
             set => _spriteLayer.BackgroundColor = value;
         }
 
-        public Color TransparentColor
-        {
-            get => _spriteLayer.TransparentColor;
-            set => _spriteLayer.TransparentColor = value;
-        }
-        
         public bool ShowPerf { get; set; }
         public int Scale { get; }
         public bool RenderInSafeMode { get; set; } = false;
 
-        public Renderer(IGraphicsDisplay display, 
+        public GladeSelfRenderer(IGraphicsDisplay display, 
             TextureManager textureManager,
             LayerManager layerManager,
             Profiler profiler,

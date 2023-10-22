@@ -3,7 +3,7 @@ using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics.Layers;
+namespace Glade2d.Graphics;
 
 /// <summary>
 /// A layer represents an isolated pixel buffer that can be drawn to, cached, and manipulated individually. 

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Numerics;
-using Glade2d.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics.Layers;
+namespace Glade2d.Graphics.SelfRenderer;
 
-public class Layer : ILayer
+internal class Layer : ILayer
 {
     private readonly record struct DrawableRectangle(Point Start, Dimensions Dimensions);
     

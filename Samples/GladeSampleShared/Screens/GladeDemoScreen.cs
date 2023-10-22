@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Glade2d;
 using Glade2d.Graphics;
-using Glade2d.Graphics.Layers;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
 

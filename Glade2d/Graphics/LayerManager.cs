@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Meadow.Foundation.Graphics.Buffers;
 
-namespace Glade2d.Graphics.Layers;
+namespace Glade2d.Graphics;
 
 /// <summary>
 /// Makes it easy for classes to create, order, and remove layers

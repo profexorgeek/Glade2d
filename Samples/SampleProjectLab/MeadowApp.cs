@@ -10,7 +10,7 @@ using Meadow.Hardware;
 using Meadow.Units;
 using System.Threading.Tasks;
 using Glade2d.Graphics;
-using Glade2d.Graphics.Layers;
+using Glade2d.Graphics.SelfRenderer;
 using Glade2d.Profiling;
 
 namespace SampleProjectLab
@@ -25,7 +25,7 @@ namespace SampleProjectLab
             var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
             var layerManager = new LayerManager();
             var profiler = new Profiler();
-            var renderer = new Renderer(display, textureManager, layerManager, profiler);
+            var renderer = new GladeSelfRenderer(display, textureManager, layerManager, profiler);
             
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();

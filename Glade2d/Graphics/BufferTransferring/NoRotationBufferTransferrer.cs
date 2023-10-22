@@ -1,4 +1,5 @@
 ﻿using System;
+using Glade2d.Graphics.SelfRenderer;
 using Meadow.Foundation.Graphics.Buffers;
 
 namespace Glade2d.Graphics.BufferTransferring;
@@ -11,7 +12,7 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
         var sourceHeight = source.Height;
         var targetWidth = target.Width;
         var targetHeight = target.Height;
-        var rowByteLength = targetWidth * Renderer.BytesPerPixel;
+        var rowByteLength = targetWidth * GladeSelfRenderer.BytesPerPixel;
 
         if (sourceWidth * scale != targetWidth || sourceHeight * scale != targetHeight)
         {
@@ -41,10 +42,10 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
                             *targetByte1 = *sourceByte1;
                             *(targetByte1 + 1) = *(sourceByte1 + 1);
 
-                            targetByte1 += Renderer.BytesPerPixel;
+                            targetByte1 += GladeSelfRenderer.BytesPerPixel;
                         }
 
-                        sourceByte1 += Renderer.BytesPerPixel;
+                        sourceByte1 += GladeSelfRenderer.BytesPerPixel;
                     }
 
                     // Now copy the previously pre-scale row
@@ -61,7 +62,7 @@ internal class NoRotationBufferTransferrer : IBufferTransferrer
                         targetByte1 += rowByteLength;
                     }
 
-                    targetRowStartIndex += targetWidth * Renderer.BytesPerPixel;
+                    targetRowStartIndex += targetWidth * GladeSelfRenderer.BytesPerPixel;
                 }
             }
         }

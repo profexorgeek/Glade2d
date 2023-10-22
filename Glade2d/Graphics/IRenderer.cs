@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Glade2d.Graphics.Layers;
 using Meadow.Foundation;
 
 namespace Glade2d.Graphics;
 
 /// <summary>
-/// The renderer is the system which takes scene data, manages layers,
-/// draw them to a framebuffer, and send the frame buffer to a display.
+/// The renderer is the system which takes scene data, manages layers, draw them to a framebuffer,
+/// and sends that frame buffer to the display.
 /// </summary>
 public interface IRenderer
 {

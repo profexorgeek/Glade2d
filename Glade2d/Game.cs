@@ -3,7 +3,6 @@ using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
 using System.Threading;
-using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Profiling;
 

@@ -1,6 +1,6 @@
 ﻿using Glade2d;
 using Glade2d.Graphics;
-using Glade2d.Graphics.Layers;
+using Glade2d.Graphics.SelfRenderer;
 using Glade2d.Input;
 using Glade2d.Profiling;
 using Glade2d.Services;
@@ -31,7 +31,7 @@ public class MeadowApp : App<F7FeatherV2>
         var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
         var layerManager = new LayerManager();
         var profiler = new Profiler();
-        var renderer = new Renderer(_display, textureManager, layerManager, profiler, 2);
+        var renderer = new GladeSelfRenderer(_display, textureManager, layerManager, profiler, 2);
         
         var glade = new Game();
         glade.Initialize(renderer, textureManager, layerManager, profiler);
