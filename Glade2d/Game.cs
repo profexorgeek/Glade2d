@@ -2,12 +2,10 @@
 using Glade2d.Graphics;
 using Glade2d.Screens;
 using Glade2d.Services;
-using Meadow.Foundation.Graphics;
 using System.Threading;
 using Glade2d.Graphics.Layers;
 using Glade2d.Input;
 using Glade2d.Profiling;
-using Meadow;
 
 namespace Glade2d
 {
@@ -28,7 +26,7 @@ namespace Glade2d
         /// The renderer instance. Used to configure extra rendering parameters,
         /// such as turning on performance information
         /// </summary>
-        public Renderer Renderer { get; private set; }
+        public IRenderer Renderer { get; private set; }
 
         /// <summary>
         /// The single instance for the input manager. 
@@ -38,50 +36,43 @@ namespace Glade2d
         /// <summary>
         /// The profiler instance to track performance metrics
         /// </summary>
-        public Profiler Profiler { get; } = new();
+        public Profiler Profiler { get; private set; }
 
-        public LayerManager LayerManager { get; } = new();
+        public LayerManager LayerManager { get; private set; }
 
         public TextureManager TextureManager { get; private set; }
 
         public Game() { }
 
         public virtual void Initialize(
-            IGraphicsDisplay display, 
-            int displayScale = 1, 
-            EngineMode mode = EngineMode.GameLoop,
-            string contentRoot = null,
-            RotationType displayRotation = RotationType.Default)
+            IRenderer renderer,
+            TextureManager textureManager,
+            LayerManager layerManager,
+            Profiler profiler,
+            EngineMode mode = EngineMode.GameLoop)
         {
-            LogService.Log.Trace("Initializing Renderer...");
-
-            TextureManager = new TextureManager(contentRoot ?? MeadowOS.FileSystem.UserFileSystemRoot);
+            Renderer = renderer;
+            TextureManager = textureManager;
+            Profiler = profiler;
+            LayerManager = layerManager;
+            
+            // TextureManager = new TextureManager(contentRoot ?? MeadowOS.FileSystem.UserFileSystemRoot);
             
             // register ourselves with the game service
             GameService.Instance.GameInstance = this;
 
-            // init renderer
-            Renderer = new Renderer(display,
-                TextureManager, 
-                LayerManager,
-                Profiler,
-                displayScale,
-                displayRotation);
-
             Mode = mode;
-
-            LogService.Log.Trace("Renderer Initialized.");
         }
 
         public virtual void Initialize<TInput>(
-            IGraphicsDisplay display,
+            IRenderer renderer,
+            TextureManager textureManager,
+            LayerManager layerManager,
+            Profiler profiler,
             TInput gameInput,
-            int displayScale = 1,
-            EngineMode mode = EngineMode.GameLoop,
-            string contentRoot = null,
-            RotationType displayRotation = RotationType.Default) where TInput : GameInputSetBase
+            EngineMode mode = EngineMode.GameLoop) where TInput : GameInputSetBase
         {
-            Initialize(display, displayScale, mode, contentRoot, displayRotation);
+            Initialize(renderer, textureManager, layerManager, profiler, mode);
             gameInput.SetupInput(InputManager);
         }
 
@@ -155,10 +146,8 @@ namespace Glade2d
         /// </summary>
         public void Draw()
         {
-            Renderer.Reset();
-
             var sprites = GameService.Instance.CurrentScreen?.AccessSpritesForRenderingOnly();
-            Renderer.Render(sprites);
+            Renderer.RenderAsync(sprites);
         }
     }
 }

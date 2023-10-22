@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Glade2d;
+using Glade2d.Graphics;
 using Glade2d.Graphics.Layers;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;

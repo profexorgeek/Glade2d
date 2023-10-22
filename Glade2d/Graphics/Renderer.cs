@@ -4,13 +4,14 @@ using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Glade2d.Graphics.BufferTransferring;
 using Glade2d.Graphics.Layers;
 using Glade2d.Profiling;
 
 namespace Glade2d.Graphics
 {
-    public class Renderer : MicroGraphics
+    public class Renderer : MicroGraphics, IRenderer
     {
         internal const int BytesPerPixel = 2;
         private readonly TextureManager _textureManager;
@@ -18,13 +19,7 @@ namespace Glade2d.Graphics
         private readonly Layer _spriteLayer;
         private readonly Profiler _profiler;
         private readonly IBufferTransferrer _bufferTransferrer;
-        
-        // We can't use the MicroGraphics `Rotation` property, as MicroGraphics
-        // does a naive rotation that doesn't swap width and height. So we 
-        // need to store the rotation in a custom property that MicroGraphics
-        // won't read.
-        private readonly RotationType _customRotation;
-        
+
         public Color BackgroundColor
         {
             get => _spriteLayer.BackgroundColor;
@@ -38,7 +33,7 @@ namespace Glade2d.Graphics
         }
         
         public bool ShowPerf { get; set; }
-        public int Scale { get; private set; }
+        public int Scale { get; }
         public bool RenderInSafeMode { get; set; } = false;
 
         public Renderer(IGraphicsDisplay display, 
@@ -60,19 +55,24 @@ namespace Glade2d.Graphics
             _textureManager = textureManager;
             _profiler = profiler;
             Scale = scale;
-            _customRotation = rotation;
-            
+        
+            // We can't use the MicroGraphics `Rotation` property, as MicroGraphics
+            // does a naive rotation that doesn't swap width and height. So we 
+            // need to store the rotation in a custom property that MicroGraphics
+            // won't read.
+            var customRotation = rotation;
+
             // If we are rendering at a different resolution than our
             // device, or we are rotating our display, we need to create
             // a new buffer as our primary drawing buffer so we draw at the
             // scaled resolution and rotate the final render
-            if (scale > 1 || _customRotation != RotationType.Default) 
+            if (scale > 1 || customRotation != RotationType.Default) 
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
                 
                 // If we are rotated 90 or 270 degrees, we need to swap width and height
-                var swapHeightAndWidth = _customRotation is RotationType._90Degrees or RotationType._270Degrees;
+                var swapHeightAndWidth = customRotation is RotationType._90Degrees or RotationType._270Degrees;
                 if (swapHeightAndWidth)
                 {
                     (scaledWidth, scaledHeight) = (scaledHeight, scaledWidth);
@@ -113,8 +113,10 @@ namespace Glade2d.Graphics
         /// <summary>
         /// Renders the current scene
         /// </summary>
-        public void Render(IReadOnlyList<Sprite> sprites)
+        public ValueTask RenderAsync(List<Sprite> sprites)
         {
+            Reset();
+            
             _profiler.StartTiming("Renderer.Render");
             _profiler.StartTiming("LayerManager.RenderBackgroundLayers");
 
@@ -128,13 +130,16 @@ namespace Glade2d.Graphics
             _profiler.StopTiming("LayerManager.RenderBackgroundLayers");
 
             _profiler.StartTiming("Renderer.DrawSprites");
-            sprites ??= Array.Empty<Sprite>();
-            for (var x = 0; x < sprites.Count; x++)
+            if (sprites != null)
             {
-                // Use direct indexing instead of foreach for performance
-                // due to IEnumerable allocations.
-                DrawSprite(sprites[x]);
+                foreach (var sprite in sprites)
+                {
+                    // Use direct indexing instead of foreach for performance
+                    // due to IEnumerable allocations.
+                    DrawSprite(sprite);
+                }
             }
+
             _profiler.StopTiming("Renderer.DrawSprites");
             
             _profiler.StartTiming("LayerManager.RenderForegroundLayers");
@@ -152,6 +157,8 @@ namespace Glade2d.Graphics
             RenderToDisplay();
             _profiler.StopTiming("Renderer.RenderToDisplay");
             _profiler.StartTiming("Renderer.Render");
+
+            return new ValueTask();
         }
 
         public override void Show()
