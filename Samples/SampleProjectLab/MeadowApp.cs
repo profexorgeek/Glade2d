@@ -9,6 +9,9 @@ using Meadow.Foundation.ICs.IOExpanders;
 using Meadow.Hardware;
 using Meadow.Units;
 using System.Threading.Tasks;
+using Glade2d.Graphics;
+using Glade2d.Graphics.SelfRenderer;
+using Glade2d.Profiling;
 
 namespace SampleProjectLab
 {
@@ -19,9 +22,14 @@ namespace SampleProjectLab
 
         public override Task Run()
         {
+            var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
+            var layerManager = new LayerManager();
+            var profiler = new Profiler();
+            var renderer = new GladeSelfRenderer(display, textureManager, layerManager, profiler);
+            
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();
-            glade.Initialize(display, 1, EngineMode.GameLoop);
+            glade.Initialize(renderer, textureManager, layerManager, profiler);
             glade.Profiler.IsActive = true;
 
             LogService.Log.Trace("Running game...");

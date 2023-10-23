@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using Glade2d;
-using Glade2d.Graphics.Layers;
+using Glade2d.Graphics;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
@@ -12,12 +12,7 @@ namespace GladeQa.Shared.Screens;
 public class LayerRenderTestScreen : Screen, IDisposable
 {
     private const float ShiftSpeed = 50f;
-    private readonly Layer _testLayer;
-
-    public LayerRenderTestScreen()
-    {
-        _testLayer = CreateTestLayer();
-    }
+    private readonly ILayer _testLayer = CreateTestLayer();
 
     public override void Activity()
     {
@@ -59,13 +54,13 @@ public class LayerRenderTestScreen : Screen, IDisposable
         GameService.Instance.GameInstance.LayerManager.RemoveLayer(_testLayer);
     }
     
-    private static Layer CreateTestLayer()
+    private static ILayer CreateTestLayer()
     {
         var textureManager = GameService.Instance.GameInstance.TextureManager;
 
         var texture = textureManager.GetTexture("layertest.bmp");
 
-        var layer = Layer.Create(new Dimensions(texture.Width, texture.Height));
+        var layer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(texture.Width, texture.Height));
         layer.BackgroundColor = Color.Purple;
         layer.TransparentColor = Color.Purple;
         layer.Clear();
@@ -77,7 +72,7 @@ public class LayerRenderTestScreen : Screen, IDisposable
         return layer;
     }
 
-    private static void DrawTestImage(Layer layer)
+    private static void DrawTestImage(ILayer layer)
     {
         var textureManager = GameService.Instance.GameInstance.TextureManager;
         var texture = textureManager.GetTexture("layertest.bmp");

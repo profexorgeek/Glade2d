@@ -1,5 +1,5 @@
 ﻿using Glade2d;
-using Glade2d.Graphics.Layers;
+using Glade2d.Graphics;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
@@ -16,7 +16,7 @@ public class TitleScreen : Screen
     private readonly int _screenHeight, _screenWidth;
     private readonly Game _engine = GameService.Instance.GameInstance;
     private readonly GameTitleDisplay _gameTitle;
-    private Layer _inputPromptLayer;
+    private ILayer _inputPromptLayer = null!;
     
     public TitleScreen()
     {
@@ -65,7 +65,7 @@ public class TitleScreen : Screen
 
     void CreateTextLayers()
     {
-        _inputPromptLayer = Layer.Create(new Dimensions(_screenWidth, _screenHeight));
+        _inputPromptLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, _screenHeight));
         _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
         _inputPromptLayer.DrawLayerWithTransparency = false;
         _inputPromptLayer.Clear();

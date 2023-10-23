@@ -1,6 +1,8 @@
 ﻿using Glade2d;
+using Glade2d.Graphics;
+using Glade2d.Graphics.SelfRenderer;
+using Glade2d.Profiling;
 using GladePlatformer.Shared;
-using Meadow.Foundation.Graphics;
 using MeadowMgTestEnvironment;
 using Microsoft.Xna.Framework.Input;
 
@@ -14,11 +16,11 @@ var input = new GameInputs
     Jump = environment.CreatePortForKey(Keys.Up),
 };
 
-engine.Initialize(
-    environment.Display, 
-    input,
-    2, 
-    contentRoot: Environment.CurrentDirectory,
-    displayRotation: RotationType.Default);
+var textureManager = new TextureManager(Environment.CurrentDirectory);
+var layerManager = new LayerManager();
+var profiler = new Profiler();
+var renderer = new GladeSelfRenderer(environment.Display, textureManager, layerManager, profiler, 2);
+
+engine.Initialize(renderer, textureManager, layerManager, profiler, input);
 
 GladePlatformerGame.Run(engine);

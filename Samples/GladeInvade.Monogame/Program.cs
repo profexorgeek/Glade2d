@@ -1,4 +1,7 @@
 ﻿using Glade2d;
+using Glade2d.Graphics;
+using Glade2d.Graphics.SelfRenderer;
+using Glade2d.Profiling;
 using GladeInvade.Shared;
 using MeadowMgTestEnvironment;
 using Microsoft.Xna.Framework.Input;
@@ -13,5 +16,10 @@ var inputs = new GameInputs
     ActionButton = environment.CreatePortForKey(Keys.Up),
 };
 
-engine.Initialize(environment.Display, inputs, 2, contentRoot: Environment.CurrentDirectory);
+var textureManager = new TextureManager(Environment.CurrentDirectory);
+var layerManager = new LayerManager();
+var profiler = new Profiler();
+var renderer = new GladeSelfRenderer(environment.Display, textureManager, layerManager, profiler, 2);
+
+engine.Initialize(renderer, textureManager, layerManager, profiler, inputs); 
 GladeInvadeGame.Run(engine);

@@ -1,14 +1,11 @@
 ﻿using Glade2d;
-using Glade2d.Graphics.Layers;
+using Glade2d.Graphics;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladeInvade.Shared.Services;
 using Meadow.Foundation;
 using Meadow.Foundation.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GladeInvade.Shared.Screens
 {
@@ -18,7 +15,7 @@ namespace GladeInvade.Shared.Screens
         const int ScreenEdgePadding = 4;
 
         readonly int _screenHeight, _screenWidth;
-        Layer _mainTextLayer, _inputPromptLayer;
+        ILayer _mainTextLayer = null!, _inputPromptLayer = null!;
         double _secondsUntilInputEnabled = SecondsToIgnoreInput;
         readonly Game _game;
 
@@ -65,7 +62,7 @@ namespace GladeInvade.Shared.Screens
         /// </summary>
         void CreateTextLayers()
         {
-            _mainTextLayer = Layer.Create(new Glade2d.Dimensions(_screenWidth, _screenHeight));
+            _mainTextLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, _screenHeight));
             _mainTextLayer.BackgroundColor = GameConstants.BackgroundColor;
             _mainTextLayer.DrawLayerWithTransparency = false;
             _mainTextLayer.Clear();
@@ -90,7 +87,7 @@ namespace GladeInvade.Shared.Screens
 
             var inputPromptFont = new Font4x6();
             var inputPromptString = "Press [Action] to continue!";
-            _inputPromptLayer = Layer.Create(new Glade2d.Dimensions(_screenWidth, inputPromptFont.Height));
+            _inputPromptLayer = GameService.Instance.GameInstance.Renderer.CreateLayer(new Dimensions(_screenWidth, inputPromptFont.Height));
             _inputPromptLayer.BackgroundColor = GameConstants.BackgroundColor;
             _inputPromptLayer.DrawLayerWithTransparency = false;
             _inputPromptLayer.Clear();
@@ -109,9 +106,9 @@ namespace GladeInvade.Shared.Screens
         /// <param name="text">The text to draw</param>
         /// <param name="color">The color of the text</param>
         /// <param name="font">The font to use</param>
-        void DrawCenteredText(Layer layer, int yPos, string text, Color color, IFont font = null)
+        void DrawCenteredText(ILayer layer, int yPos, string text, Color color, IFont? font = null)
         {
-            font = font ?? layer.DefaultFont;
+            font ??= layer.DefaultFont;
             var textWidth = font.Width * text.Length;
             var xPos = (int)((_screenWidth / 2f) - (textWidth / 2f));
 
