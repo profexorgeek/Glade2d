@@ -52,11 +52,11 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
 
         LogService.Log.Trace("Creating MCP1");
         var mcpReset = Device.CreateDigitalOutputPort(Device.Pins.D11, true);
-        var mcp1Interrupt = Device.CreateDigitalInputPort(Device.Pins.D09, InterruptMode.EdgeRising);
+        var mcp1Interrupt = Device.CreateDigitalInterruptPort(Device.Pins.D09, InterruptMode.EdgeRising);
         _mcp1 = new Mcp23008(i2CBus, 0x20, mcp1Interrupt, mcpReset);
 
         LogService.Log.Trace("Creating MCP2");
-        var mcp2Interrupt = Device.CreateDigitalInputPort(Device.Pins.D10, InterruptMode.EdgeRising);
+        var mcp2Interrupt = Device.CreateDigitalInterruptPort(Device.Pins.D10, InterruptMode.EdgeRising);
         _mcp2 = new Mcp23008(i2CBus, 0x21, mcp2Interrupt);
         
         LogService.Log.Trace("Initializing SPI bus...");
@@ -83,16 +83,16 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
             320,
             ColorMode.Format16bppRgb565);
 
-        ili9341.Rotation = RotationType._90Degrees;
+        ili9341.SetRotation(RotationType._90Degrees);
 
         _display = ili9341;
     }
 
     private void SetupInputs(InputManager inputManager)
     {
-        var dPadLeftPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP4, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
-        var dPadRightPort = _mcp1.CreateDigitalInputPort(_mcp1.Pins.GP2, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
-        var btnDownPort = _mcp2.CreateDigitalInputPort(_mcp2.Pins.GP3, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
+        var dPadLeftPort = _mcp1.CreateDigitalInterruptPort(_mcp1.Pins.GP4, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
+        var dPadRightPort = _mcp1.CreateDigitalInterruptPort(_mcp1.Pins.GP2, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
+        var btnDownPort = _mcp2.CreateDigitalInterruptPort(_mcp2.Pins.GP3, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
         
         inputManager.RegisterPushButton(new PushButton(dPadLeftPort), nameof(GameInputs.Left));
         inputManager.RegisterPushButton(new PushButton(dPadRightPort), nameof(GameInputs.Right));

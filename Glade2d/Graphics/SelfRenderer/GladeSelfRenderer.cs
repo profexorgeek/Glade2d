@@ -13,7 +13,7 @@ namespace Glade2d.Graphics.SelfRenderer
     /// <summary>
     /// Glade renderer which translates scene data into pixels on a frame buffer itself.
     /// </summary>
-    public class GladeSelfRenderer : MicroGraphics, IRenderer
+    public class GladeSelfRenderer : IRenderer
     {
         internal const int BytesPerPixel = 2;
         private readonly TextureManager _textureManager;
@@ -21,6 +21,10 @@ namespace Glade2d.Graphics.SelfRenderer
         private readonly Layer _spriteLayer;
         private readonly Profiler _profiler;
         private readonly IBufferTransferrer _bufferTransferrer;
+        private readonly IPixelBuffer _pixelBuffer;
+        private readonly IGraphicsDisplay _display;
+
+        public int Height { get; }
 
         public Color BackgroundColor
         {
@@ -29,15 +33,17 @@ namespace Glade2d.Graphics.SelfRenderer
         }
 
         public bool ShowPerf { get; set; }
+        public RotationType Rotation { get; set; }
+        public int Width { get; }
         public int Scale { get; }
-        public bool RenderInSafeMode { get; set; } = false;
+        public IFont CurrentFont { get; set; }
 
         public GladeSelfRenderer(IGraphicsDisplay display, 
             TextureManager textureManager,
             LayerManager layerManager,
             Profiler profiler,
             int scale = 1,
-            RotationType rotation = RotationType.Default) : base(display)
+            RotationType rotation = RotationType.Default) 
         {
             if (display.PixelBuffer.ColorMode != ColorMode.Format16bppRgb565)
             {
@@ -47,46 +53,44 @@ namespace Glade2d.Graphics.SelfRenderer
                 throw new InvalidOperationException(message);
             }
 
+            _display = display;
             _layerManager = layerManager;
             _textureManager = textureManager;
             _profiler = profiler;
             Scale = scale;
+            Rotation = rotation;
         
-            // We can't use the MicroGraphics `Rotation` property, as MicroGraphics
-            // does a naive rotation that doesn't swap width and height. So we 
-            // need to store the rotation in a custom property that MicroGraphics
-            // won't read.
-            var customRotation = rotation;
-
             // If we are rendering at a different resolution than our
             // device, or we are rotating our display, we need to create
             // a new buffer as our primary drawing buffer so we draw at the
             // scaled resolution and rotate the final render
-            if (scale > 1 || customRotation != RotationType.Default) 
+            if (scale > 1 || Rotation != RotationType.Default) 
             {
                 var scaledWidth = display.Width / scale;
                 var scaledHeight = display.Height / scale;
                 
                 // If we are rotated 90 or 270 degrees, we need to swap width and height
-                var swapHeightAndWidth = customRotation is RotationType._90Degrees or RotationType._270Degrees;
+                var swapHeightAndWidth = Rotation is RotationType._90Degrees or RotationType._270Degrees;
                 if (swapHeightAndWidth)
                 {
                     (scaledWidth, scaledHeight) = (scaledHeight, scaledWidth);
                 }
-                
-                pixelBuffer = new BufferRgb565(scaledWidth, scaledHeight);
+
+                Width = scaledWidth;
+                Height = scaledHeight;
+
+                _pixelBuffer = new BufferRgb565(Width, Height);
                 LogService.Log.Trace($"Initialized renderer with custom buffer: {scaledWidth}x{scaledHeight}");
             }
             else
             {
-                // do nothing, the default behavior is to draw
-                // directly into the graphics buffer
+                _pixelBuffer = display.PixelBuffer;
                 LogService.Log.Trace($"Initialized renderer using default display driver buffer: {display.Width}x{display.Height}");
             }
 
             CurrentFont = new Font4x6();
-            
-            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)pixelBuffer, textureManager);
+
+            _spriteLayer = Layer.FromExistingBuffer((BufferRgb565)_pixelBuffer, textureManager);
 
             _bufferTransferrer = rotation switch
             {
@@ -100,7 +104,7 @@ namespace Glade2d.Graphics.SelfRenderer
 
         public void Reset()
         {
-            pixelBuffer.Fill(BackgroundColor);
+            _pixelBuffer.Fill(BackgroundColor);
             _spriteLayer.Clear();
             
             // Should we be clearing the display buffer too???
@@ -120,7 +124,7 @@ namespace Glade2d.Graphics.SelfRenderer
             while (backgroundLayerEnumerator.MoveNext())
             {
                 var layer = (Layer)backgroundLayerEnumerator.Current;
-                layer!.RenderToBuffer((BufferRgb565)pixelBuffer);
+                layer!.RenderToBuffer((BufferRgb565)_pixelBuffer);
             }
             
             _profiler.StopTiming("LayerManager.RenderBackgroundLayers");
@@ -144,7 +148,7 @@ namespace Glade2d.Graphics.SelfRenderer
             while (foregroundLayerEnumerator.MoveNext())
             {
                 var layer = (Layer)foregroundLayerEnumerator.Current;
-                layer!.RenderToBuffer((BufferRgb565)pixelBuffer);
+                layer!.RenderToBuffer((BufferRgb565)_pixelBuffer);
             }
             
             _profiler.StopTiming("LayerManager.RenderForegroundLayers");
@@ -157,21 +161,21 @@ namespace Glade2d.Graphics.SelfRenderer
             return new ValueTask();
         }
 
-        public override void Show()
+        private void Show()
         {
             GameService.Instance.GameInstance.Profiler.StartTiming("Renderer.Show");
-            if (pixelBuffer != display.PixelBuffer || Rotation != RotationType.Default)
+            if (_pixelBuffer != _display.PixelBuffer || Rotation != RotationType.Default)
             {
                 GameService.Instance.GameInstance.Profiler.StartTiming("");
-                var sourceBuffer = (BufferRgb565)pixelBuffer;
-                var targetBuffer = (BufferRgb565)display.PixelBuffer;
+                var sourceBuffer = (BufferRgb565)_pixelBuffer;
+                var targetBuffer = (BufferRgb565)_display.PixelBuffer;
                 _bufferTransferrer.Transfer(sourceBuffer, targetBuffer, Scale);
                 GameService.Instance.GameInstance.Profiler.StopTiming("BufferTransferrer.Transfer");
             }
 
-            GameService.Instance.GameInstance.Profiler.StartTiming("Micrographics.Show");
-            base.Show();
-            GameService.Instance.GameInstance.Profiler.StopTiming("Micrographics.Show");
+            GameService.Instance.GameInstance.Profiler.StartTiming("Display.Show");
+            _display.Show();
+            GameService.Instance.GameInstance.Profiler.StopTiming("Display.Show");
             GameService.Instance.GameInstance.Profiler.StopTiming("Renderer.Show");
         }
 
@@ -193,8 +197,9 @@ namespace Glade2d.Graphics.SelfRenderer
             // draw the FPS counter
             if (ShowPerf)
             {
-                DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
-                DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
+                // TODO: Re-enable now that micrographics support is out
+                // DrawRectangle(0, 0, Width, CurrentFont.Height, Color.Black, true);
+                // DrawText(0, 0, $"{GameService.Instance.Time.FPS:n1}fps", Color.White);
             }
 
             // send the driver buffer to device
@@ -215,56 +220,6 @@ namespace Glade2d.Graphics.SelfRenderer
 
                 var texture = _textureManager.GetTexture(sprite.CurrentFrame.TextureName);
                 _spriteLayer.DrawTexture(texture, textureOrigin, spriteOrigin, dimensions);
-            }
-        }
-
-        private void ScaleIntoDisplayBuffer()
-        {
-            // Copy the pixel buffer to the display buffer. Since the pixel buffer is scaled
-            // down, we need to scale it up to the display buffer's resolution.
-            unsafe
-            {
-                fixed (byte* displayBufferPtr = display.PixelBuffer.Buffer)
-                fixed (byte* pixelBufferPtr = pixelBuffer.Buffer)
-                {
-                    var sourceWidth = pixelBuffer.Width;
-                    var targetWidth = display.Width;
-
-                    for (var sourceRow = 0; sourceRow < pixelBuffer.Height; sourceRow++)
-                    {
-                        // First copy the source row scaled horizontally
-                        var sourceByte1 = pixelBufferPtr + (sourceRow * sourceWidth * BytesPerPixel);
-                        var targetByte1 = displayBufferPtr + (sourceRow * targetWidth * Scale * BytesPerPixel);
-
-                        for (var sourceCol = 0; sourceCol < pixelBuffer.Width; sourceCol++)
-                        {
-                            for (var scale = 0; scale < Scale; scale++)
-                            {
-                                *targetByte1 = *sourceByte1;
-                                *(targetByte1 + 1) = *(sourceByte1 + 1);
-
-                                targetByte1 += BytesPerPixel;
-                            }
-
-                            sourceByte1 += BytesPerPixel;
-                        }
-
-                    
-                        // Next copy the previous pre-scaled target row for all scaled rows
-                        var copyFromStartIndex = targetWidth * sourceRow * Scale * BytesPerPixel;
-                        
-                        for (var scale = 1; scale < Scale; scale++)
-                        {
-                            var copyToStartIndex = copyFromStartIndex + targetWidth * scale * BytesPerPixel;
-                            Array.Copy(
-                                display.PixelBuffer.Buffer, 
-                                copyFromStartIndex, 
-                                display.PixelBuffer.Buffer, 
-                                copyToStartIndex,
-                                targetWidth * BytesPerPixel);
-                        }
-                    }
-                }
             }
         }
     }

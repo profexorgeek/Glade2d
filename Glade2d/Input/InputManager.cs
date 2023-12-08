@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Meadow.Foundation.Sensors.Buttons;
 using Meadow.Hardware;
+using Meadow.Peripherals.Sensors.Buttons;
 
 namespace Glade2d.Input
 {
@@ -13,7 +14,7 @@ namespace Glade2d.Input
         private readonly Dictionary<string, ButtonState> _buttons = new();
         private readonly Queue<KeyValuePair<string, ButtonState>> _pendingButtonStates = new();
         private readonly List<string> _pressedButtons = new();
-        private readonly Dictionary<PushButton, string> _registeredButtons = new();
+        private readonly Dictionary<IButton, string> _registeredButtons = new();
         private readonly Dictionary<IDigitalInputPort, string> _registeredInputPorts = new();
 
         /// <summary>
@@ -88,7 +89,7 @@ namespace Glade2d.Input
         /// <summary>
         /// Registers a Meadow push button for Glade input activations
         /// </summary>
-        public void RegisterPushButton(PushButton button, string inputName)
+        public void RegisterPushButton(IButton button, string inputName)
         {
             UnregisterPushButton(button);
             _registeredButtons.Add(button, inputName);
@@ -100,7 +101,7 @@ namespace Glade2d.Input
         /// <summary>
         /// Remove any Glade events from the push button
         /// </summary>
-        public void UnregisterPushButton(PushButton button)
+        public void UnregisterPushButton(IButton button)
         {
             _registeredButtons.Remove(button);
             button.PressStarted -= ButtonPressStarted;
@@ -110,14 +111,14 @@ namespace Glade2d.Input
         /// <summary>
         /// Binds a digital input port to a Glade key
         /// </summary>
-        public void RegisterInputPort(IDigitalInputPort port, string inputName)
+        public void RegisterInputPort(IDigitalInterruptPort port, string inputName)
         {
             UnregisterInputPort(port);
             port.Changed += HandlePortChanged;
             _registeredInputPorts.Add(port, inputName);
         }
 
-        private void UnregisterInputPort(IDigitalInputPort port)
+        private void UnregisterInputPort(IDigitalInterruptPort port)
         {
             port.Changed -= HandlePortChanged;
             _registeredInputPorts.Remove(port);
