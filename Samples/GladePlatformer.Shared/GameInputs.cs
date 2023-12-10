@@ -5,7 +5,7 @@ namespace GladePlatformer.Shared;
 
 public class GameInputs : GameInputSetBase
 {
-    public IDigitalInputPort? Left { get; set; }
-    public IDigitalInputPort? Right { get; set; }
-    public IDigitalInputPort? Jump { get; set; }
+    public IDigitalInterruptPort? Left { get; set; }
+    public IDigitalInterruptPort? Right { get; set; }
+    public IDigitalInterruptPort? Jump { get; set; }
 }
