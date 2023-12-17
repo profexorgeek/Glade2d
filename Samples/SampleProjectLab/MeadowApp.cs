@@ -53,7 +53,7 @@ namespace SampleProjectLab
             var spi = Device.CreateSpiBus(Device.Pins.SCK, Device.Pins.COPI, Device.Pins.CIPO, config);
 
             LogService.Log.Trace("Initializing MCP...");
-            var mcp_in = Device.CreateDigitalInputPort(
+            var mcp_in = Device.CreateDigitalInterruptPort(
                 Device.Pins.D09,
                 InterruptMode.EdgeRising,
                 ResistorMode.InternalPullDown);

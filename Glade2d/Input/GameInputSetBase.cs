@@ -14,12 +14,12 @@ public abstract class GameInputSetBase
         // Find all digital ports defined
         var digitalPortProperties = GetType()
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .Where(x => typeof(IDigitalInputPort).IsAssignableFrom(x.PropertyType))
+            .Where(x => typeof(IDigitalInterruptPort).IsAssignableFrom(x.PropertyType))
             .ToArray();
 
         foreach (var digitalPortProperty in digitalPortProperties)
         {
-            var port = (IDigitalInputPort)digitalPortProperty.GetValue(this);
+            var port = (IDigitalInterruptPort)digitalPortProperty.GetValue(this);
             var name = digitalPortProperty.Name;
             
             inputManager.RegisterInputPort(port, name);
