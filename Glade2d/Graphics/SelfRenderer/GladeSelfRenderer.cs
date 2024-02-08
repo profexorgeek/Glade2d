@@ -84,6 +84,8 @@ namespace Glade2d.Graphics.SelfRenderer
             }
             else
             {
+                Width = display.Width;
+                Height = display.Height;
                 _pixelBuffer = display.PixelBuffer;
                 LogService.Log.Trace($"Initialized renderer using default display driver buffer: {display.Width}x{display.Height}");
             }
@@ -184,6 +186,16 @@ namespace Glade2d.Graphics.SelfRenderer
         /// </summary>
         public ILayer CreateLayer(Dimensions dimensions)
         {
+            if (dimensions.Width == 0)
+            {
+                throw new InvalidOperationException("Width must be greater than 0");
+            }
+
+            if (dimensions.Height == 0)
+            {
+                throw new InvalidOperationException("Height must be greater than 0");
+            }
+            
             var layerBuffer = new BufferRgb565(dimensions.Width, dimensions.Height);
             return new Layer(layerBuffer, GameService.Instance.GameInstance.TextureManager);
         }
