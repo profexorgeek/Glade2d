@@ -32,6 +32,5 @@
   <ItemGroup>
     <PackageReference Include="Meadow" Version="1.9.0.3" />
     <PackageReference Include="Meadow.Foundation.Graphics.MicroGraphics" Version="1.9.0.3" />
-    <PackageReference Include="Meadow.Units" Version="1.9.0.3" />
   </ItemGroup>
 </Project>

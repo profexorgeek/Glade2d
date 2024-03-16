@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<OutputType>Exe</OutputType>
 		<AssemblyName>App</AssemblyName>
@@ -10,8 +10,8 @@
 	<ItemGroup>
 	  <PackageReference Include="Meadow" Version="1.9.0.3" />
 	  <PackageReference Include="Meadow.Foundation" Version="1.9.0.3" />
+	  <PackageReference Include="Meadow.Foundation.Displays.Gtk" Version="1.9.0.3" />
 	  <PackageReference Include="Meadow.Foundation.Displays.MicroGraphics" Version="0.9.57" />
-	  <PackageReference Include="Meadow.Gtk" Version="0.31.0" />
 	  <PackageReference Include="Meadow.Linux" Version="1.9.0.3" />
 	  <PackageReference Include="Meadow.Simulation" Version="1.9.0.3" />
 	</ItemGroup>
