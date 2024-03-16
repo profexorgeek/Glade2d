@@ -3,7 +3,7 @@ using Glade2d;
 using Glade2d.Graphics;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;
-using Meadow.Foundation;
+using Meadow;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 

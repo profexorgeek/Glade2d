@@ -2,8 +2,9 @@
 using Glade2d.Services;
 using GladeSampleShared.Screens;
 using Meadow;
-using Meadow.Foundation.Graphics;
+using Meadow.Foundation;
 using Meadow.Graphics;
+using Meadow.Peripherals.Displays;
 using System.Threading.Tasks;
 
 namespace SampleGtk
@@ -25,7 +26,7 @@ namespace SampleGtk
         {
             LogService.Log.Level = Glade2d.Logging.LogLevel.Trace;
             LogService.Log.Trace("Beginning Meadow initialization...");
-            display = new GtkDisplay(240, 240, ColorType.Format16bppRgb565);
+            display = new GtkDisplay(240, 240, ColorMode.Format16bppRgb565);
             LogService.Log.Trace("Initialization complete");
             return base.Initialize();
         }

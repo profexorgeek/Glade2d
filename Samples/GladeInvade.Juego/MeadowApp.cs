@@ -11,13 +11,14 @@ using Meadow.Foundation.Graphics;
 using Meadow.Foundation.ICs.IOExpanders;
 using Meadow.Foundation.Sensors.Buttons;
 using Meadow.Hardware;
+using Meadow.Peripherals.Displays;
 using Meadow.Units;
 
 namespace GladeInvade.Juego;
 
 public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
 {
-    private IGraphicsDisplay _display = default!;
+    private IPixelDisplay _display = default!;
     private Mcp23008 _mcp1 = default!;
     private Mcp23008 _mcp2 = default!;
 

@@ -1,4 +1,7 @@
 ﻿using Glade2d;
+using Glade2d.Graphics.SelfRenderer;
+using Glade2d.Graphics;
+using Glade2d.Profiling;
 using Glade2d.Services;
 using Meadow;
 using Meadow.Devices;
@@ -22,7 +25,7 @@ namespace SampleInput
     // Change F7FeatherV2 to F7FeatherV1 for V1.x boards
     public class MeadowApp : App<F7FeatherV2>
     {
-        IGraphicsDisplay display;
+        IPixelDisplay display;
         RgbPwmLed onboardLed;
         Mcp23008 mcp;
         PushButton btnUp;
@@ -38,8 +41,7 @@ namespace SampleInput
         public override Task Initialize()
         {
             LogService.Log.Trace("Initializing...");
-            onboardLed = new RgbPwmLed(device: Device,
-                redPwmPin: Device.Pins.OnboardLedRed,
+            onboardLed = new RgbPwmLed(redPwmPin: Device.Pins.OnboardLedRed,
                 greenPwmPin: Device.Pins.OnboardLedGreen,
                 bluePwmPin: Device.Pins.OnboardLedBlue,
                 CommonType.CommonAnode);
@@ -60,14 +62,20 @@ namespace SampleInput
         {
             LogService.Log.Trace("Starting Glade2d...");
             glade = new Game();
-            glade.Initialize(display, 1, EngineMode.RenderOnDemand);
+            var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
+            var layerManager = new LayerManager();
+            var profiler = new Profiler();
+            var renderer = new GladeSelfRenderer(display, textureManager, layerManager, profiler, 2, RotationType._270Degrees);
+
+            glade.Initialize(renderer, textureManager, layerManager, profiler);
+
             glade.Start();
         }
 
         void InitializeMcp()
         {
             LogService.Log.Trace("Initializing MCP...");
-            var mcp_in = Device.CreateDigitalInputPort(
+            var mcp_in = Device.CreateDigitalInterruptPort(
                 Device.Pins.D09,
                 InterruptMode.EdgeRising,
                 ResistorMode.InternalPullDown);
@@ -102,7 +110,7 @@ namespace SampleInput
 
         void InitializeInput()
         {
-            var btnPort = mcp.CreateDigitalInputPort(mcp.Pins.GP0, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
+            var btnPort = mcp.CreateDigitalInterruptPort(mcp.Pins.GP0, InterruptMode.EdgeBoth, ResistorMode.InternalPullUp);
             btnUp = new PushButton(btnPort);
             btnUp.PressStarted += BtnUp_PressStarted;
             btnUp.PressEnded += BtnUp_PressEnded;
@@ -110,7 +118,7 @@ namespace SampleInput
 
         void InitializeAudio()
         {
-            speaker = new PiezoSpeaker(Device, Device.Pins.D11);
+            speaker = new PiezoSpeaker(Device.Pins.D11);
         }
 
         private void BtnUp_PressEnded(object sender, EventArgs e)

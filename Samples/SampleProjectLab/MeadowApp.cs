@@ -12,12 +12,13 @@ using System.Threading.Tasks;
 using Glade2d.Graphics;
 using Glade2d.Graphics.SelfRenderer;
 using Glade2d.Profiling;
+using Meadow.Peripherals.Displays;
 
 namespace SampleProjectLab
 {
     public class MeadowApp : App<F7FeatherV2>
     {
-        IGraphicsDisplay display;
+        IPixelDisplay display;
         Game glade;
 
         public override Task Run()

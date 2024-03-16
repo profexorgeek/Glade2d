@@ -4,7 +4,7 @@ using Glade2d.Graphics;
 using Glade2d.Input;
 using Glade2d.Screens;
 using Glade2d.Services;
-using Meadow.Foundation;
+using Meadow;
 using Meadow.Foundation.Graphics;
 
 namespace GladeQa.Shared.Screens;

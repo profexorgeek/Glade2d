@@ -8,13 +8,14 @@ using GladePlatformer.Shared;
 using Meadow;
 using Meadow.Devices;
 using Meadow.Foundation.Graphics;
+using Meadow.Peripherals.Displays;
 
 
 namespace GladePlatformer.ProjectLab;
 
 public class MeadowApp : App<F7FeatherV2>
 {
-    private IGraphicsDisplay _display = default!;
+    private IPixelDisplay _display = default!;
     private IProjectLabHardware _projectLab = default!;
     
     public override Task Initialize()

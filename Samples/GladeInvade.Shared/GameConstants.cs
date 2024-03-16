@@ -1,4 +1,4 @@
-﻿using Meadow.Foundation;
+﻿using Meadow;
 
 namespace GladeInvade.Shared;
 
@@ -15,15 +15,15 @@ public static class GameConstants
     /// <summary>
     /// The back buffer color and layer color
     /// </summary>
-    public static readonly Color BackgroundColor = new Meadow.Foundation.Color(48, 44, 46);
+    public static readonly Color BackgroundColor = new Color(48, 44, 46);
 
     /// <summary>
     /// The specific color to use for "red" text so it matches game palette
     /// </summary>
-    public static readonly Color RedTextColor = new Meadow.Foundation.Color(230, 72, 46);
+    public static readonly Color RedTextColor = new Color(230, 72, 46);
 
     /// <summary>
     /// The specific color to use for the "white" text (which is not pure white)
     /// </summary>
-    public static readonly Color WhiteTextColor = new Meadow.Foundation.Color(223, 246, 245);
+    public static readonly Color WhiteTextColor = new Color(223, 246, 245);
 }

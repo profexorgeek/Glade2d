@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 using Glade2d.Graphics.SelfRenderer.BufferTransferring;
 using Glade2d.Profiling;
 using Glade2d.Services;
-using Meadow.Foundation;
+using Meadow;
 using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
+using Meadow.Peripherals.Displays;
 
 namespace Glade2d.Graphics.SelfRenderer
 {
@@ -22,7 +23,7 @@ namespace Glade2d.Graphics.SelfRenderer
         private readonly Profiler _profiler;
         private readonly IBufferTransferrer _bufferTransferrer;
         private readonly IPixelBuffer _pixelBuffer;
-        private readonly IGraphicsDisplay _display;
+        private readonly IPixelDisplay _display;
 
         public int Height { get; }
 
@@ -38,7 +39,7 @@ namespace Glade2d.Graphics.SelfRenderer
         public int Scale { get; }
         public IFont CurrentFont { get; set; }
 
-        public GladeSelfRenderer(IGraphicsDisplay display, 
+        public GladeSelfRenderer(IPixelDisplay display, 
             TextureManager textureManager,
             LayerManager layerManager,
             Profiler profiler,
