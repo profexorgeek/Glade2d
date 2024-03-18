@@ -2,7 +2,7 @@
 using Glade2d.Screens;
 using Glade2d.Services;
 using GladePlatformer.Shared.Entities;
-using Meadow.Foundation;
+using Meadow;
 
 namespace GladePlatformer.Shared.Screens;
 

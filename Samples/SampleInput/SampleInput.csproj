@@ -6,10 +6,10 @@
     <AssemblyName>App</AssemblyName>
   </PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Meadow.F7" Version="0.94.2" />
-		<PackageReference Include="Meadow.Foundation" Version="0.94.2" />
-		<PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.94.2" />
-		<PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="0.94.2" />
+		<PackageReference Include="Meadow.F7" Version="1.9.0.3" />
+		<PackageReference Include="Meadow.Foundation" Version="1.9.0.3" />
+		<PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="1.9.0.3" />
+		<PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23xxx" Version="1.9.0.3" />
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />

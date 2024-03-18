@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Glade2d;
 using Glade2d.Graphics;
-using Meadow.Foundation;
+using Meadow;
 using Meadow.Foundation.Graphics;
 
 namespace GladeSampleShared.Screens

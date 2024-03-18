@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Meadow.Foundation;
+using Meadow;
 
 namespace Glade2d.Graphics;
 
