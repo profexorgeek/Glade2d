@@ -24,9 +24,9 @@ namespace GladeSampleShared.Screens
         private readonly ILayer _groundLayer;
         private readonly List<Cloud> _clouds = new List<Cloud>();
         private readonly Color _backgroundColor = new Color(57, 120, 168);
-        private readonly Vector2 _treeVelocity = new Vector2(-5, 0);
-        private readonly Vector2 _groundVelocity = new Vector2(-10, 0);
-        private readonly Vector2 _mountainVelocity = new Vector2(-2, 0);
+        private readonly Vector2 _treeVelocity = new Vector2(-10, 0);
+        private readonly Vector2 _groundVelocity = new Vector2(-20, 0);
+        private readonly Vector2 _mountainVelocity = new Vector2(-4, 0);
 
         public GladeDemoScreen()
         {

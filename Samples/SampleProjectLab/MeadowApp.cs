@@ -25,7 +25,7 @@ namespace SampleProjectLab
             var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
             var layerManager = new LayerManager();
             var profiler = new Profiler();
-            var renderer = new GladeSelfRenderer(display, textureManager, layerManager, profiler);
+            var renderer = new GladeSelfRenderer(display, textureManager, layerManager, profiler, 2);
             
             LogService.Log.Trace("Initializing Glade game engine...");
             glade = new Game();

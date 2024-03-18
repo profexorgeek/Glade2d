@@ -33,7 +33,7 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
         LogService.Log.Trace("Initializing Glade game engine...");
         var textureManager = new TextureManager(MeadowOS.FileSystem.UserFileSystemRoot);
         var layerManager = new LayerManager();
-        var profiler = new Profiler();
+        var profiler = new Profiler { IsActive = true };
         var renderer = new GladeSelfRenderer(_display, textureManager, layerManager, profiler, 2, RotationType._270Degrees);
         
         var glade = new Game();
@@ -83,7 +83,7 @@ public class MeadowApp : App<Meadow.Devices.F7CoreComputeV2>
             320,
             ColorMode.Format16bppRgb565);
 
-        ili9341.SetRotation(RotationType._90Degrees);
+        // ili9341.SetRotation(RotationType._90Degrees);
 
         _display = ili9341;
     }
