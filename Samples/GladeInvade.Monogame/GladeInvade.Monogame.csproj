@@ -8,10 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\MeadowMgTestEnvironment\MeadowMgTestEnvironment\MeadowMgTestEnvironment.csproj" />
       <ProjectReference Include="..\..\Glade2d\Glade2d.csproj" />
       <ProjectReference Include="..\GladeInvade.Shared\GladeInvade.Shared.csproj" />
       <PackageReference Include="Meadow.Foundation" Version="1.9.0.3" />
+      <PackageReference Include="MeadowMgTestEnvironment" Version="1.5.0" />
       <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
     </ItemGroup>
 

@@ -41,8 +41,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladePlatformer.Juego", "Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GladeInvade.Juego", "Samples\GladeInvade.Juego\GladeInvade.Juego.csproj", "{0C96B4A7-7BDC-4B1A-8A9E-B162D79432A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeadowMgTestEnvironment", "..\MeadowMgTestEnvironment\MeadowMgTestEnvironment\MeadowMgTestEnvironment.csproj", "{7CA6B0AC-CAD7-4508-BE4F-4228BD54FD97}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,10 +113,6 @@ Global
 		{0C96B4A7-7BDC-4B1A-8A9E-B162D79432A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C96B4A7-7BDC-4B1A-8A9E-B162D79432A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C96B4A7-7BDC-4B1A-8A9E-B162D79432A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CA6B0AC-CAD7-4508-BE4F-4228BD54FD97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CA6B0AC-CAD7-4508-BE4F-4228BD54FD97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CA6B0AC-CAD7-4508-BE4F-4228BD54FD97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CA6B0AC-CAD7-4508-BE4F-4228BD54FD97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
